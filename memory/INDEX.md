@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-15T21:09:03Z'
-note_count: 46
+generated: '2026-03-15T21:21:13Z'
+note_count: 47
 entities:
 - kai
 - oceanheart-ai
@@ -886,5 +886,21 @@ notes:
   hash: 88694fe410ee680a5f15d7f7763dee75e30a03410d559e72ed29c95962f153b0
   backlink_count: 0
   modified: '2026-03-15T21:08:53Z'
+  expires: null
+- id: 20260315-212104
+  file: memory/notes/20260315-212104-lexicon-mainstation-the-primary-workstation.md
+  title: 'Lexicon: mainstation - the primary workstation'
+  type: fact
+  tags:
+  - communication
+  - identity
+  - nanoclaw
+  entities:
+  - kai
+  summary: 'Mainstation (the cockpit): Kai''s primary workstation running Claude Code.
+    The control surface for NanoClaw development, ...'
+  hash: 942bf912668789e0fc7e844e0a115a8df3d2fa47720be9c4bc9d0c5c947e8588
+  backlink_count: 0
+  modified: '2026-03-15T21:21:04Z'
   expires: null
 ```
