@@ -1,4 +1,3 @@
-import https from 'https';
 import { Api, Bot } from 'grammy';
 
 import { ASSISTANT_NAME, TRIGGER_PATTERN } from '../config.js';
@@ -143,11 +142,7 @@ export class TelegramChannel implements Channel {
   }
 
   async connect(): Promise<void> {
-    this.bot = new Bot(this.botToken, {
-      client: {
-        baseFetchConfig: { agent: https.globalAgent, compress: true },
-      },
-    });
+    this.bot = new Bot(this.botToken);
 
     // Command to get chat ID (useful for registration)
     this.bot.command('chatid', (ctx) => {
@@ -303,14 +298,15 @@ export class TelegramChannel implements Channel {
     this.bot.on('message:location', (ctx) => storeNonText(ctx, '[Location]'));
     this.bot.on('message:contact', (ctx) => storeNonText(ctx, '[Contact]'));
 
-    // Handle errors gracefully
+    // Handle errors gracefully — log full error, not just message
     this.bot.catch((err) => {
-      logger.error({ err: err.message }, 'Telegram bot error');
+      logger.error({ err: err.error || err.message, ctx: err.ctx?.update?.update_id }, 'Telegram bot error');
     });
 
     // Start polling — returns a Promise that resolves when started
     return new Promise<void>((resolve) => {
       this.bot!.start({
+        allowed_updates: ['message', 'callback_query'],
         onStart: (botInfo) => {
           logger.info(
             { username: botInfo.username, id: botInfo.id },
