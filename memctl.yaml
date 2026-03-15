@@ -5,18 +5,48 @@ backlink_dir: ./memory/backlinks
 
 note:
   tags:
+    - anti-pattern
     - architecture
     - auth
     - blocker
+    - career
+    - communication
+    - contemplative
+    - context-engineering
     - database
     - deadline
+    - debt
     - decision
     - deployment
+    - engineering
+    - family
+    - finance
+    - freelance
+    - governance
+    - hci
+    - identity
     - infra
+    - job-search
+    - layer-model
+    - nanoclaw
     - person
     - postgres
+    - practice
+    - project
+    - relationship
     - resolved
     - security
+    - slopodar
+    - stack
+    - standing-order
+    - strategy
+    - the-pit
+    - verification
+    - vulnerability
+    - weaver
+    - wellbeing
+    - writing
+    - zen
   valid_types:
     - decision
     - fact
