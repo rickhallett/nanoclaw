@@ -1,4 +1,10 @@
+import dns from 'dns';
 import { Api, Bot } from 'grammy';
+
+// Force IPv4 for Telegram API. IPv6 long-poll connections silently stall
+// on some Linux network configurations (connection goes ESTAB with unsent
+// bytes in the send buffer, never recovers).
+dns.setDefaultResultOrder('ipv4first');
 
 import { ASSISTANT_NAME, TRIGGER_PATTERN } from '../config.js';
 import { readEnvFile } from '../env.js';
@@ -300,7 +306,10 @@ export class TelegramChannel implements Channel {
 
     // Handle errors gracefully — log full error, not just message
     this.bot.catch((err) => {
-      logger.error({ err: err.error || err.message, ctx: err.ctx?.update?.update_id }, 'Telegram bot error');
+      logger.error(
+        { err: err.error || err.message, ctx: err.ctx?.update?.update_id },
+        'Telegram bot error',
+      );
     });
 
     // Start polling — returns a Promise that resolves when started
