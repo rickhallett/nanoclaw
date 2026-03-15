@@ -1,0 +1,41 @@
+memory_dir: ./memory
+index_file: ./CLAUDE.md
+archive_dir: ./memory/archive
+backlink_dir: ./memory/backlinks
+
+note:
+  tags:
+    - architecture
+    - auth
+    - blocker
+    - database
+    - deadline
+    - decision
+    - deployment
+    - infra
+    - person
+    - postgres
+    - resolved
+    - security
+  valid_types:
+    - decision
+    - fact
+    - reference
+    - project
+    - person
+    - event
+  valid_confidence:
+    - high
+    - medium
+    - low
+
+index:
+  max_summary_chars: 120
+  hash_algorithm: sha256
+
+prune:
+  half_life_days: 30
+  min_score: 0.15
+  min_backlinks_to_exempt: 1
+  dry_run: true
+  tombstone_retention_days: 90
