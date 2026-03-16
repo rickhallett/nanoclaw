@@ -2,8 +2,22 @@
 
 These functions do NOT import other halos modules. They read filesystem
 artifacts directly: INDEX.md, MANIFEST.yaml, backlog items, run records.
+
+CONTRACT: memctl INDEX.md
+  YAML block after "## MEMORY_INDEX\\n```yaml\\n"
+  Required fields: note_count, notes[].type, notes[].modified, notes[].entities
+
+CONTRACT: todoctl backlog/items/*.yaml
+  Required fields: status, priority, tags, created
+
+CONTRACT: nightctl queue/MANIFEST.yaml
+  Required fields: job_count, pending, done, failed, jobs[].status, jobs[].created
+
+CONTRACT: nightctl queue/runs/*.yaml
+  Required fields: outcome (NOT status), started
 """
 import hashlib
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,14 +28,24 @@ import yaml
 
 
 def _parse_index_yaml(index_path: Path) -> dict:
-    """Extract the YAML block from memory/INDEX.md."""
+    """Extract the YAML block from memory/INDEX.md.
+
+    Searches for the specific ``## MEMORY_INDEX`` heading that memctl writes,
+    rather than matching any generic ``yaml`` code block.
+    """
     if not index_path.exists():
         return {}
     content = index_path.read_text()
-    start = content.find("```yaml\n")
+    marker = "## MEMORY_INDEX\n```yaml\n"
+    start = content.find(marker)
     if start == -1:
-        return {}
-    start += len("```yaml\n")
+        # Fallback: try the old generic pattern for backwards compat
+        start = content.find("```yaml\n")
+        if start == -1:
+            return {}
+        start += len("```yaml\n")
+    else:
+        start += len(marker)
     end = content.find("```", start)
     if end == -1:
         return {}
@@ -52,6 +76,10 @@ def collect_memctl(memctl_config_path: Path) -> dict:
 
     idx = _parse_index_yaml(index_file)
     if not idx:
+        if index_file.exists():
+            print(f"WARNING: memctl INDEX.md exists at {index_file} but could not "
+                  "be parsed — expected '## MEMORY_INDEX\\n```yaml\\n' block",
+                  file=sys.stderr)
         return result
 
     result["available"] = True
@@ -126,8 +154,14 @@ def collect_todoctl(todoctl_config_path: Path) -> dict:
             by_status[s] = by_status.get(s, 0) + 1
             p = data.get("priority", 3)
             by_priority[p] = by_priority.get(p, 0) + 1
-        except Exception:
-            pass
+        except Exception as exc:
+            print(f"WARNING: todoctl item {f} could not be parsed: {exc}",
+                  file=sys.stderr)
+
+    yaml_files = list(items_dir.glob("*.yaml"))
+    if yaml_files and total == 0:
+        print(f"WARNING: todoctl items_dir {items_dir} has {len(yaml_files)} "
+              "YAML files but none could be parsed", file=sys.stderr)
 
     result["total"] = total
     result["by_status"] = by_status
@@ -163,8 +197,18 @@ def collect_nightctl(nightctl_config_path: Path) -> dict:
         result["available"] = True
         return result
 
-    with open(manifest_file) as f:
-        manifest = yaml.safe_load(f) or {}
+    try:
+        with open(manifest_file) as f:
+            manifest = yaml.safe_load(f) or {}
+    except Exception as exc:
+        print(f"WARNING: nightctl MANIFEST.yaml at {manifest_file} exists but "
+              f"could not be parsed: {exc}", file=sys.stderr)
+        result["available"] = True
+        return result
+
+    if not isinstance(manifest.get("jobs"), list):
+        print(f"WARNING: nightctl MANIFEST.yaml at {manifest_file} missing or "
+              "invalid 'jobs' list", file=sys.stderr)
 
     result["available"] = True
     jobs = manifest.get("jobs", [])
