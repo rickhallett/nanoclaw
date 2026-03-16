@@ -14,7 +14,8 @@ from pathlib import Path
 from . import index as idxmod
 
 
-def build_graph(idx: idxmod.Index, include_entities: bool = True):
+def build_graph(idx: idxmod.Index, include_entities: bool = True,
+                noise_entities: set[str] | None = None):
     """Build a NetworkX DiGraph from the index.
 
     Nodes: notes (keyed by ID)
@@ -52,7 +53,7 @@ def build_graph(idx: idxmod.Index, include_entities: bool = True):
     _add_backlink_edges(G, idx)
 
     if include_entities:
-        _add_entity_edges(G, idx)
+        _add_entity_edges(G, idx, noise_entities=noise_entities)
 
     return G
 
@@ -74,9 +75,9 @@ def _add_backlink_edges(G, idx: idxmod.Index):
                 G.add_edge(bl_id, entry.id, edge_type="backlink", color="#888888", width=2)
 
 
-def _add_entity_edges(G, idx: idxmod.Index):
+def _add_entity_edges(G, idx: idxmod.Index, noise_entities: set[str] | None = None):
     """Add dashed edges between notes sharing non-trivial entities."""
-    NOISE = {"kai", "the-pit", "nanoclaw"}
+    NOISE = noise_entities or {"kai", "the-pit", "nanoclaw"}
 
     entity_to_ids: dict[str, list[str]] = {}
     for n in idx.notes:

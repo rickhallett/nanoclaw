@@ -95,10 +95,10 @@ def propose_links(cfg: cfgmod.Config, verbose: bool = False) -> list[dict]:
                 continue
 
             # Exclude tags/entities that are too broad to signal real connection
-            NOISE_TAGS = {"decision", "person", "nanoclaw", "the-pit", "identity", "standing-order"}
-            NOISE_ENTS = {"kai", "the-pit"}
-            shared_tags = set(a.tags) & set(b.tags) - NOISE_TAGS
-            shared_ents = set(a.entities) & set(b.entities) - NOISE_ENTS
+            noise_tags = set(cfg.enrich.noise_tags)
+            noise_ents = set(cfg.enrich.noise_entities)
+            shared_tags = set(a.tags) & set(b.tags) - noise_tags
+            shared_ents = set(a.entities) & set(b.entities) - noise_ents
 
             # Filter: already well-connected by metadata
             if len(shared_tags) >= 3:
@@ -155,7 +155,7 @@ def propose_links(cfg: cfgmod.Config, verbose: bool = False) -> list[dict]:
 
             total = semantic_bridge + cross_type + causal + cluster_value + recall
 
-            threshold = 5 if verbose else 7
+            threshold = cfg.enrich.verbose_threshold if verbose else cfg.enrich.default_threshold
             if total >= threshold:
                 proposals.append({
                     "score": total,

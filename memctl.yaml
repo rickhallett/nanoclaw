@@ -63,6 +63,20 @@ index:
   max_summary_chars: 120
   hash_algorithm: sha256
 
+enrich:
+  noise_tags:
+    - decision
+    - person
+    - nanoclaw
+    - the-pit
+    - identity
+    - standing-order
+  noise_entities:
+    - kai
+    - the-pit
+  default_threshold: 7
+  verbose_threshold: 5
+
 prune:
   half_life_days: 30
   min_score: 0.15

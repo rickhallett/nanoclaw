@@ -163,3 +163,64 @@ class TestNoiseTags:
         proposals = propose_links(cfg, verbose=False)
         # With no real shared metadata, semantic_bridge=0, score too low
         assert proposals == []
+
+    def test_custom_noise_tags_from_config(self, tmp_path):
+        """Changing noise_tags in config changes which tags are filtered."""
+        cfg = _make_cfg(tmp_path)
+        # "alpha" is NOT noise by default, so sharing it creates a real link
+        entries = [
+            _make_entry("a", "person", ["alpha", "ops"], ["shared-ent"],
+                        backlink_count=1),
+            _make_entry("b", "decision", ["alpha", "policy"], ["shared-ent"],
+                        backlink_count=1),
+        ]
+        _write_index(cfg, entries)
+        _write_note_files(cfg, entries)
+
+        # With default config, "alpha" counts as shared — proposals expected
+        proposals_default = propose_links(cfg, verbose=True)
+        assert len(proposals_default) > 0
+
+        # Now add "alpha" to noise_tags — it should be filtered out
+        cfg.enrich.noise_tags.append("alpha")
+        # Also add "shared-ent" to noise_entities so no metadata overlap remains
+        cfg.enrich.noise_entities.append("shared-ent")
+        proposals_custom = propose_links(cfg, verbose=True)
+        # With all shared metadata now noise, semantic_bridge=0, score drops
+        assert len(proposals_custom) < len(proposals_default) or proposals_custom == []
+
+
+class TestEnrichConfigLoading:
+    def test_enrich_section_loaded_from_yaml(self, tmp_path):
+        """Verify the enrich section is parsed from memctl.yaml."""
+        yaml_content = {
+            "memory_dir": str(tmp_path / "memory"),
+            "index_file": str(tmp_path / "memory" / "INDEX.md"),
+            "enrich": {
+                "noise_tags": ["foo", "bar"],
+                "noise_entities": ["baz"],
+                "default_threshold": 8,
+                "verbose_threshold": 4,
+            },
+        }
+        cfg_file = tmp_path / "memctl.yaml"
+        cfg_file.write_text(yaml.dump(yaml_content))
+        cfg = cfgmod.load(str(cfg_file))
+        assert cfg.enrich.noise_tags == ["foo", "bar"]
+        assert cfg.enrich.noise_entities == ["baz"]
+        assert cfg.enrich.default_threshold == 8
+        assert cfg.enrich.verbose_threshold == 4
+
+    def test_enrich_defaults_when_section_absent(self, tmp_path):
+        """When no enrich section in yaml, defaults are used."""
+        yaml_content = {
+            "memory_dir": str(tmp_path / "memory"),
+            "index_file": str(tmp_path / "memory" / "INDEX.md"),
+        }
+        cfg_file = tmp_path / "memctl.yaml"
+        cfg_file.write_text(yaml.dump(yaml_content))
+        cfg = cfgmod.load(str(cfg_file))
+        assert "identity" in cfg.enrich.noise_tags
+        assert "kai" in cfg.enrich.noise_entities
+        assert cfg.enrich.default_threshold == 7
+        assert cfg.enrich.verbose_threshold == 5

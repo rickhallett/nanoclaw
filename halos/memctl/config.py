@@ -22,6 +22,18 @@ class IndexConfig:
 
 
 @dataclass
+class EnrichConfig:
+    noise_tags: list[str] = field(default_factory=lambda: [
+        "decision", "person", "nanoclaw", "the-pit", "identity", "standing-order",
+    ])
+    noise_entities: list[str] = field(default_factory=lambda: [
+        "kai", "the-pit",
+    ])
+    default_threshold: int = 7
+    verbose_threshold: int = 5
+
+
+@dataclass
 class PruneConfig:
     half_life_days: int = 30
     min_score: float = 0.15
@@ -38,6 +50,7 @@ class Config:
     backlink_dir: str = ""
     note: NoteConfig = field(default_factory=NoteConfig)
     index: IndexConfig = field(default_factory=IndexConfig)
+    enrich: EnrichConfig = field(default_factory=EnrichConfig)
     prune: PruneConfig = field(default_factory=PruneConfig)
 
     def __post_init__(self):
@@ -75,6 +88,15 @@ def load(path: str = "") -> Config:
         hash_algorithm=idx_raw.get("hash_algorithm", "sha256"),
     )
 
+    enrich_raw = raw.get("enrich", {})
+    enrich_defaults = EnrichConfig()
+    enrich = EnrichConfig(
+        noise_tags=enrich_raw.get("noise_tags", enrich_defaults.noise_tags),
+        noise_entities=enrich_raw.get("noise_entities", enrich_defaults.noise_entities),
+        default_threshold=enrich_raw.get("default_threshold", enrich_defaults.default_threshold),
+        verbose_threshold=enrich_raw.get("verbose_threshold", enrich_defaults.verbose_threshold),
+    )
+
     prune_raw = raw.get("prune", {})
     prune = PruneConfig(
         half_life_days=prune_raw.get("half_life_days", 30),
@@ -91,5 +113,6 @@ def load(path: str = "") -> Config:
         backlink_dir=raw.get("backlink_dir", ""),
         note=note,
         index=index,
+        enrich=enrich,
         prune=prune,
     )
