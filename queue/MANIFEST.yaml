@@ -1,0 +1,18 @@
+generated: '2026-03-16T03:10:00Z'
+job_count: 1
+pending: 1
+done: 0
+failed: 0
+jobs:
+- id: 20260316-031000-04c7d66c
+  file: /home/mrkai/code/nanoclaw/queue/jobs/20260316-031000-04c7d66c-research-halos-module-brainstorm.yaml
+  title: 'Research: halOS module brainstorm'
+  schedule: overnight
+  priority: 2
+  status: pending
+  tags:
+  - halos
+  - architecture
+  depends_on: []
+  created: '2026-03-16T03:10:00Z'
+  hash: 63cdda5dea028de01ae08b8aa4ecbcb3495fcc27d550587fa26a698c75d13c6d
