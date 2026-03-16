@@ -40,12 +40,27 @@ Files you create are saved in `/workspace/group/`. Use this for notes, research,
 
 ## Memory
 
-The `conversations/` folder contains searchable history of past conversations. Use this to recall context from previous sessions.
+### Structured Memory (memctl)
 
-When you learn something important:
-- Create files for structured data (e.g., `customers.md`, `preferences.md`)
-- Split files larger than 500 lines into folders
-- Keep an index in your memory for the files you create
+Durable knowledge is stored via memctl. The index is at `/workspace/project/memory/INDEX.md`.
+
+To read: scan the MEMORY_INDEX yaml block for candidates by entity, tag, or type. Load only matching note files.
+
+To write:
+```
+cd /workspace/project && python3 tools/memctl/memctl new \
+  --title "Short factual title" \
+  --type fact \
+  --tags tag1,tag2 \
+  --body "Single claim."
+```
+
+One claim per note. type=decision notes are authoritative. confidence=low notes should be stated with uncertainty.
+Do not hand-edit note files or INDEX.md. Do not prune or archive notes.
+
+### Conversation History
+
+The `conversations/` folder contains searchable history of past conversations. Use this to recall context from previous sessions.
 
 ## Message Formatting
 

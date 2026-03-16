@@ -87,6 +87,17 @@ function buildVolumeMounts(
       });
     }
 
+    // Memory directory — writable overlay on the read-only project mount.
+    // Allows the agent to write notes via memctl without write access to source code.
+    const memoryDir = path.join(projectRoot, 'memory');
+    fs.mkdirSync(path.join(memoryDir, 'notes'), { recursive: true });
+    fs.mkdirSync(path.join(memoryDir, 'archive'), { recursive: true });
+    mounts.push({
+      hostPath: memoryDir,
+      containerPath: '/workspace/project/memory',
+      readonly: false,
+    });
+
     // Main also gets its group folder as the working directory
     mounts.push({
       hostPath: groupDir,
@@ -108,6 +119,32 @@ function buildVolumeMounts(
       mounts.push({
         hostPath: globalDir,
         containerPath: '/workspace/global',
+        readonly: true,
+      });
+    }
+
+    // Memory directory — writable so non-main agents can also write notes.
+    // memctl binary + config mounted read-only alongside.
+    const memoryDir = path.join(projectRoot, 'memory');
+    fs.mkdirSync(path.join(memoryDir, 'notes'), { recursive: true });
+    mounts.push({
+      hostPath: memoryDir,
+      containerPath: '/workspace/project/memory',
+      readonly: false,
+    });
+    const memctlDir = path.join(projectRoot, 'tools', 'memctl');
+    if (fs.existsSync(memctlDir)) {
+      mounts.push({
+        hostPath: memctlDir,
+        containerPath: '/workspace/project/tools/memctl',
+        readonly: true,
+      });
+    }
+    const memctlConfig = path.join(projectRoot, 'memctl.yaml');
+    if (fs.existsSync(memctlConfig)) {
+      mounts.push({
+        hostPath: memctlConfig,
+        containerPath: '/workspace/project/memctl.yaml',
         readonly: true,
       });
     }
