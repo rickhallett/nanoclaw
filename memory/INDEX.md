@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-16T06:55:10Z'
-note_count: 48
+generated: '2026-03-16T07:18:04Z'
+note_count: 57
 entities:
 - kai
 - oceanheart-ai
@@ -919,5 +919,148 @@ notes:
   hash: 9983b09648f0926fdc78fa5cccc068d5ae3280fb5db799094ba53a30c4c9ac8a
   backlink_count: 0
   modified: '2026-03-16T06:55:10Z'
+  expires: null
+- id: 20260316-071746-259
+  file: memory/notes/20260316-071746-259-directed-ownership-the-third-thing-in-software.md
+  title: Directed ownership - the third thing in software
+  type: fact
+  tags:
+  - identity
+  - career
+  - engineering
+  entities:
+  - kai
+  summary: '60k LOC not written but deeply owned. No historical equivalent: previous
+    generations wrote it and owned it, or inherited...'
+  hash: b5f397f85930652f06330c060b44d1c91410646eed5393f38cd5f7d107ad95ed
+  backlink_count: 0
+  modified: '2026-03-16T07:17:46Z'
+  expires: null
+- id: 20260316-071746-566
+  file: memory/notes/20260316-071746-566-senior-vs-lead-transition-inverted-path.md
+  title: Senior vs Lead transition - inverted path
+  type: fact
+  tags:
+  - career
+  - identity
+  - strategy
+  entities:
+  - kai
+  summary: Seniors solve hard problems. Leads decide which problems to solve and in
+    what order. Algorithmic line-fu drops off at th...
+  hash: eecef9eaf17aae96101458e4f31f30ce0270be9a7b748480486b0addd72d1516
+  backlink_count: 0
+  modified: '2026-03-16T07:17:46Z'
+  expires: null
+- id: 20260316-071746-871
+  file: memory/notes/20260316-071746-871-deskilling-spiral-was-a-misdiagnosis.md
+  title: Deskilling spiral was a misdiagnosis
+  type: fact
+  tags:
+  - vulnerability
+  - career
+  - identity
+  entities:
+  - kai
+  summary: The gap was not lacking fundamentals but lacking confidence that fundamentals
+    were sufficient. Different problem, differ...
+  hash: e52fae54012db08ddfaa2d837daed6c3d17b2997b3cc1ea1413af59ec2e215b1
+  backlink_count: 0
+  modified: '2026-03-16T07:17:46Z'
+  expires: null
+- id: 20260316-071747-177
+  file: memory/notes/20260316-071747-177-five-layer-codebase-review-strategy.md
+  title: Five-layer codebase review strategy
+  type: reference
+  tags:
+  - engineering
+  - architecture
+  - the-pit
+  entities:
+  - kai
+  summary: 'Ordered high-to-low altitude. Layer 1: dependency and boundary map (circular
+    deps, modules that know too much). Layer 2:...'
+  hash: ad575ff4106f31d0e5e3a005111868adc3e3f5c30ba0a0c3745e0bd17561d791
+  backlink_count: 0
+  modified: '2026-03-16T07:17:47Z'
+  expires: null
+- id: 20260316-071747-485
+  file: memory/notes/20260316-071747-485-naming-converts-exposure-into-transferable-judgment.md
+  title: Naming converts exposure into transferable judgment
+  type: fact
+  tags:
+  - slopodar
+  - engineering
+  - communication
+  entities:
+  - kai
+  summary: 'Every time you spot something off, articulate exactly what the smell is
+    and why. Without naming: intuition that works bu...'
+  hash: 776585a52e356abf37c91856eac43021d15ae56ac2c82697c4b9b80e9b80614c
+  backlink_count: 0
+  modified: '2026-03-16T07:17:47Z'
+  expires: null
+- id: 20260316-071747-792
+  file: memory/notes/20260316-071747-792-architecture-post-mortem-sources-borrowed-scar-tissue.md
+  title: Architecture post-mortem sources - borrowed scar tissue
+  type: reference
+  tags:
+  - engineering
+  - architecture
+  entities:
+  - kai
+  summary: SRE Book (Google, free online), Architecture of Open Source Applications
+    (aosabook.org, free), Increment (Stripe), DORA ...
+  hash: 91460bf2a51123d40e258d1592a51c49e643a02637a6e8538e06c0f42864d4bf
+  backlink_count: 0
+  modified: '2026-03-16T07:17:47Z'
+  expires: null
+- id: 20260316-071748-104
+  file: memory/notes/20260316-071748-104-box-of-scraps-anxiety-anchor-for-capability-fear.md
+  title: Box of scraps - anxiety anchor for capability fear
+  type: fact
+  tags:
+  - vulnerability
+  - wellbeing
+  - identity
+  entities:
+  - kai
+  summary: 'You do not need to be the person who can rebuild this in a cave from nothing
+    but a box of scraps. Named anxiety: the fea...'
+  hash: 5dd3a782f1747f53697882fad84c52249fb59f63b08f8e3072c07bdc41dbad62
+  backlink_count: 0
+  modified: '2026-03-16T07:17:48Z'
+  expires: null
+- id: 20260316-071748-412
+  file: memory/notes/20260316-071748-412-anthropology-analogy-for-ai-era-skill-development.md
+  title: Anthropology analogy for AI-era skill development
+  type: fact
+  tags:
+  - identity
+  - career
+  - engineering
+  entities:
+  - kai
+  summary: If your goal is to be a great anthropologist and you have outsourced much
+    of the statistical calculation, where you trul...
+  hash: a3836ac578016285aa79c473096ea97fe6b90620d27abd3515833620a07fa5d9
+  backlink_count: 0
+  modified: '2026-03-16T07:17:48Z'
+  expires: null
+- id: 20260316-071748-724
+  file: memory/notes/20260316-071748-724-llm-paired-review-gets-70-80-percent-of-taste.md
+  title: LLM-paired review gets 70-80 percent of taste
+  type: fact
+  tags:
+  - engineering
+  - hci
+  - slopodar
+  entities:
+  - kai
+  summary: Reading and writing are distinct abilities. Taste development depends more
+    on reading. LLM-paired review provides enormo...
+  hash: 152b6fdcee941b6fd28b8b903c78891162c1e0b5caf110618be8cbcbaa94c089
+  backlink_count: 0
+  modified: '2026-03-16T07:17:48Z'
   expires: null
 ```
