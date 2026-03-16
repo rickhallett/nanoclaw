@@ -48,7 +48,7 @@ To read: scan the MEMORY_INDEX yaml block for candidates by entity, tag, or type
 
 To write:
 ```
-cd /workspace/project && python3 tools/memctl/memctl new \
+cd /workspace/project && memctl new \
   --title "Short factual title" \
   --type fact \
   --tags tag1,tag2 \
@@ -58,9 +58,42 @@ cd /workspace/project && python3 tools/memctl/memctl new \
 One claim per note. type=decision notes are authoritative. confidence=low notes should be stated with uncertainty.
 Do not hand-edit note files or INDEX.md. Do not prune or archive notes.
 
+### After Writing a Note
+
+Every time you create a note, run:
+```
+cd /workspace/project && memctl enrich
+```
+If proposals appear, present them to Kai in muster format (numbered, one line each, Y/N column).
+If Kai approves any, execute the links immediately via `memctl link --from X --to Y`.
+
+This is not optional. The graph only gains edges through this protocol.
+
+### Conversation Extraction Protocol
+
+When Kai pastes a conversation transcript (typically `<C>` for his messages, `<X>` for the other party), extract durable claims using this threshold:
+
+*Write as notes (high salience):*
+- Identity-level insights (how Kai sees himself, his role, his path)
+- Named anxiety anchors (recurring fears given a label for defusion)
+- Standing decisions or principles that should persist across sessions
+- Reference material (sources, strategies, frameworks worth retrieving later)
+- Verbatim analogies Kai explicitly values (he will say so)
+
+*Do not write (below threshold):*
+- Compliments and social pleasantries
+- Transient event details (specific interview dates, times)
+- Decorative metaphors (unless Kai flags them as worth keeping)
+- Coaching advice that restates what a note already captures
+- Emotional texture that isn't a durable claim
+
+When uncertain, ask. Present candidates with your reasoning and let Kai decide.
+
+After extraction, run `memctl enrich` and present any link proposals.
+
 ### Conversation History
 
-The `conversations/` folder contains searchable history of past conversations. Use this to recall context from previous sessions.
+The `conversations/` folder in `/workspace/group/` contains searchable history of past conversations.
 
 ## Message Formatting
 
