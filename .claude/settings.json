@@ -1,1 +1,15 @@
-{}
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '>>> Code changed. Run adversarial review before marking done: /agents adversarial-reviewer'"
+          }
+        ]
+      }
+    ]
+  }
+}

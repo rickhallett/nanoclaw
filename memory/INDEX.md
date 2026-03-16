@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-16T13:34:56Z'
-note_count: 77
+generated: '2026-03-16T14:33:21Z'
+note_count: 78
 entities:
 - kai
 - oceanheart-ai
@@ -482,9 +482,9 @@ notes:
   - the-pit
   summary: 'Defect survival probability = product of survival probability at each
     independent gate. Four layers: (1) local quality g...'
-  hash: 3d5fcd343368f48212d58e6088c596a2c4f32c549bb95d97994ece2135fe0369
-  backlink_count: 3
-  modified: '2026-03-16T13:34:56Z'
+  hash: d83f6e12539dc6bc33be8f3744b82651109e14f3f202e3212618b0bb4c0abf21
+  backlink_count: 4
+  modified: '2026-03-16T14:33:21Z'
   expires: null
 - id: 20260315-205918
   file: memory/notes/20260315-205918-slopodar-taxonomy-49-named-anti-patterns.md
@@ -917,9 +917,9 @@ notes:
   - kai
   summary: All halOS modules must handle unhappy paths defensively. LLMs are probabilistic;
     the unhappy path is a question of time....
-  hash: 7a130cc3d281765a85c01fe9053531b4f4225c2589681f47a215ee7efabb3203
-  backlink_count: 1
-  modified: '2026-03-16T13:34:56Z'
+  hash: c42ff4008d5106668e95a1d36906a351139f768b1cd5a0bcdafa0ab795283a32
+  backlink_count: 2
+  modified: '2026-03-16T14:33:21Z'
   expires: null
 - id: 20260316-071746-259
   file: memory/notes/20260316-071746-259-directed-ownership-the-third-thing-in-software.md
@@ -1374,5 +1374,22 @@ notes:
   hash: 8118d34fd3891d9c7c138ce1483ad2079c9ae43df7546ff7617c23948bd1a4ee
   backlink_count: 0
   modified: '2026-03-16T13:34:02Z'
+  expires: null
+- id: 20260316-143309-091
+  file: memory/notes/20260316-143309-091-definition-of-done-behavioural-verification-required.md
+  title: Definition of Done - behavioural verification required
+  type: decision
+  tags:
+  - standing-order
+  - governance
+  - verification
+  - decision
+  entities:
+  - kai
+  summary: 'Code is not done until: (1) all acceptance criteria have passing tests,
+    (2) behavioural verification passes - correct ou...'
+  hash: 716b58c4677bc1b57fc4185195e286cc8f00b0dc3dbac7a0ff2429ced2dd054e
+  backlink_count: 0
+  modified: '2026-03-16T14:33:09Z'
   expires: null
 ```
