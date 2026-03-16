@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-16T10:31:57Z'
-note_count: 60
+generated: '2026-03-16T12:54:23Z'
+note_count: 72
 entities:
 - kai
 - oceanheart-ai
@@ -68,6 +68,7 @@ entities:
 - the-pit
 - weaver
 - telesoft
+- nanoclaw
 tag_vocabulary:
 - anti-pattern
 - architecture
@@ -516,9 +517,9 @@ notes:
   - the-pit
   summary: 'Bottom-up data flow, top-down control: L0 Weights (frozen), L1 Tokenisation
     (budget finite), L2 Attention (O(n^2), not o...'
-  hash: 38079951d7156c80d16005cc24c3b871a3dff133be75aa63bb6cb7763a21e44d
-  backlink_count: 0
-  modified: '2026-03-15T20:59:19Z'
+  hash: 8df0344dac14e1ea8dd3685f1930c63724c8e0e29f25fb7afd1d6c8eb06ad0f9
+  backlink_count: 1
+  modified: '2026-03-16T12:54:02Z'
   expires: null
 - id: 20260315-205920
   file: memory/notes/20260315-205920-context-engineering-working-set-and-pressure-zones.md
@@ -669,9 +670,9 @@ notes:
   - the-pit
   summary: 'Two-day eval of multi-agent orchestration (SD-326): manual single-agent
     with verification pipeline = 40 PRs/day. Autonom...'
-  hash: 9fdf87b1033c1c4737394b7623176bb3138d2214633b42dc64c968c1ef83bd26
-  backlink_count: 0
-  modified: '2026-03-15T21:00:19Z'
+  hash: 9b41a1700461eb6f98d7e73efab36811b13346db374d95ba8eca064238418d6a
+  backlink_count: 2
+  modified: '2026-03-16T12:54:02Z'
   expires: null
 - id: 20260315-210020
   file: memory/notes/20260315-210020-the-gate-is-survival-everything-else-is-optimisation.md
@@ -704,9 +705,9 @@ notes:
   - the-pit
   summary: The failure mode taxonomy, verification pipeline, and operational controls
     may be worth more than the code. Learning in ...
-  hash: 0a8195241b201b54b4e51fb12eee36e99fc579f0c214342ac4e2ae16ba8da9da
-  backlink_count: 1
-  modified: '2026-03-16T07:37:23Z'
+  hash: 28a3d2d499ae1edbec2af9a9640408834d15b6b6b850abc1d14092b751c24aa8
+  backlink_count: 5
+  modified: '2026-03-16T12:54:23Z'
   expires: null
 - id: 20260315-210022
   file: memory/notes/20260315-210022-vulnerability-cognitive-deskilling-from-ai-delegation.md
@@ -721,9 +722,9 @@ notes:
   - kai
   summary: 'SD-327: Kai paused The Pit for 6 weeks because manual coding and system
     design fluency atrophied after 2 months of AI-as...'
-  hash: c0429fa9d50db24c75607a99d1470f87459af9ae767f4aeac489d81d0415f016
-  backlink_count: 2
-  modified: '2026-03-16T07:37:22Z'
+  hash: 5854f430c1616b8c6d1b7876e8b273b01869d7e4f69046e34699b1c9db0b6469
+  backlink_count: 3
+  modified: '2026-03-16T12:54:01Z'
   expires: null
 - id: 20260315-210023
   file: memory/notes/20260315-210023-vulnerability-governance-recursion.md
@@ -948,9 +949,9 @@ notes:
   - kai
   summary: Seniors solve hard problems. Leads decide which problems to solve and in
     what order. Algorithmic line-fu drops off at th...
-  hash: c37ebd0f865282881dcf7353636e6e199e7c667a805d32aca4ff534f5e6736ae
-  backlink_count: 1
-  modified: '2026-03-16T07:37:22Z'
+  hash: 0549974353893bb33c81692b16a7f123533a7da9e61491bf55cb21fbb1727d6c
+  backlink_count: 3
+  modified: '2026-03-16T12:54:22Z'
   expires: null
 - id: 20260316-071746-871
   file: memory/notes/20260316-071746-871-deskilling-spiral-was-a-misdiagnosis.md
@@ -964,9 +965,9 @@ notes:
   - kai
   summary: The gap was not lacking fundamentals but lacking confidence that fundamentals
     were sufficient. Different problem, differ...
-  hash: 1630b3054439c10a39204a069f9f55f334d66c76901cc588628f98545dbe2dc9
-  backlink_count: 2
-  modified: '2026-03-16T07:37:23Z'
+  hash: 6dd619177b54e37974be5785a44f988f11065a4150c34e4d8e1863eefec12f0d
+  backlink_count: 3
+  modified: '2026-03-16T12:54:22Z'
   expires: null
 - id: 20260316-071747-177
   file: memory/notes/20260316-071747-177-five-layer-codebase-review-strategy.md
@@ -1111,5 +1112,187 @@ notes:
   hash: 5b4840b7bdedc0917b19df047fe37b4b2ff6558daa20301f9d16902a268c9ebf
   backlink_count: 0
   modified: '2026-03-16T10:31:40Z'
+  expires: null
+- id: 20260316-125341-775
+  file: memory/notes/20260316-125341-775-p-g-study-individual-plus-ai-produces-3x-top-10-ideas.md
+  title: 'P&G study: individual plus AI produces 3x top-10% ideas'
+  type: fact
+  tags:
+  - engineering
+  - hci
+  summary: Harvard Business School field experiment, 776 professionals at Procter
+    & Gamble. Individuals with AI were 3x more likely...
+  hash: da3d7be58198c2bb59eeb83d1dbd0db80079b1ae5cf1d2e35251f88e534f8353
+  backlink_count: 0
+  modified: '2026-03-16T12:53:41Z'
+  expires: null
+- id: 20260316-125342-098
+  file: memory/notes/20260316-125342-098-taste-conviction-feedback-loop.md
+  title: Taste-conviction feedback loop
+  type: fact
+  tags:
+  - identity
+  - career
+  - strategy
+  summary: 'Taste evaluates. Conviction ships. They form a feedback loop: ship against
+    your taste, get real feedback, update your ta...'
+  hash: 30bb98744ea04b9e0bfa06dead2a7e1bb2416e82d137b70dd6bbbcb186aa9a37
+  backlink_count: 0
+  modified: '2026-03-16T12:53:42Z'
+  expires: null
+- id: 20260316-125342-420
+  file: memory/notes/20260316-125342-420-speed-of-control-matters-more-than-span-of-control.md
+  title: Speed of control matters more than span of control
+  type: fact
+  tags:
+  - hci
+  - governance
+  - strategy
+  summary: The number of agents you manage matters less than how fast you can triage
+    and make high-quality decisions. The constrain...
+  hash: c67fc1c36cdf7a3a0379cb700c496a6874b27bed5569eb3e576b1dd1127a400d
+  backlink_count: 0
+  modified: '2026-03-16T12:53:42Z'
+  expires: null
+- id: 20260316-125342-761
+  file: memory/notes/20260316-125342-761-averaging-cost-more-heads-in-the-room-means-more-average-out.md
+  title: Averaging cost - more heads in the room means more average output
+  type: fact
+  tags:
+  - governance
+  - communication
+  summary: The more people involved in a decision, the more average it tends to get,
+    unless extraordinary measures ensure decisiven...
+  hash: 85052e03498e89c49a5efce99a753a3d9a2747324a904c0bc3e042df09dcaacf
+  backlink_count: 0
+  modified: '2026-03-16T12:53:42Z'
+  expires: null
+- id: 20260316-125343-117
+  file: memory/notes/20260316-125343-117-ai-compresses-the-experience-curve-2yr-ai-native-may-equal-8.md
+  title: AI compresses the experience curve - 2yr AI-native may equal 8yr traditional
+  type: fact
+  tags:
+  - career
+  - hci
+  entities:
+  - kai
+  summary: The taste-conviction loop running faster means judgment density accumulates
+    faster. 2 years of AI-native building may pr...
+  hash: 46f1bb1c1ac030b3bf6e4bec9a192dcfe2091b5f32029ef8d5bddf8af1bb4c32
+  backlink_count: 0
+  modified: '2026-03-16T12:53:43Z'
+  expires: null
+- id: 20260316-125343-467
+  file: memory/notes/20260316-125343-467-coordination-as-proxy-ai-stands-in-for-cross-functional-meet.md
+  title: 'Coordination-as-proxy: AI stands in for cross-functional meetings'
+  type: fact
+  tags:
+  - architecture
+  - hci
+  entities:
+  - kai
+  summary: AI acts as a stand-in for the cross-functional perspective normally obtained
+    through meetings. An engineer gets commerci...
+  hash: 564b5f48c2fc548a03de9737ece3f8aa294694c9892670ddba487d8f9a6d43d7
+  backlink_count: 0
+  modified: '2026-03-16T12:53:43Z'
+  expires: null
+- id: 20260316-125343-800
+  file: memory/notes/20260316-125343-800-observation-24-hour-autonomous-agent-arcs-do-not-exist-yet.md
+  title: 'Observation: 24-hour autonomous agent arcs do not exist yet'
+  type: fact
+  tags:
+  - governance
+  - architecture
+  - hci
+  entities:
+  - kai
+  summary: 'Observation based on direct experience: the narrative of agents working
+    autonomously overnight is actually batch jobs wi...'
+  hash: d1c060310d27334150534591315ab411cf4858349b0c77dc8d4cc881aa687575
+  backlink_count: 0
+  modified: '2026-03-16T12:53:43Z'
+  expires: null
+- id: 20260316-125344-126
+  file: memory/notes/20260316-125344-126-sd-326-reconfirmed-swarm-narrative-contradicted-by-empirical.md
+  title: 'SD-326 reconfirmed: swarm narrative contradicted by empirical data'
+  type: fact
+  tags:
+  - the-pit
+  - governance
+  - verification
+  entities:
+  - kai
+  - the-pit
+  summary: The solo-founder-with-dozens-of-agents narrative is contradicted by SD-326
+    empirical data. Manual single-agent with veri...
+  hash: d57d0ae5f0b63d0c48d7ecc4132dad5208f433a1107f25fc69f37150a7502a31
+  backlink_count: 0
+  modified: '2026-03-16T12:53:44Z'
+  expires: null
+- id: 20260316-125344-456
+  file: memory/notes/20260316-125344-456-framework-judgment-density-as-talent-signal.md
+  title: 'Framework: judgment density as talent signal'
+  type: fact
+  tags:
+  - career
+  - hci
+  - identity
+  entities:
+  - kai
+  summary: How much relevant pattern recognition does this person carry? Are they
+    calibrated to current conditions? Can they distin...
+  hash: 214f0d970cf341c5d83b6eabb0eead3991d277ec46eacb0416a4e123667b0433
+  backlink_count: 0
+  modified: '2026-03-16T12:53:44Z'
+  expires: null
+- id: 20260316-125344-792
+  file: memory/notes/20260316-125344-792-framework-conviction-velocity-as-talent-signal.md
+  title: 'Framework: conviction velocity as talent signal'
+  type: fact
+  tags:
+  - career
+  - hci
+  - identity
+  entities:
+  - kai
+  summary: The instinct to act quickly on a pattern you recognise. Not 'I must act
+    because I have to' but 'I must act because I thi...
+  hash: 092bce66cdda35452c687c2dd1f661259597cc184273ca4d438a547bb2c2d1a7
+  backlink_count: 0
+  modified: '2026-03-16T12:53:44Z'
+  expires: null
+- id: 20260316-125345-121
+  file: memory/notes/20260316-125345-121-framework-execution-bandwidth-as-talent-signal.md
+  title: 'Framework: execution bandwidth as talent signal'
+  type: fact
+  tags:
+  - career
+  - hci
+  - identity
+  entities:
+  - kai
+  summary: Capacity to manage and decide at volume. Foundational to the higher-order
+    skill of allocating attention where it matters...
+  hash: 1d118f699a1d7405773e9a5f00254f84cc207b85029d382af45717c81c82a125
+  backlink_count: 0
+  modified: '2026-03-16T12:53:45Z'
+  expires: null
+- id: 20260316-125345-448
+  file: memory/notes/20260316-125345-448-observation-halos-is-what-solo-founder-agent-stacks-actually.md
+  title: 'Observation: halos is what solo founder agent stacks actually look like'
+  type: fact
+  tags:
+  - halos
+  - architecture
+  - strategy
+  entities:
+  - kai
+  - nanoclaw
+  summary: 'Observation: the solo-founder-with-AI-agents narrative describes the halos
+    architecture with better marketing. Scheduled...'
+  hash: 5538abbb9108789c4a7039f8bdd0a9ced0439fd7321b77118b0e06bb56bcb5ae
+  backlink_count: 0
+  modified: '2026-03-16T12:53:45Z'
   expires: null
 ```
