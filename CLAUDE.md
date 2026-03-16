@@ -42,6 +42,16 @@ All agent tooling lives in the `halos/` Python package with console_scripts entr
 | reportctl | `reportctl` | Periodic digests from halos ecosystem |
 | agentctl | `agentctl` | LLM session tracking and spin detection |
 
+## Agents & Commands
+
+| Name | Type | File | Purpose |
+|------|------|------|---------|
+| adversarial-reviewer | agent | `.claude/agents/adversarial-reviewer.md` | Finds bugs after code changes (PostToolUse hook nudges) |
+| strategic-analyst | agent | `.claude/agents/strategic-analyst.md` | Research, scenario modelling, decision support |
+| agent-organizer | agent | `.claude/agents/agent-organizer.md` | Analyses requests, recommends agent teams |
+| /spec | command | `.claude/commands/spec.md` | Interview-driven specification before coding |
+| /decompose | command | `.claude/commands/decompose.md` | Break tasks into atomic testable steps |
+
 ## Key Files
 
 | File | Purpose |

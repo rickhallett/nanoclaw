@@ -2,7 +2,7 @@
 name: agent-organizer
 description: Analyses project requirements and recommends which agents to deploy. The intelligence layer between a request and execution. Does not implement — delegates.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # Agent Organizer

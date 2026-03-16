@@ -2,7 +2,7 @@
 name: adversarial-reviewer
 description: Proactive code quality reviewer. Finds bugs, not confirms correctness. Triggered automatically after code changes via PostToolUse hook. Also available on demand.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # Adversarial Reviewer
