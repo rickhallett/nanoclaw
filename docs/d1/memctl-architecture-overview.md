@@ -36,7 +36,9 @@ The enrichment rubric. Most knowledge graph systems either link everything autom
 
 The enforcement loop. After every note creation, the CLI prints a neighbour summary and an explicit nudge to run enrichment. The agent's system prompt (CLAUDE.md) marks this as non-optional. Three layers of enforcement — system prompt instruction (L8), tool output nudge (L7), and structural context (neighbour list) — without a single hook or callback. The agent would have to actively ignore its own tool output to skip the step.
 
-The design invariant that makes this work: **the index is always rebuildable from the notes corpus.** This means you can experiment aggressively with the scoring, approve links you're uncertain about, and if the graph gets noisy, `memctl index rebuild` regenerates a clean state from the source files. The notes are ground truth. Everything else is derived.
+The design invariant that makes this work: **the index is always rebuildable from the notes corpus.** The notes are ground truth. The index is derived. If the index drifts (stale hashes, orphans, missing entries), `memctl index rebuild` regenerates it from the source files.
+
+Backlinks, however, live in the note files themselves. A bad link persists until explicitly removed. This is intentional: the graph topology is a set of auditable decisions, not a computed artifact. The tradeoff is that cleaning a noisy graph requires surgical intervention (`memctl unlink`, or editing the note's frontmatter), not a bulk reset. Approve links carefully.
 
 ## Current State
 
