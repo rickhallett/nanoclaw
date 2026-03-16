@@ -104,7 +104,9 @@ def validate(n: Note, valid_types: list[str], valid_confidence: list[str]) -> li
 
 
 def now_id() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    """Generate a unique ID from current timestamp with millisecond precision."""
+    now = datetime.now(timezone.utc)
+    return now.strftime("%Y%m%d-%H%M%S") + f"-{now.microsecond // 1000:03d}"
 
 
 def now_iso() -> str:

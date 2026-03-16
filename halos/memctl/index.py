@@ -117,6 +117,13 @@ Use --link-to <id> if the new note references an existing one.
 """
 
 
+def _atomic_write(path: str, content: str) -> None:
+    """Write to a temp file then rename. Prevents partial writes on crash."""
+    tmp = path + ".tmp"
+    Path(tmp).write_text(content)
+    os.replace(tmp, path)
+
+
 def write(path: str, idx: Index) -> None:
     idx.generated = notemod.now_iso()
     index_dict = {
@@ -133,7 +140,7 @@ def write(path: str, idx: Index) -> None:
 
     content = LOOKUP_PROTOCOL + "## MEMORY_INDEX\n```yaml\n" + yaml_block + "```\n"
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    Path(path).write_text(content)
+    _atomic_write(path, content)
 
 
 def read(path: str) -> Index:
@@ -202,11 +209,13 @@ def collect_entities(entries: list[Entry]) -> list[str]:
     return result
 
 
-def rebuild_from_notes(notes_dir: str, max_summary: int) -> list[Entry]:
+def rebuild_from_notes(notes_dir: str, max_summary: int) -> tuple[list[Entry], int]:
+    """Rebuild index entries from note files. Returns (entries, parse_error_count)."""
     entries = []
+    parse_errors = 0
     notes_path = Path(notes_dir)
     if not notes_path.exists():
-        return entries
+        return entries, 0
 
     for f in sorted(notes_path.iterdir()):
         if f.suffix != ".md":
@@ -223,6 +232,8 @@ def rebuild_from_notes(notes_dir: str, max_summary: int) -> list[Entry]:
                 backlink_count=len(n.backlinks), modified=n.modified,
                 expires=n.expires,
             ))
-        except Exception:
-            continue  # skip unparseable files
-    return entries
+        except Exception as e:
+            parse_errors += 1
+            import sys
+            print(f"WARN: skipping {f.name}: {e}", file=sys.stderr)
+    return entries, parse_errors

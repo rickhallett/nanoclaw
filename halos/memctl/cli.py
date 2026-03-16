@@ -122,8 +122,17 @@ def cmd_new(cfg, args):
         print(f"DRY RUN: would write {fpath}")
         return
 
+    # Guard against filename collision (e.g. rapid successive calls)
+    if fpath.exists():
+        print(f"File already exists: {fpath}", file=sys.stderr)
+        print("This usually means two notes were created in the same millisecond. Retry.", file=sys.stderr)
+        sys.exit(2)
+
+    # Atomic write: temp file then rename
     data = notemod.marshal(n)
-    fpath.write_text(data)
+    tmp = str(fpath) + ".tmp"
+    Path(tmp).write_text(data)
+    os.replace(tmp, str(fpath))
 
     if args.link_to:
         _add_backlink(cfg, args.link_to, id)
@@ -162,6 +171,9 @@ def cmd_new(cfg, args):
 
 def cmd_get(cfg, args):
     notes_dir = Path(cfg.memory_dir) / "notes"
+    if not notes_dir.exists():
+        print(f"notes directory not found: {notes_dir}", file=sys.stderr)
+        sys.exit(2)
     for f in sorted(notes_dir.iterdir()):
         if f.name.startswith(args.query) or f.name == args.query:
             print(f.read_text(), end="")
@@ -214,7 +226,7 @@ def cmd_index(cfg, args):
 
 def _index_rebuild(cfg, args):
     notes_dir = os.path.join(cfg.memory_dir, "notes")
-    entries = idxmod.rebuild_from_notes(notes_dir, cfg.index.max_summary_chars)
+    entries, parse_errors = idxmod.rebuild_from_notes(notes_dir, cfg.index.max_summary_chars)
 
     idx = idxmod.Index(
         note_count=len(entries),
@@ -228,7 +240,7 @@ def _index_rebuild(cfg, args):
         return
 
     idxmod.write(cfg.index_file, idx)
-    print(f"Rebuilt index: {len(entries)} notes, 0 parse errors")
+    print(f"Rebuilt index: {len(entries)} notes, {parse_errors} parse errors")
 
 
 def _index_verify(cfg, args):
@@ -269,6 +281,8 @@ def cmd_link(cfg, args):
 
 def _add_backlink(cfg, target_id: str, source_id: str):
     notes_dir = Path(cfg.memory_dir) / "notes"
+    if not notes_dir.exists():
+        raise SystemExit(f"notes directory not found: {notes_dir}")
     for f in notes_dir.iterdir():
         if f.name.startswith(target_id):
             n = notemod.parse(f.read_text())
@@ -276,7 +290,19 @@ def _add_backlink(cfg, target_id: str, source_id: str):
                 return
             n.backlinks.append(source_id)
             n.modified = notemod.now_iso()
-            f.write_text(notemod.marshal(n))
+            # Atomic write
+            tmp = str(f) + ".tmp"
+            Path(tmp).write_text(notemod.marshal(n))
+            os.replace(tmp, str(f))
+            # Backlink changed the file hash — update the index entry
+            idx = idxmod.read(cfg.index_file)
+            for entry in idx.notes:
+                if entry.id == target_id or os.path.basename(entry.file) == f.name:
+                    entry.hash = idxmod.hash_file(str(f))
+                    entry.backlink_count = len(n.backlinks)
+                    entry.modified = n.modified
+                    break
+            idxmod.write(cfg.index_file, idx)
             return
     raise SystemExit(f"note {target_id!r} not found")
 
