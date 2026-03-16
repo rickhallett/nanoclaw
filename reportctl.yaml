@@ -1,0 +1,4 @@
+reports_dir: ./reports
+memctl_config: ./memctl.yaml
+nightctl_config: ./nightctl.yaml
+todoctl_config: ./todoctl.yaml

@@ -19,6 +19,8 @@ nightctl = "halos.nightctl.cli:main"
 cronctl = "halos.cronctl.cli:main"
 todoctl = "halos.todoctl.cli:main"
 logctl = "halos.logctl.cli:main"
+reportctl = "halos.reportctl.cli:main"
+agentctl = "halos.agentctl.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
