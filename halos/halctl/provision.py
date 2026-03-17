@@ -38,19 +38,39 @@ def _make_ignore_fn(exclude_list: list[str]):
     return _ignore
 
 
-def _apply_lock(path: Path, items: list[str]) -> None:
-    """Set locked items to read-only (444 for files, 555 for dirs)."""
+def _apply_lock(path: Path, items: list[str], exempt: list[str] | None = None) -> None:
+    """Set locked items to read-only (444 for files, 555 for dirs).
+
+    exempt: list of subpaths within locked dirs that should stay writable
+    (e.g., '.claude/skills' needs 755/644 because cpSync preserves permissions
+    and the container-runner copies skills into session dirs).
+    """
+    exempt = exempt or []
+    exempt_abs = [str((path / e).resolve()) for e in exempt]
+
+    def _is_exempt(p: str) -> bool:
+        rp = str(Path(p).resolve())
+        return any(rp.startswith(e) for e in exempt_abs)
+
     for item in items:
         target = path / item
         if not target.exists():
             continue
         if target.is_dir():
             for root, dirs, files in os.walk(target):
-                os.chmod(root, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH |
-                         stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)  # 555
-                for f in files:
-                    os.chmod(os.path.join(root, f),
-                             stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)  # 444
+                if _is_exempt(root):
+                    # Keep writable: 755 dirs, 644 files
+                    os.chmod(root, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP |
+                             stat.S_IROTH | stat.S_IXOTH)  # 755
+                    for f in files:
+                        os.chmod(os.path.join(root, f),
+                                 stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)  # 644
+                else:
+                    os.chmod(root, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH |
+                             stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)  # 555
+                    for f in files:
+                        os.chmod(os.path.join(root, f),
+                                 stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)  # 444
         else:
             os.chmod(target, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)  # 444
 
@@ -62,19 +82,83 @@ def _create_open_dirs(path: Path, items: list[str]) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
 
+def _patch_container_proxy_port(deploy_path: Path) -> None:
+    """Patch config.ts and container-runner.ts to support CONTAINER_PROXY_PORT.
+
+    Fleet instances bind their credential proxy on a unique port but tell
+    containers to use prime's proxy (port 3001) which Docker can already reach.
+    Also patches cpSync to use force:true for skills copying.
+    """
+    config_ts = deploy_path / "src" / "config.ts"
+    runner_ts = deploy_path / "src" / "container-runner.ts"
+
+    if config_ts.exists():
+        content = config_ts.read_text()
+        if "CONTAINER_PROXY_PORT" not in content:
+            # Add CONTAINER_PROXY_PORT export after CREDENTIAL_PROXY_PORT
+            content = content.replace(
+                "export const CREDENTIAL_PROXY_PORT = parseInt(\n"
+                "  process.env.CREDENTIAL_PROXY_PORT || '3001',\n"
+                "  10,\n"
+                ");",
+                "export const CREDENTIAL_PROXY_PORT = parseInt(\n"
+                "  process.env.CREDENTIAL_PROXY_PORT || '3001',\n"
+                "  10,\n"
+                ");\n"
+                "export const CONTAINER_PROXY_PORT = parseInt(\n"
+                "  process.env.CONTAINER_PROXY_PORT || process.env.CREDENTIAL_PROXY_PORT || '3001',\n"
+                "  10,\n"
+                ");",
+            )
+            config_ts.write_text(content)
+
+    if runner_ts.exists():
+        content = runner_ts.read_text()
+        # Import CONTAINER_PROXY_PORT
+        if "CONTAINER_PROXY_PORT" not in content:
+            content = content.replace(
+                "  CREDENTIAL_PROXY_PORT,",
+                "  CONTAINER_PROXY_PORT,\n  CREDENTIAL_PROXY_PORT,",
+            )
+        # Use CONTAINER_PROXY_PORT for container env
+        content = content.replace(
+            "${CREDENTIAL_PROXY_PORT}`,",
+            "${CONTAINER_PROXY_PORT}`,",
+        )
+        # Force flag on cpSync for skills
+        content = content.replace(
+            "{ recursive: true }",
+            "{ recursive: true, force: true }",
+        )
+        runner_ts.write_text(content)
+
+    # Rebuild TypeScript
+    build_result = os.popen(f"cd {deploy_path} && npm run build 2>&1").read()
+    if "error" in build_result.lower() and "warning" not in build_result.lower():
+        print(f"  WARN: build may have issues: {build_result[-200:]}", file=__import__('sys').stderr)
+
+
 def _generate_ecosystem_config(name: str, deploy_path: Path, token_env: str) -> str:
     """Generate pm2 ecosystem config content for an instance."""
+    # Each fleet instance gets a unique proxy port (3002+) but containers
+    # route through prime's proxy on 3001 (Docker bridge accessible).
+    proxy_port = 3002 + abs(hash(name)) % 998  # deterministic, avoids 3001
+
     return f"""// pm2 ecosystem config for microhal-{name}
 // Generated by halctl — do not edit manually.
 module.exports = {{
   apps: [{{
     name: "microhal-{name}",
     cwd: "{deploy_path}",
-    script: "npm",
-    args: "start",
+    script: "node",
+    args: "dist/index.js",
     env: {{
       NODE_ENV: "production",
-      TELEGRAM_BOT_TOKEN_ENV: "{token_env}",
+      CREDENTIAL_PROXY_PORT: "{proxy_port}",
+      CONTAINER_PROXY_PORT: "3001",
+      TELEGRAM_BOT_TOKEN: process.env.{token_env} || "",
+      CLAUDE_CODE_OAUTH_TOKEN: process.env.CLAUDE_CODE_OAUTH_TOKEN || "",
+      ASSISTANT_NAME: "HAL",
       MICROHAL_NAME: "{name}",
     }},
     watch: false,
@@ -125,15 +209,28 @@ def create_instance(
     hlog("halctl", "info", "files_copied", {"name": name, "path": str(deploy_path)})
 
     # Create open directories
-    _create_open_dirs(deploy_path, base.get("open", []))
+    open_dirs = base.get("open", [])
+    open_dirs = list(set(open_dirs + ["data/"]))  # data/ always open
+    _create_open_dirs(deploy_path, open_dirs)
 
     # Compose and write CLAUDE.md
     claude_md = compose_claude_md(personality, name)
     claude_path = deploy_path / "CLAUDE.md"
     claude_path.write_text(claude_md)
 
-    # Apply lock permissions
-    _apply_lock(deploy_path, base.get("lock", []))
+    # Patch container-runner to use prime's credential proxy BEFORE locking
+    # (fleet instances share prime's proxy — Docker bridge can reach port 3001)
+    _patch_container_proxy_port(deploy_path)
+
+    # Apply lock permissions with exemptions for cpSync-copied paths
+    # Skills and container/skills must stay 755/644 because container-runner
+    # copies them into session dirs and cpSync preserves permissions.
+    lock_exemptions = base.get("lock_exemptions", [
+        ".claude/skills",
+        ".claude/hooks",
+        "container/skills",
+    ])
+    _apply_lock(deploy_path, base.get("lock", []), exempt=lock_exemptions)
 
     # Generate pm2 ecosystem config
     token_env = f"MICROHAL_{name.upper()}_BOT_TOKEN"
