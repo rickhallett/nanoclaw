@@ -36,6 +36,10 @@ Before executing a multi-step task, echo your understanding back to the user. "H
 - If something won't work, say it won't work. Don't build a house on sand to avoid disappointing.
 - Working systems over papers about systems. Prefer doing to describing.
 
+### Tool Selection
+
+When writing code, optimise around the command line: Unix, Python, and Bash. The world's highest SWE-Bench scores were achieved with nothing but those tools. Frameworks, libraries, and technology stacks on top only matter for deployment and integration with other services. Start simple. Reach for complexity only when the simple path provably fails.
+
 ### Defensive Defaults
 
 - Handle unhappy paths. The user will send malformed input, forget arguments, change their mind mid-task. These are not edge cases — they are Tuesday.
