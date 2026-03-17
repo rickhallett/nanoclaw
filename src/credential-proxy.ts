@@ -9,18 +9,121 @@
  *             API key via /api/oauth/claude_cli/create_api_key.
  *             Proxy injects real OAuth token on that exchange request;
  *             subsequent requests carry the temp key which is valid as-is.
+ *
+ * BATHW telemetry: extracts token usage from API responses and writes
+ * structured usage events to a log file for agentctl/telemetry ingestion.
  */
 import { createServer, Server } from 'http';
 import { request as httpsRequest } from 'https';
 import { request as httpRequest, RequestOptions } from 'http';
+import { Transform } from 'stream';
+import fs from 'fs';
+import path from 'path';
 
 import { readEnvFile } from './env.js';
+import { DATA_DIR } from './config.js';
 import { logger } from './logger.js';
 
 export type AuthMode = 'api-key' | 'oauth';
 
 export interface ProxyConfig {
   authMode: AuthMode;
+}
+
+/** BATHW: Extract token usage from SSE stream and log it. */
+const USAGE_LOG_PATH = path.join(DATA_DIR, 'api-usage.jsonl');
+
+interface ApiUsageEvent {
+  ts: string;
+  path: string;
+  model: string;
+  input_tokens: number;
+  output_tokens: number;
+  cache_creation_input_tokens: number;
+  cache_read_input_tokens: number;
+}
+
+function logApiUsage(event: ApiUsageEvent): void {
+  try {
+    const dir = path.dirname(USAGE_LOG_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(USAGE_LOG_PATH, JSON.stringify(event) + '\n');
+  } catch {
+    // Never fail loudly — telemetry is best-effort
+  }
+}
+
+/**
+ * Create a Transform stream that tees SSE data looking for usage info.
+ * Passes all data through unmodified — only reads, never mutates.
+ */
+function createUsageTap(requestPath: string): Transform {
+  let sseBuffer = '';
+  let model = '';
+  let finalUsage: Record<string, number> | null = null;
+
+  return new Transform({
+    transform(chunk, _encoding, callback) {
+      const text = chunk.toString();
+      sseBuffer += text;
+
+      // Parse SSE events from the buffer
+      const lines = sseBuffer.split('\n');
+      // Keep the last potentially incomplete line
+      sseBuffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === '[DONE]') continue;
+
+        try {
+          const data = JSON.parse(jsonStr);
+
+          // Capture model from message_start
+          if (data.type === 'message_start' && data.message?.model) {
+            model = data.message.model;
+            // message_start also has initial usage
+            if (data.message.usage) {
+              finalUsage = { ...data.message.usage };
+            }
+          }
+
+          // message_delta has final usage (output_tokens)
+          if (data.type === 'message_delta' && data.usage) {
+            finalUsage = { ...(finalUsage || {}), ...data.usage };
+          }
+
+          // Non-streaming: single JSON response with usage at top level
+          if (data.usage && data.model) {
+            model = data.model;
+            finalUsage = data.usage;
+          }
+        } catch {
+          // Not JSON or malformed — ignore
+        }
+      }
+
+      // Always pass data through unmodified
+      callback(null, chunk);
+    },
+
+    flush(callback) {
+      // Stream ended — log accumulated usage
+      if (finalUsage) {
+        logApiUsage({
+          ts: new Date().toISOString(),
+          path: requestPath,
+          model: model || 'unknown',
+          input_tokens: finalUsage.input_tokens || 0,
+          output_tokens: finalUsage.output_tokens || 0,
+          cache_creation_input_tokens: finalUsage.cache_creation_input_tokens || 0,
+          cache_read_input_tokens: finalUsage.cache_read_input_tokens || 0,
+        });
+      }
+      callback();
+    },
+  });
 }
 
 export function startCredentialProxy(
@@ -89,7 +192,14 @@ export function startCredentialProxy(
           } as RequestOptions,
           (upRes) => {
             res.writeHead(upRes.statusCode!, upRes.headers);
-            upRes.pipe(res);
+            // BATHW: tap the response stream for token usage data
+            const isApiCall = req.url?.startsWith('/v1/messages');
+            if (isApiCall) {
+              const tap = createUsageTap(req.url || '/unknown');
+              upRes.pipe(tap).pipe(res);
+            } else {
+              upRes.pipe(res);
+            }
           },
         );
 

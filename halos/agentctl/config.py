@@ -9,6 +9,7 @@ import yaml
 class Config:
     sessions_dir: str = "./data/agent-sessions"
     log_dirs: list[str] = field(default_factory=lambda: ["./groups/*/logs/"])
+    usage_log: str = "./data/api-usage.jsonl"
     spin_threshold_secs: int = 600
     error_streak_threshold: int = 3
 
@@ -28,6 +29,7 @@ def load(path: str = "") -> Config:
     return Config(
         sessions_dir=raw.get("sessions_dir", "./data/agent-sessions"),
         log_dirs=raw.get("log_dirs", ["./groups/*/logs/"]),
+        usage_log=raw.get("usage_log", "./data/api-usage.jsonl"),
         spin_threshold_secs=raw.get("spin_threshold_secs", 600),
         error_streak_threshold=raw.get("error_streak_threshold", 3),
     )

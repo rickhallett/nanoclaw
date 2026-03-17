@@ -9,6 +9,12 @@ from typing import Optional
 
 from .config import Config
 from .session import Session, filename, marshal
+from .usage import load_usage_events, enrich_session
+
+try:
+    from halos.telemetry import emit as telemetry_emit
+except ImportError:
+    telemetry_emit = None  # type: ignore
 
 
 def _parse_log_field(text: str, field: str) -> Optional[str]:
@@ -140,6 +146,11 @@ def ingest(cfg: Config, verbose: bool = False) -> tuple[int, int, int]:
     sessions_dir = Path(cfg.sessions_dir)
     sessions_dir.mkdir(parents=True, exist_ok=True)
 
+    # Load API usage events for session enrichment
+    usage_events = load_usage_events(cfg.usage_log)
+    if verbose and usage_events:
+        print(f"  Loaded {len(usage_events)} API usage events for enrichment")
+
     # Collect existing session IDs to skip duplicates
     existing_ids: set[str] = set()
     for f in sessions_dir.iterdir():
@@ -170,6 +181,13 @@ def ingest(cfg: Config, verbose: bool = False) -> tuple[int, int, int]:
                 print(f"  SKIP (exists): {session.id}")
             continue
 
+        # Enrich with API usage data (token counts, cost)
+        session = enrich_session(session, usage_events)
+        if verbose and session.input_tokens > 0:
+            print(f"  ENRICHED: {session.id} ({session.model}, "
+                  f"{session.input_tokens}in/{session.output_tokens}out, "
+                  f"${session.total_cost_usd:.4f})")
+
         # Write session record
         out_path = sessions_dir / filename(session)
         data = marshal(session)
@@ -179,6 +197,26 @@ def ingest(cfg: Config, verbose: bool = False) -> tuple[int, int, int]:
 
         existing_ids.add(session.id)
         ingested += 1
+
+        # Emit telemetry event for BATHW pipeline
+        if telemetry_emit:
+            telemetry_emit("agentctl", "session_ended", {
+                "session_id": session.id,
+                "group_name": session.group,
+                "started_at": session.started,
+                "ended_at": session.finished,
+                "duration_ms": session.duration_secs * 1000,
+                "model": session.model,
+                "input_tokens": session.input_tokens,
+                "output_tokens": session.output_tokens,
+                "cache_read_tokens": session.cache_read_tokens,
+                "cache_write_tokens": session.cache_write_tokens,
+                "total_cost_usd": session.total_cost_usd,
+                "outcome": session.status,
+                "channel": "container",
+                "trigger_type": session.source,
+            })
+
         if verbose:
             print(f"  INGESTED: {session.id} ({session.group}, {session.status})")
 

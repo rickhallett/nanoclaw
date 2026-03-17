@@ -18,6 +18,13 @@ class Session:
     result_length: int
     status: str  # success | error | timeout
     source: str  # container | scheduled-task
+    # BATHW telemetry fields (populated from api-usage.jsonl)
+    model: str = ""
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cache_read_tokens: int = 0
+    cache_write_tokens: int = 0
+    total_cost_usd: float = 0.0
 
     def validate(self) -> list[str]:
         errors = []
@@ -47,6 +54,12 @@ def marshal(s: Session) -> str:
         "result_length": s.result_length,
         "status": s.status,
         "source": s.source,
+        "model": s.model,
+        "input_tokens": s.input_tokens,
+        "output_tokens": s.output_tokens,
+        "cache_read_tokens": s.cache_read_tokens,
+        "cache_write_tokens": s.cache_write_tokens,
+        "total_cost_usd": s.total_cost_usd,
     }
     return yaml.dump(data, default_flow_style=False, sort_keys=False)
 
@@ -67,6 +80,12 @@ def parse(text: str) -> Session:
         result_length=int(raw.get("result_length", 0)),
         status=str(raw.get("status", "error")),
         source=str(raw.get("source", "container")),
+        model=str(raw.get("model", "")),
+        input_tokens=int(raw.get("input_tokens", 0)),
+        output_tokens=int(raw.get("output_tokens", 0)),
+        cache_read_tokens=int(raw.get("cache_read_tokens", 0)),
+        cache_write_tokens=int(raw.get("cache_write_tokens", 0)),
+        total_cost_usd=float(raw.get("total_cost_usd", 0.0)),
     )
 
 

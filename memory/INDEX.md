@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-16T14:33:21Z'
-note_count: 78
+generated: '2026-03-17T08:24:12Z'
+note_count: 90
 entities:
 - kai
 - oceanheart-ai
@@ -69,6 +69,12 @@ entities:
 - weaver
 - telesoft
 - nanoclaw
+- hal
+- telegram
+- nightctl
+- todoctl
+- agentctl
+- rick
 tag_vocabulary:
 - anti-pattern
 - architecture
@@ -379,9 +385,9 @@ notes:
   - kai
   summary: 'CV revised to lead with senior engineering identity rather than agentic
     infrastructure framing. Market assessment: 2026 ...'
-  hash: a39e4ef13860aa4e4f68a81360586f7bffbea0d206a3da39c3fecd8f72e7912b
-  backlink_count: 1
-  modified: '2026-03-16T07:37:23Z'
+  hash: 3a9c6ab0a92fa3da98b9519e10496d647d72097ae3bb8f2de63c3a56d7005008
+  backlink_count: 2
+  modified: '2026-03-16T19:17:23Z'
   expires: null
 - id: 20260315-204447
   file: memory/notes/20260315-204447-productivity-under-pressure-two-month-sprint.md
@@ -915,11 +921,11 @@ notes:
   - decision
   entities:
   - kai
-  summary: All halOS modules must handle unhappy paths defensively. LLMs are probabilistic;
+  summary: All halos modules must handle unhappy paths defensively. LLMs are probabilistic;
     the unhappy path is a question of time....
-  hash: c42ff4008d5106668e95a1d36906a351139f768b1cd5a0bcdafa0ab795283a32
-  backlink_count: 2
-  modified: '2026-03-16T14:33:21Z'
+  hash: d985e9a7facdf41d6548deed7fcef62b26bc46421ce77cc1a191b99ae5e88c67
+  backlink_count: 5
+  modified: '2026-03-16T18:02:06Z'
   expires: null
 - id: 20260316-071746-259
   file: memory/notes/20260316-071746-259-directed-ownership-the-third-thing-in-software.md
@@ -1060,9 +1066,9 @@ notes:
   - kai
   summary: Reading and writing are distinct abilities. Taste development depends more
     on reading. LLM-paired review provides enormo...
-  hash: d1ee2ac59570a4aa77dca20d3c68c8bc47fd8d528a8177c16da6553e65853a1a
-  backlink_count: 2
-  modified: '2026-03-16T07:37:23Z'
+  hash: 0749fe8cf6028271782fe5091253129349ba7e1a7b1bff53b24a198b6b8e7043
+  backlink_count: 3
+  modified: '2026-03-16T18:02:06Z'
   expires: null
 - id: 20260316-075402-764
   file: memory/notes/20260316-075402-764-post-write-enrichment-enforced-at-system-level.md
@@ -1076,9 +1082,9 @@ notes:
   - kai
   summary: After every memctl new, the agent must run memctl enrich and present proposals.
     Enforced via CLAUDE.md system prompt and...
-  hash: cc1b89029f43058f42547637377da13db23d6a3d85061ab1bd0639cf8322fca5
-  backlink_count: 1
-  modified: '2026-03-16T13:34:56Z'
+  hash: 11f3d4df93643f460c1714c2f0ae317f5f4c650282066357f34ac27370e79dd4
+  backlink_count: 4
+  modified: '2026-03-16T18:02:06Z'
   expires: null
 - id: 20260316-081511-469
   file: memory/notes/20260316-081511-469-lexicon-durian-low-hanging-fruit-that-detonates-loudly.md
@@ -1291,9 +1297,9 @@ notes:
   - nanoclaw
   summary: 'Observation: the solo-founder-with-AI-agents narrative describes the halos
     architecture with better marketing. Scheduled...'
-  hash: e55b16167642759019b6ff9a73bb546d972c92c759bce0ba5cbd8d348fafea7a
-  backlink_count: 1
-  modified: '2026-03-16T13:34:55Z'
+  hash: 36c07f298eda3dd8b77c0cf0ac924cf6d59151a1e56a0e53b7766aec00fe00db
+  backlink_count: 4
+  modified: '2026-03-16T19:17:23Z'
   expires: null
 - id: 20260316-133401-015
   file: memory/notes/20260316-133401-015-agent-harness-is-the-leverage-point-not-the-model.md
@@ -1391,5 +1397,206 @@ notes:
   hash: 716b58c4677bc1b57fc4185195e286cc8f00b0dc3dbac7a0ff2429ced2dd054e
   backlink_count: 0
   modified: '2026-03-16T14:33:09Z'
+  expires: null
+- id: 20260316-152220-968
+  file: memory/notes/20260316-152220-968-daily-briefings-module-shipped.md
+  title: Daily briefings module shipped
+  type: decision
+  tags:
+  - briefings
+  - halos
+  - cron
+  - telegram
+  entities:
+  - hal
+  - telegram
+  summary: 'Hybrid Python+Claude briefings: gather data via reportctl collectors,
+    synthesise via claude CLI (inherits OAuth), delive...'
+  hash: e03df44bb0ed5bd5d51b552a1136a0b9718fb5dd390922cf70f405756a30093c
+  backlink_count: 0
+  modified: '2026-03-16T15:22:20Z'
+  expires: null
+- id: 20260316-175540-733
+  file: memory/notes/20260316-175540-733-ai-tools-specialist-is-a-real-growing-role-with-no-canonical.md
+  title: AI Tools Specialist is a real growing role with no canonical title
+  type: fact
+  tags:
+  - job-search
+  - career
+  - strategy
+  entities:
+  - kai
+  summary: The AI Automation Engineer / Internal AI Tools Specialist archetype is
+    fragmented across 8-10 titles. Best search terms:...
+  hash: 7b4f1c93afc4709441afe47081ca3f513cfc86cb5a295df5371097ca1d9cd831
+  backlink_count: 1
+  modified: '2026-03-16T19:17:23Z'
+  expires: null
+- id: 20260316-175542-142
+  file: memory/notes/20260316-175542-142-job-board-shortlist-for-ai-automation-roles.md
+  title: Job board shortlist for AI automation roles
+  type: reference
+  tags:
+  - job-search
+  - career
+  entities:
+  - kai
+  summary: '8 boards ranked by signal: LinkedIn (alerts), Glassdoor (volume), Wellfound
+    (startups), RemoteRocketship (EU remote), Wo...'
+  hash: c7ead27ec4fafaa4ed440b7b9f65d8707ded77389142e928cae85a5679ee48fd
+  backlink_count: 0
+  modified: '2026-03-16T17:55:42Z'
+  expires: null
+- id: 20260316-175543-457
+  file: memory/notes/20260316-175543-457-european-salary-ranges-for-ai-automation-roles-2026.md
+  title: European salary ranges for AI automation roles 2026
+  type: fact
+  tags:
+  - job-search
+  - career
+  - finance
+  entities:
+  - kai
+  summary: 'Western Europe remote: EUR 55K-120K. UK remote: GBP 40K-85K (senior to
+    140K). US remote: USD 107K-210K. Eastern Europe: ...'
+  hash: 7fbf62fc50b23231bd6b9f9fa117218d1af24305cc214e9bef7028f78f92c98a
+  backlink_count: 0
+  modified: '2026-03-16T17:55:43Z'
+  expires: null
+- id: 20260316-191503-599
+  file: memory/notes/20260316-191503-599-building-agents-the-hard-way-technical-authority-play.md
+  title: Building Agents the Hard Way - technical authority play
+  type: decision
+  tags:
+  - career
+  - strategy
+  - job-search
+  - nanoclaw
+  entities:
+  - kai
+  - nanoclaw
+  summary: An interactive technical publication — part engineering case study, part
+    live telemetry, part failure library — that est...
+  hash: 459c0dd34551d0e64f9ec5dc281b18fe8ff96879ed92ad20c954de85151db54c
+  backlink_count: 4
+  modified: '2026-03-16T19:45:00Z'
+  expires: null
+- id: 20260316-191505-932
+  file: memory/notes/20260316-191505-932-bathw-positioning-the-gap-nobody-is-filling.md
+  title: 'BATHW positioning: the gap nobody is filling'
+  type: fact
+  tags:
+  - career
+  - strategy
+  - job-search
+  entities:
+  - kai
+  - nanoclaw
+  summary: 'The market is flooded with ''I built a chatbot with LangChain'' tutorials.
+    There is almost nothing on: what happens when y...'
+  hash: 9db397014b49e291608b0b1e08fcd157bc547ec78580ccee72c70661e5314e12
+  backlink_count: 1
+  modified: '2026-03-16T19:17:22Z'
+  expires: null
+- id: 20260316-191508-860
+  file: memory/notes/20260316-191508-860-bathw-phasing-data-collection-before-public-release.md
+  title: 'BATHW phasing: data collection before public release'
+  type: decision
+  tags:
+  - strategy
+  - architecture
+  - nanoclaw
+  entities:
+  - kai
+  - nanoclaw
+  summary: 'Phase 1: schema, data interfaces, foundational collection instrumented
+    into halos. Move fast, break things here. Phase 2...'
+  hash: 938ec81279732634b6d4b78b4e6464f22bf6b43f55beedddc2f401805114fe81
+  backlink_count: 1
+  modified: '2026-03-16T19:45:00Z'
+  expires: null
+- id: 20260316-194210-368
+  file: memory/notes/20260316-194210-368-bathw-unique-advantage-no-commercial-reason-to-hide-the-numb.md
+  title: 'BATHW unique advantage: no commercial reason to hide the numbers'
+  type: fact
+  tags:
+  - career
+  - strategy
+  - job-search
+  entities:
+  - kai
+  - nanoclaw
+  summary: 'Unusual position: running a real agent system, having built the instrumentation
+    layer, having no commercial reason to hi...'
+  hash: 61b05d8893d04b04a83e5bfcaa6c474ddda3e2c42345b1e1e479eb09968b1881
+  backlink_count: 0
+  modified: '2026-03-16T19:42:10Z'
+  expires: null
+- id: 20260316-194451-438
+  file: memory/notes/20260316-194451-438-bathw-hard-deadline-60-days-from-2026-03-16.md
+  title: 'BATHW hard deadline: 60 days from 2026-03-16'
+  type: decision
+  tags:
+  - strategy
+  - job-search
+  - career
+  - deadline
+  entities:
+  - kai
+  - nanoclaw
+  summary: 'Financial constraints impose a 60-day window from 2026-03-16 (deadline:
+    2026-05-15). BATHW must be generating value well...'
+  hash: e724909e7cf959341510b5a0c12f4f2bf9d57ad49cef584fc3ec9a9c9abbd135
+  backlink_count: 0
+  modified: '2026-03-16T19:44:51Z'
+  expires: null
+- id: 20260317-071211-017
+  file: memory/notes/20260317-071211-017-agent-facing-tooling-must-enforce-constraints-not-rely-on-co.md
+  title: Agent-facing tooling must enforce constraints, not rely on convention
+  type: decision
+  tags:
+  - halos
+  - architecture
+  - agents
+  entities:
+  - nightctl
+  - todoctl
+  - agentctl
+  summary: When tooling is operated by agents (not just humans), validation must be
+    structural — required flags, foreign key checks...
+  hash: 5968547b37b2209fc5b83b307e9c014c1d0992dc3017cd4719c1a436d6e430c9
+  backlink_count: 0
+  modified: '2026-03-17T07:12:11Z'
+  expires: null
+- id: 20260317-072912-172
+  file: memory/notes/20260317-072912-172-caffeine-driven-architecture.md
+  title: Caffeine-driven architecture
+  type: fact
+  tags:
+  - culture
+  - process
+  entities:
+  - hal
+  - rick
+  summary: Term coined during the 2026-03-17 morning session. Describes the productive
+    chaos of capturing design decisions mid-brai...
+  hash: 7486209cbaa26bf5f9a7aa04b3ee788cd4c9ebfd021454c73d1f7e933883736d
+  backlink_count: 0
+  modified: '2026-03-17T07:29:12Z'
+  expires: null
+- id: 20260317-082412-436
+  file: memory/notes/20260317-082412-436-nightctl-philosophy-your-best-work-happens-while-you-sleep.md
+  title: 'nightctl philosophy: your best work happens while you sleep'
+  type: decision
+  tags:
+  - halos
+  - architecture
+  entities:
+  - nightctl
+  summary: 'nightctl is the universal work tracker, not just overnight batch. The
+    name captures the philosophy: daylight is for plan...'
+  hash: f1d9f1abfb1445104f15c9aa38256ca5084564e0184f89038ad43667829009ce
+  backlink_count: 0
+  modified: '2026-03-17T08:24:12Z'
   expires: null
 ```

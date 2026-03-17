@@ -1,0 +1,9 @@
+id: nightly-recap
+title: HAL Nightly Recap
+schedule: 0 21 * * *
+command: uv run hal-briefing nightly
+enabled: true
+tags:
+  - briefings
+  - daily
+created: "2026-03-16T15:00:00Z"

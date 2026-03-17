@@ -1,0 +1,9 @@
+id: morning-briefing
+title: HAL Morning Briefing
+schedule: 0 6 * * *
+command: uv run hal-briefing morning
+enabled: true
+tags:
+  - briefings
+  - daily
+created: "2026-03-16T15:00:00Z"
