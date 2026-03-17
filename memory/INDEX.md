@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-17T10:12:59Z'
-note_count: 91
+generated: '2026-03-17T10:43:56Z'
+note_count: 92
 entities:
 - kai
 - oceanheart-ai
@@ -1614,5 +1614,21 @@ notes:
   hash: 5373db27c476d2f1fad3533fabdb914f2087a5bf51fe1c4bb2d997e234a063cf
   backlink_count: 0
   modified: '2026-03-17T10:12:59Z'
+  expires: null
+- id: 20260317-104356-413
+  file: memory/notes/20260317-104356-413-discovering-ben-255-conversation-autism-llm-vicious-cycle-re.md
+  title: 'Discovering Ben: 255-conversation autism+LLM vicious cycle research, publication-ready'
+  type: reference
+  tags:
+  - bathw
+  - research
+  entities:
+  - ben
+  - rick
+  summary: At /home/mrkai/code/dormant/clients/project-ben/discovering-ben. 255 conversations,
+    5338 messages, 7 vicious cycles iden...
+  hash: a1576e2cc723a30a88bc09a146ceb9a7b7663a3aa97b42015afe0ee76c0474aa
+  backlink_count: 0
+  modified: '2026-03-17T10:43:56Z'
   expires: null
 ```
