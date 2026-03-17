@@ -1,0 +1,29 @@
+id: 20260317-135614-9e493fc7
+title: "CRITICAL: Non-main groups can rm -rf shared memory \u2014 mount is rw not\
+  \ ro"
+kind: task
+status: open
+priority: 1
+tags:
+- nanoclaw
+- security
+entities: []
+context: "Cross-model review finding 2. groups/global/CLAUDE.md claims read-only for\
+  \ non-main, but container-runner mounts memory/ with readonly:false so agents can\
+  \ call memctl new. Any compromised group agent can wipe or alter decision notes.\
+  \ Fix: separate memory mount paths \u2014 shared notes ro, group-local notes rw.\
+  \ Or restrict memctl new to main group only."
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-17T13:56:14Z'
+modified: '2026-03-17T13:56:14Z'
+created_by: human

@@ -1,0 +1,27 @@
+id: 20260317-135614-4a7d7ba1
+title: 'CRITICAL: executor shell=True enables command injection from nightctl jobs'
+kind: task
+status: open
+priority: 1
+tags:
+- nanoclaw
+- security
+entities: []
+context: 'Cross-model review finding 5. subprocess.run(job.command, shell=True) in
+  executor.py runs on host with service user privileges. If an agent enqueues a job
+  with user-influenced command content, shell injection is possible. Fix: shell=False
+  with shlex.split(), or command allowlisting.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-17T13:56:14Z'
+modified: '2026-03-17T13:56:14Z'
+created_by: human

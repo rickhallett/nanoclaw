@@ -1,0 +1,26 @@
+id: 20260317-135614-68c99e93
+title: "Plan for index saturation \u2014 INDEX.md scaling wall at ~1000 notes"
+kind: task
+status: open
+priority: 3
+tags:
+- halos
+- memctl
+entities: []
+context: 'Cross-model review finding 3. At 1000 notes the MEMORY_INDEX YAML block
+  is ~75k tokens loaded on every boot. Agent suffocates on its own metadata. Fix:
+  paginated/summary index, or lazy loading with tag/entity query on demand.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-17T13:56:14Z'
+modified: '2026-03-17T13:56:14Z'
+created_by: human

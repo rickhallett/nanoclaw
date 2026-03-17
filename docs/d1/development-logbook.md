@@ -151,6 +151,17 @@ All fields optional except `date`, `title`, and `summary`. Refs exist so you can
     The review validated our architectural direction (nightctl merge,
     microHAL isolation model) while surfacing pre-existing bugs in the
     Node.js orchestrator layer that today's Python-focused work didn't touch.
+
+    Round 2 (same reviewer, deeper): 7 more findings. Two genuinely
+    critical: (a) non-main group agents have rw mount on shared memory,
+    can rm -rf decision notes — the guard is CLAUDE.md instructions not
+    filesystem permissions. (b) executor.py uses shell=True with
+    subprocess.run on the host, enabling command injection if an agent
+    enqueues a user-influenced command. Also flagged: memctl index rebuild
+    race condition (no file locking), INDEX.md scaling wall at ~1000 notes
+    (~75k tokens on every boot), nightctl approve callable by agents
+    (sycophantic self-approval). The "passport control" finding is
+    architecturally valid — the human gate is policy not structure.
   refs:
     todo: null
     note: null

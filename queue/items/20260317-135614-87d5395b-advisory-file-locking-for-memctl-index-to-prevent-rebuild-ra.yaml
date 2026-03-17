@@ -1,0 +1,27 @@
+id: 20260317-135614-87d5395b
+title: Advisory file locking for memctl index to prevent rebuild race
+kind: task
+status: open
+priority: 2
+tags:
+- halos
+- memctl
+entities: []
+context: 'Cross-model review finding 1. memctl new and memctl index rebuild have no
+  coordination. If rebuild scans directory after new writes file but before new updates
+  index, the note is ghosted. Fix: fcntl.flock advisory lock on INDEX.md during both
+  operations.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-17T13:56:14Z'
+modified: '2026-03-17T13:56:14Z'
+created_by: human
