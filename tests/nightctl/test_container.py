@@ -98,8 +98,13 @@ class TestResolvePlan:
         assert "<goal>Research competing tools</goal>" in result
 
     def test_plan_ref_missing_file(self, tmp_path):
-        item = _make_item(tmp_path, plan_ref="/nonexistent/plan.md")
+        item = _make_item(tmp_path, plan_ref="nonexistent/plan.md")
         with pytest.raises(ContainerError, match="not found"):
+            resolve_plan(item)
+
+    def test_plan_ref_path_traversal_rejected(self, tmp_path):
+        item = _make_item(tmp_path, plan_ref="../../../../etc/passwd")
+        with pytest.raises(ContainerError, match="escapes project root"):
             resolve_plan(item)
 
 

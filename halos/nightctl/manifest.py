@@ -68,11 +68,14 @@ class Manifest:
         self._data["failed"] = sum(1 for j in jobs if j["status"] == "failed")
 
     def save(self):
+        import os
         self._data["generated"] = _now_iso()
         self._recount()
         self.manifest_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.manifest_file, "w") as f:
+        tmp = self.manifest_file.with_suffix(".yaml.tmp")
+        with open(tmp, "w") as f:
             yaml.dump(self._data, f, default_flow_style=False, sort_keys=False)
+        os.replace(str(tmp), str(self.manifest_file))
 
     def append(self, job: Job):
         entry = self._entry_from_job(job)

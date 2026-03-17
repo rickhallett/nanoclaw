@@ -232,9 +232,9 @@ class Executor:
         if not deps:
             return True
         # Check items dir for done status
-        from .cli import _load_all_items
+        from .item import load_all_items
         items_dir = getattr(self.cfg, "items_dir", None)
-        all_items = {i.id: i for i in _load_all_items(items_dir)} if items_dir else {}
+        all_items = {i.id: i for i in load_all_items(items_dir)} if items_dir else {}
         for dep_id in deps:
             dep = all_items.get(dep_id)
             if not dep or dep.status != "done":
@@ -253,9 +253,9 @@ class Executor:
         counts = {"done": 0, "failed": 0, "skipped": 0}
 
         # --- Execute unified Items (in-progress, kind in job/agent-job) ---
-        from .cli import _load_all_items
+        from .item import load_all_items
         items_dir = getattr(self.cfg, "items_dir", None)
-        items = _load_all_items(items_dir) if items_dir else []
+        items = load_all_items(items_dir) if items_dir else []
         executable_items = [
             i for i in items
             if i.status == "in-progress" and i.kind in ("job", "agent-job")
@@ -292,8 +292,9 @@ class Executor:
                 item.save()
                 counts["failed"] += 1
             elif outcome == "retry":
-                # Back to in-progress for next cycle
-                item.data["status"] = "in-progress"
+                # Retry: running -> in-progress for next execution cycle.
+                # This transition exists specifically for retries with remaining attempts.
+                item.transition("in-progress")
                 item.save()
                 counts["skipped"] += 1
 

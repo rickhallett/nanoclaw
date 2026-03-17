@@ -64,7 +64,9 @@ def run_archive(cfg, manifest: Manifest, execute: bool = False, since: str = Non
         if file_path.exists():
             shutil.move(str(file_path), str(dest))
 
-        # write tombstone entry
+        # write tombstone as separate file (preserves original data in dest)
+        tombstone_name = f"{job_id}-tombstone-{datetime.now(timezone.utc).strftime('%Y%m%d')}.yaml"
+        tombstone_path = archive_dir / tombstone_name
         tombstone = {
             "id": job_id,
             "title": entry["title"],
@@ -74,7 +76,7 @@ def run_archive(cfg, manifest: Manifest, execute: bool = False, since: str = Non
             "original_file": str(file_path),
             "archive_file": str(dest),
         }
-        with open(dest, "w") as f:
+        with open(tombstone_path, "w") as f:
             yaml.dump(tombstone, f, default_flow_style=False, sort_keys=False)
 
         manifest.update_status(job_id, "archived")
@@ -92,7 +94,7 @@ def run_hatch(cfg, execute: bool = False, before: str = None) -> dict:
 
     archive_dir = cfg.archive_dir
     if not archive_dir.exists():
-        return {"ejected": 0}
+        return {"ejected": 0, "candidates": 0}
 
     candidates = []
     for yaml_file in archive_dir.glob("*-archived-*.yaml"):

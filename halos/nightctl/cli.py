@@ -16,7 +16,7 @@ except ImportError:
     from . import yaml_shim as yaml
 
 from .config import load_config
-from .item import Item, ValidationError, TransitionError, VALID_KINDS
+from .item import Item, ValidationError, TransitionError, VALID_KINDS, load_all_items, find_item
 from .job import Job, ValidationError as JobValidationError
 from .manifest import Manifest
 from .notify import Notifier
@@ -53,25 +53,9 @@ def _next_window_info(window_str: str, tz_name: str) -> str:
         return window_str
 
 
-def _load_all_items(items_dir: Path) -> list[Item]:
-    """Load all Item YAML files from a directory."""
-    if not items_dir.exists():
-        return []
-    items = []
-    for f in sorted(items_dir.glob("*.yaml")):
-        try:
-            items.append(Item.from_file(f))
-        except Exception as e:
-            print(f"WARN: skipping {f.name}: {e}", file=sys.stderr)
-    return items
-
-
-def _find_item(items_dir: Path, item_id: str) -> Item | None:
-    """Find an item by ID (exact match)."""
-    for i in _load_all_items(items_dir):
-        if i.id == item_id:
-            return i
-    return None
+# Aliases for backward compatibility (shared helpers now in item.py)
+_load_all_items = load_all_items
+_find_item = find_item
 
 
 def _transition_item(cfg, item_id: str, new_status: str, label: str, extra_cb=None):
@@ -288,6 +272,13 @@ def cmd_edit(args, cfg):
     if args.entities is not None:
         item.data["entities"] = [e.strip() for e in args.entities.split(",")]
     if getattr(args, "plan", None) is not None:
+        # Validate plan XML before accepting the edit
+        from halos.nightctl.plan import validate_plan_xml, PlanValidationError
+        try:
+            validate_plan_xml(args.plan)
+        except PlanValidationError as e:
+            print(f"ERROR: invalid plan XML: {'; '.join(e.errors)}", file=sys.stderr)
+            sys.exit(1)
         item.data["plan"] = args.plan
     if getattr(args, "plan_ref", None) is not None:
         item.data["plan_ref"] = args.plan_ref

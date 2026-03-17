@@ -56,23 +56,28 @@ def resolve_plan(item: Item) -> str:
         if not ref_path.is_absolute():
             ref_path = (project_root / ref_path).resolve()
 
+        # Path traversal protection: resolved path must stay within project
+        if not ref_path.is_relative_to(project_root):
+            raise ContainerError(
+                f"Plan ref escapes project root: {item.plan_ref} (resolved to {ref_path})"
+            )
+
         if not ref_path.exists():
             raise ContainerError(
                 f"Plan ref file not found: {item.plan_ref} (resolved to {ref_path})"
             )
 
         plan_text = ref_path.read_text()
-        # Extract XML plan from the file
-        import re
-        match = re.search(r"(<plan>.*?</plan>)", plan_text, re.DOTALL)
-        if match:
-            plan_xml = match.group(1)
+        # Use the same extraction logic as plan.py (handles <plan> with attributes)
+        from .plan import extract_plan_from_file, PlanValidationError
+        try:
+            plan_xml = extract_plan_from_file(plan_text)
             validate_plan_xml(plan_xml)
             return plan_xml
-        else:
+        except PlanValidationError as e:
             raise ContainerError(
-                f"Plan ref file does not contain a <plan>...</plan> block: {item.plan_ref}"
-            )
+                f"Plan ref validation failed for {item.plan_ref}: {e}"
+            ) from e
 
     raise ContainerError(
         f"Item {item.id} has no plan (inline or plan_ref) — cannot execute as agent-job"

@@ -77,7 +77,7 @@ _BASE_TRANSITIONS: dict[str, list[str]] = {
 
     # Execution
     "in-progress":  ["review", "running", "blocked", "cancelled"],
-    "running":      ["done", "failed"],
+    "running":      ["done", "failed", "in-progress"],  # in-progress = retry with remaining attempts
 
     # Review track (human path)
     "review":       ["in-progress", "testing", "done"],
@@ -262,8 +262,10 @@ class Item:
             raise TransitionError(self.status, new_status, allowed)
 
         # Plan validation gates (agent-jobs only)
+        # Only validate on planning track transitions, not retries or unblocks
         if self.kind == "agent-job" and new_status in ("plan-review", "in-progress"):
-            self._validate_plan()
+            if self.status in ("planning", "plan-review"):
+                self._validate_plan()
 
         self.data["status"] = new_status
         self.data["modified"] = _now_iso()
@@ -285,7 +287,7 @@ class Item:
     # -- Execution support --
 
     def decrement_retries(self) -> int:
-        remaining = self.retries_remaining - 1
+        remaining = max(0, self.retries_remaining - 1)
         self.data["retries_remaining"] = remaining
         return remaining
 
@@ -445,3 +447,29 @@ class Item:
         items_dir.mkdir(parents=True, exist_ok=True)
         item.save()
         return item
+
+
+# ---------------------------------------------------------------------------
+# Collection helpers (shared by cli.py and executor.py)
+# ---------------------------------------------------------------------------
+
+def load_all_items(items_dir: Path) -> list["Item"]:
+    """Load all items from a directory. Skips files that fail validation."""
+    import sys
+    if not items_dir or not items_dir.exists():
+        return []
+    items = []
+    for f in sorted(items_dir.glob("*.yaml")):
+        try:
+            items.append(Item.from_file(f))
+        except Exception as e:
+            print(f"WARN: skipping {f.name}: {e}", file=sys.stderr)
+    return items
+
+
+def find_item(items_dir: Path, item_id: str) -> "Item | None":
+    """Find an item by ID. Returns None if not found."""
+    for i in load_all_items(items_dir):
+        if i.id == item_id:
+            return i
+    return None
