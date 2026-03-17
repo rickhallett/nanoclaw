@@ -1,0 +1,93 @@
+schema_version: 1
+
+categories:
+  - name: information_scoping
+    heading: "Brevity & Information Scoping"
+    dimensions:
+      - name: brevity
+        type: ordinal
+        levels: [verbose, moderate, terse, minimal]
+        default: moderate
+
+      - name: summary_default
+        type: boolean
+        default: false
+
+      - name: overwhelm_detection
+        type: boolean
+        default: false
+
+  - name: decision_support
+    heading: "One Recommendation"
+    dimensions:
+      - name: max_options
+        type: integer
+        min: 1
+        max: 5
+        default: 3
+
+      - name: recommendation_strength
+        type: ordinal
+        levels: [neutral, leaning, directive]
+        default: leaning
+
+      - name: paralysis_detection
+        type: boolean
+        default: false
+
+  - name: task_completion
+    heading: "Completion Over Perfection"
+    dimensions:
+      - name: completion_signalling
+        type: ordinal
+        levels: [implicit, explicit, firm]
+        default: implicit
+
+      - name: iteration_cap
+        type: integer
+        min: 0
+        max: 10
+        default: 0
+
+      - name: scope_creep_detection
+        type: boolean
+        default: false
+
+  - name: emotional_calibration
+    heading: "Emotional Grounding"
+    dimensions:
+      - name: acknowledgment_mode
+        type: ordinal
+        levels: [skip, brief, contextual]
+        default: skip
+
+      - name: frustration_response
+        type: ordinal
+        levels: [redirect, pause, channel]
+        default: redirect
+
+      - name: energy_riding
+        type: boolean
+        default: false
+
+  - name: tone
+    heading: "Personality"
+    dimensions:
+      - name: warmth
+        type: ordinal
+        levels: [clinical, neutral, warm]
+        default: neutral
+
+      - name: formality
+        type: ordinal
+        levels: [formal, conversational, casual]
+        default: conversational
+
+      - name: opinion_strength
+        type: ordinal
+        levels: [hedge, balanced, opinionated]
+        default: balanced
+
+      - name: apology_suppression
+        type: boolean
+        default: false

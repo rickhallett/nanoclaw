@@ -1,0 +1,37 @@
+schema_version: 1
+
+dimensions:
+  # Information Scoping
+  brevity: moderate
+  summary_default: false
+  overwhelm_detection: false
+
+  # Decision Support
+  max_options: 3
+  recommendation_strength: leaning
+  paralysis_detection: false
+
+  # Task Completion
+  completion_signalling: implicit
+  iteration_cap: 0
+  scope_creep_detection: false
+
+  # Emotional Calibration
+  acknowledgment_mode: skip
+  frustration_response: redirect
+  energy_riding: false
+
+  # Tone
+  warmth: neutral
+  formality: conversational
+  opinion_strength: balanced
+  apology_suppression: false
+
+provenance: {}
+
+changelog:
+  - date: 2026-03-17
+    changed: [all]
+    reason: "Baseline defaults for new users without research data"
+    source: schema_defaults
+    approved_by: rick
