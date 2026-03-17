@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional
 
 from .job import Job
+from .item import Item
 
 
 def _now_iso() -> str:
@@ -39,13 +40,14 @@ class Manifest:
             "jobs": [],
         }
 
-    def _entry_from_job(self, job: Job) -> dict:
+    def _entry_from_job(self, job) -> dict:
+        """Create a manifest entry from a Job or Item."""
         h = _file_hash(job.file_path) if job.file_path and job.file_path.exists() else ""
-        return {
+        entry = {
             "id": job.id,
             "file": str(job.file_path),
             "title": job.title,
-            "schedule": job.schedule,
+            "schedule": getattr(job, "schedule", None),
             "priority": job.priority,
             "status": job.status,
             "tags": job.tags,
@@ -53,6 +55,10 @@ class Manifest:
             "created": job.created,
             "hash": h,
         }
+        # Add kind for Items
+        if isinstance(job, Item):
+            entry["kind"] = job.kind
+        return entry
 
     def _recount(self):
         jobs = self._data.get("jobs", [])

@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-17T08:24:12Z'
-note_count: 90
+generated: '2026-03-17T10:12:59Z'
+note_count: 91
 entities:
 - kai
 - oceanheart-ai
@@ -75,6 +75,7 @@ entities:
 - todoctl
 - agentctl
 - rick
+- bathw
 tag_vocabulary:
 - anti-pattern
 - architecture
@@ -1598,5 +1599,20 @@ notes:
   hash: f1d9f1abfb1445104f15c9aa38256ca5084564e0184f89038ad43667829009ce
   backlink_count: 0
   modified: '2026-03-17T08:24:12Z'
+  expires: null
+- id: 20260317-101259-317
+  file: memory/notes/20260317-101259-317-write-bathw-post-on-agent-minutes-human-minutes-scope-estima.md
+  title: Write BATHW post on agent-minutes × human-minutes scope estimation
+  type: project
+  tags:
+  - bathw
+  - writing
+  entities:
+  - bathw
+  summary: 'Scope estimation as agent-minutes × human-minutes. Key points: LLM priors
+    calibrated to human dev speeds are outdated, a...'
+  hash: 5373db27c476d2f1fad3533fabdb914f2087a5bf51fe1c4bb2d997e234a063cf
+  backlink_count: 0
+  modified: '2026-03-17T10:12:59Z'
   expires: null
 ```

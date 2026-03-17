@@ -88,6 +88,17 @@ All agent tooling lives in the `halos/` Python package with console_scripts entr
 | `/qodo-pr-resolver` | Fetch and fix Qodo PR review issues interactively or in batch |
 | `/get-qodo-rules` | Load org- and repo-level coding rules from Qodo before code tasks |
 
+## Scope Estimation
+
+All scope estimates must be expressed as **agent-minutes × human-minutes**, not wall-clock time or "effort."
+
+Why:
+- LLM reasoning priors about task duration are calibrated to human software development speeds. Those priors are outdated in an agent-assisted context.
+- Read/write operations are asymmetric across the HCI interface: agents read fast and write fast; humans read slower but judge better. Estimates that ignore this produce bad plans.
+- This is a critical-path constraint. The number of downstream decisions affected by scope estimation is quadratic in complexity — a wrong estimate at the top cascades through scheduling, parallelism, review allocation, and commit cadence.
+
+Do not say "this will take 2-3 hours." Say "~15 agent-minutes of generation + ~30 human-minutes of review and decision-making." The distinction changes how we plan.
+
 ## Development
 
 Run commands directly—don't tell the user to run them.

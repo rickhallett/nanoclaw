@@ -8,6 +8,7 @@ from pathlib import Path
 
 DEFAULTS = {
     "queue_dir": "./queue",
+    "items_dir": "./queue/items",
     "manifest_file": "./queue/MANIFEST.yaml",
     "archive_dir": "./queue/archive",
     "runs_dir": "./queue/runs",
@@ -66,6 +67,10 @@ class Config:
         return self._resolve(self._data["queue_dir"])
 
     @property
+    def items_dir(self) -> Path:
+        return self._resolve(self._data.get("items_dir", "./queue/items"))
+
+    @property
     def jobs_dir(self) -> Path:
         return self.queue_dir / "jobs"
 
@@ -102,7 +107,7 @@ class Config:
         return self._data["archive"]
 
     def ensure_dirs(self):
-        for d in [self.jobs_dir, self.archive_dir, self.runs_dir]:
+        for d in [self.jobs_dir, self.items_dir, self.archive_dir, self.runs_dir]:
             d.mkdir(parents=True, exist_ok=True)
 
 
