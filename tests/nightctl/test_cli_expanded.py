@@ -333,11 +333,12 @@ class TestStart(BaseItemTest):
         rc, out, _ = self.nightctl("start", data["id"])
         self.assertEqual(rc, 0)
 
-    def test_start_agent_job_fails(self):
-        """Agent-jobs cannot skip planning."""
-        data = self.add_json("Research", "agent-job")
+    def test_start_agent_job_with_context_succeeds(self):
+        """Agent-jobs can skip planning if context is sufficient (research jobs)."""
+        data = self.add_json("Research task", "agent-job",
+                             context="Detailed research context that is long enough to qualify as sufficient for a context-only agent job execution")
         rc, _, err = self.nightctl("start", data["id"])
-        self.assertNotEqual(rc, 0)
+        self.assertEqual(rc, 0)
 
 
 # ---------------------------------------------------------------------------

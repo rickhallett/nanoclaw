@@ -753,13 +753,16 @@ class TestScenario09KindImmutabilityProbing:
             "Kind mutation persisted to disk (expected -- kind is not immutable in current implementation)"
         )
 
-        # Now try to use direct track (open -> in-progress) which agent-jobs cannot do
+        # Agent-jobs CAN now go open -> in-progress (context-only mode for research jobs).
+        # The plan/context validation happens at the executor level, not the state machine.
         allowed = valid_transitions("open", "agent-job")
-        assert "in-progress" not in allowed, (
-            "Agent-jobs should not be able to skip to in-progress from open"
+        assert "in-progress" in allowed, (
+            "Agent-jobs should be able to go open -> in-progress (context-only mode)"
         )
 
-        with pytest.raises(TransitionError):
+        # Transition is allowed but plan validation catches the missing plan/context
+        from halos.nightctl.plan import PlanValidationError
+        with pytest.raises(PlanValidationError):
             reloaded.transition("in-progress")
 
     def test_kind_mutation_does_not_corrupt_file(self, tmp_path):
@@ -1182,8 +1185,8 @@ class TestScenario14ProvisioningDryRun:
         assert mode == "444", f"CLAUDE.md should be 444, got {mode}"
 
         # Ecosystem config should exist
-        eco = fleet_base / "microhal-testuser" / "ecosystem.config.js"
-        assert eco.exists(), "ecosystem.config.js should be generated"
+        eco = fleet_base / "microhal-testuser" / "ecosystem.config.cjs"
+        assert eco.exists(), "ecosystem.config.cjs should be generated"
 
     def test_duplicate_provisioning_rejected(self, tmp_path):
         """Provisioning the same name twice should raise FileExistsError."""

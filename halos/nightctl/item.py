@@ -95,9 +95,9 @@ _BASE_TRANSITIONS: dict[str, list[str]] = {
 
 # Kind-specific exclusions: (status, kind) → statuses to remove
 _KIND_EXCLUSIONS: dict[tuple[str, str], set[str]] = {
-    # agent-jobs MUST go through planning — cannot skip to in-progress from open
-    ("open", "agent-job"):      {"in-progress"},
-    # agent-jobs recover via plan-review, not direct retry
+    # agent-jobs CAN skip planning if context is sufficient (e.g. research jobs).
+    # The executor validates that plan OR context exists before running.
+    # Recovery from failure still goes through plan-review for structured jobs.
     ("failed", "agent-job"):    {"in-progress"},
 
     # tasks cannot enter running state (no execution engine for humans)
@@ -262,16 +262,22 @@ class Item:
             raise TransitionError(self.status, new_status, allowed)
 
         # Plan validation gates (agent-jobs only)
-        # Only validate on planning track transitions, not retries or unblocks
+        # Validate when entering plan-review, or when entering in-progress from
+        # planning track OR directly from open (context-only skip).
+        # Do NOT validate on retries (running→in-progress) or unblocks (blocked→in-progress).
         if self.kind == "agent-job" and new_status in ("plan-review", "in-progress"):
-            if self.status in ("planning", "plan-review"):
+            if self.status in ("planning", "plan-review", "open"):
                 self._validate_plan()
 
         self.data["status"] = new_status
         self.data["modified"] = _now_iso()
 
     def _validate_plan(self) -> None:
-        """Validate the item's plan. Called at transition gates."""
+        """Validate the item's plan. Called at transition gates.
+
+        Agent-jobs need EITHER a structured plan (XML) OR sufficient context.
+        Research jobs and simple agent tasks can run on context alone.
+        """
         from .plan import validate_plan_xml, validate_plan_ref, PlanValidationError
 
         if self.plan:
@@ -279,9 +285,14 @@ class Item:
         elif self.plan_ref:
             base_dir = self.file_path.parent if self.file_path else Path.cwd()
             validate_plan_ref(self.plan_ref, base_dir)
+        elif self.context and len(self.context.strip()) >= 50:
+            # Context-only mode: sufficient detail can substitute for a plan.
+            # 50 chars is a minimal threshold — "research X" is not enough,
+            # but a paragraph describing the task is.
+            pass
         else:
             raise PlanValidationError(
-                ["agent-job requires a plan (inline or plan_ref) before promotion"]
+                ["agent-job requires a plan (inline or plan_ref) or detailed context (50+ chars) before promotion"]
             )
 
     # -- Execution support --

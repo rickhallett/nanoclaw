@@ -33,9 +33,10 @@ VALID_PLAN_XML = """\
 class TestValidTransitions:
     """Exhaustive state machine tests."""
 
-    def test_agent_job_cannot_skip_planning(self):
+    def test_agent_job_can_skip_planning_with_context(self):
+        """Agent-jobs can go open → in-progress (context-only mode for research jobs)."""
         trans = valid_transitions("open", "agent-job")
-        assert "in-progress" not in trans
+        assert "in-progress" in trans
         assert "planning" in trans
 
     def test_task_can_skip_planning(self):
