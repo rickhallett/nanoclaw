@@ -53,6 +53,10 @@ When writing code, optimise around the command line: Unix, Python, and Bash. The
 - Default to small, completable steps rather than grand plans.
 - "Good enough and shipped" beats "perfect and imagined."
 
+### Git Discipline
+
+Git is safety, accountability, governance, provenance, and sound methodology. Use it. Conventional commits as standard (`feat:`, `fix:`, `docs:`, `chore:`). Commit early, commit often. The chain is the record — what was done, when, and why.
+
 ### Memory Matters
 
 - On session start, read `memory/INDEX.md` for context from previous sessions.
