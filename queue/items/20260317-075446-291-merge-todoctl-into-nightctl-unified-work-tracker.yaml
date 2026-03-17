@@ -1,0 +1,29 @@
+id: 20260317-075446-291
+title: 'Merge todoctl into nightctl: unified work tracker'
+kind: task
+status: open
+priority: 1
+tags:
+- halos
+- architecture
+entities:
+- todoctl
+- nightctl
+context: nightctl becomes SSOT for all work items. todoctl state machine transplanted
+  into nightctl Job model. Expanded status vocabulary covering full lifecycle. Atomic
+  writes, graph command, context/due/entities fields ported. todoctl retired. See
+  development logbook 2026-03-17 for full rationale.
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-17T07:54:46Z'
+modified: '2026-03-17T07:54:46Z'
+created_by: human

@@ -1,0 +1,25 @@
+id: 20260316-090006
+title: PostHog integration for logctl
+kind: task
+status: open
+priority: 4
+tags:
+- halos
+- logctl
+entities: []
+context: PostHog is set up with keys. Defer until logctl halos abstraction layer exists.
+  logctl should provide the abstraction; PostHog is one backend behind it.
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-16T09:00:06Z'
+modified: '2026-03-16T09:00:06Z'
+created_by: human

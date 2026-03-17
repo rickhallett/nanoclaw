@@ -1,0 +1,30 @@
+id: 20260317-102759-948
+title: 'Port function: clone nanoclaw for non-technical n>1 users'
+kind: task
+status: open
+priority: 3
+tags:
+- architecture
+entities:
+- nanoclaw
+- telegram
+context: 'Strip personal memories, clone working config, generate new Telegram bot
+  per user. Likert scale on first contact + re-measure later. Friends/family as test
+  subjects. Technical scope: (a) memory wipe script preserving structure, (b) new
+  bot token setup via BotFather, (c) duplicate Telegram process per user, (d) minimal
+  onboarding. Per-group isolation already exists. Biggest unknown: how many concurrent
+  Telegram bots can one host handle? Needs /spec before code.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-17T10:27:59Z'
+modified: '2026-03-17T10:27:59Z'
+created_by: human

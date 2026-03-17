@@ -1,0 +1,33 @@
+id: 20260317-070508-080
+title: 'Boot-time decision audit: present standing decisions to agents on startup
+  with logctl trail'
+kind: task
+status: open
+priority: 2
+tags:
+- halos
+- memctl
+- agentctl
+- observability
+entities:
+- memctl
+- logctl
+- agentctl
+context: 'Standing decisions (memctl type=decision) read at boot via CLI, printed
+  to stdout. logctl records presentation timestamp. TBD: agent read-receipt signature
+  for auditable compliance trail. Feeds dashboard question: when do agents stop following
+  instructions and why.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-17T07:05:08Z'
+modified: '2026-03-17T07:05:08Z'
+created_by: human

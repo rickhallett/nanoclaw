@@ -1,0 +1,27 @@
+id: 20260316-082712
+title: Write up memctl for external audience
+kind: task
+status: open
+priority: 3
+tags:
+- memctl
+- writing
+entities: []
+context: Architecture overview drafted at docs/d1/memctl-architecture-overview.md.
+  Needs editorial pass for blog/portfolio use. Could be an oceanheart.ai post or README
+  for a standalone repo. The 'what is novel' section (enrichment rubric, enforcement
+  loop, rebuild invariant) is the hook.
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-16T08:27:12Z'
+modified: '2026-03-16T08:27:12Z'
+created_by: human

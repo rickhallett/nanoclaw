@@ -119,7 +119,12 @@ def collect_memctl(memctl_config_path: Path) -> dict:
 
 
 def collect_todoctl(todoctl_config_path: Path) -> dict:
-    """Collect backlog stats from todoctl items directory."""
+    """Collect backlog stats from nightctl unified items (queue/items/).
+
+    Falls back to legacy todoctl items directory if nightctl items not found.
+    The todoctl_config_path is used to resolve the project root; items are
+    read from queue/items/ (nightctl unified location) first.
+    """
     result = {
         "available": False,
         "total": 0,
@@ -134,7 +139,13 @@ def collect_todoctl(todoctl_config_path: Path) -> dict:
         cfg = yaml.safe_load(f) or {}
 
     base_dir = todoctl_config_path.parent
-    items_dir = _resolve(base_dir, cfg.get("items_dir", "./backlog/items"))
+
+    # Try nightctl unified items first (queue/items/)
+    nightctl_items_dir = _resolve(base_dir, "./queue/items")
+    legacy_items_dir = _resolve(base_dir, cfg.get("items_dir", "./backlog/items"))
+
+    # Use nightctl items if available, fall back to legacy
+    items_dir = nightctl_items_dir if nightctl_items_dir.exists() else legacy_items_dir
 
     if not items_dir.exists():
         result["available"] = True
@@ -149,19 +160,19 @@ def collect_todoctl(todoctl_config_path: Path) -> dict:
         try:
             with open(f) as fh:
                 data = yaml.safe_load(fh) or {}
+            # Only count task-kind items for the todoctl collector
+            # (jobs and agent-jobs are counted by collect_nightctl)
+            kind = data.get("kind", "task")
+            if kind != "task":
+                continue
             total += 1
             s = data.get("status", "open")
             by_status[s] = by_status.get(s, 0) + 1
             p = data.get("priority", 3)
             by_priority[p] = by_priority.get(p, 0) + 1
         except Exception as exc:
-            print(f"WARNING: todoctl item {f} could not be parsed: {exc}",
+            print(f"WARNING: item {f} could not be parsed: {exc}",
                   file=sys.stderr)
-
-    yaml_files = list(items_dir.glob("*.yaml"))
-    if yaml_files and total == 0:
-        print(f"WARNING: todoctl items_dir {items_dir} has {len(yaml_files)} "
-              "YAML files but none could be parsed", file=sys.stderr)
 
     result["total"] = total
     result["by_status"] = by_status
@@ -291,12 +302,14 @@ def collect_activity(memctl_config_path: Path, todoctl_config_path: Path,
                 except (ValueError, AttributeError):
                     pass
 
-    # todoctl: items created/completed since
+    # todoctl: items created/completed since (reads from nightctl unified items)
     if todoctl_config_path.exists():
         with open(todoctl_config_path) as f:
             cfg = yaml.safe_load(f) or {}
         base_dir = todoctl_config_path.parent
-        items_dir = _resolve(base_dir, cfg.get("items_dir", "./backlog/items"))
+        nightctl_items_dir = _resolve(base_dir, "./queue/items")
+        legacy_items_dir = _resolve(base_dir, cfg.get("items_dir", "./backlog/items"))
+        items_dir = nightctl_items_dir if nightctl_items_dir.exists() else legacy_items_dir
         if items_dir.exists():
             for f in items_dir.glob("*.yaml"):
                 try:

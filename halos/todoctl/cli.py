@@ -388,6 +388,14 @@ def build_parser():
 
 
 def main():
+    import warnings
+    print(
+        "WARNING: todoctl is deprecated. Use nightctl instead.\n"
+        "  Items have been migrated to queue/items/.\n"
+        "  Run 'nightctl list' to see your backlog.\n",
+        file=sys.stderr,
+    )
+
     parser = build_parser()
     args = parser.parse_args()
 

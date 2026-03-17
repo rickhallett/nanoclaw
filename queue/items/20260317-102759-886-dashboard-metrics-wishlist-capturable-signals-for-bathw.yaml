@@ -1,0 +1,29 @@
+id: 20260317-102759-886
+title: 'Dashboard metrics wishlist: capturable signals for BATHW'
+kind: task
+status: open
+priority: 3
+tags:
+- halos
+- bathw
+entities:
+- bathw
+context: 'Running list of metrics to feed the dashboard. Starters: commits per unit
+  time, human-agent response pairs (absolute + rate), token burn with context hydration
+  (not just raw spend but what it bought), scope estimate accuracy over time. Each
+  metric needs: capture method, storage format, potential ROI (what hypotheses does
+  this address that we''d otherwise miss?). Reference doc in docs/d2/, not code yet.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-17T10:27:59Z'
+modified: '2026-03-17T10:27:59Z'
+created_by: human

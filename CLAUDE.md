@@ -39,9 +39,8 @@ All agent tooling lives in the `halos/` Python package with console_scripts entr
 | Module | Command | Purpose |
 |--------|---------|---------|
 | memctl | `memctl` | Structured memory governance |
-| nightctl | `nightctl` | Overnight batch job queue |
+| nightctl | `nightctl` | Unified work tracker: tasks, jobs, agent-jobs with validated state machine |
 | cronctl | `cronctl` | Cron job definitions and crontab generation |
-| todoctl | `todoctl` | Backlog tracking and prioritisation |
 | logctl | `logctl` | Structured log reader and search |
 | reportctl | `reportctl` | Periodic digests from halos ecosystem |
 | agentctl | `agentctl` | LLM session tracking and spin detection |

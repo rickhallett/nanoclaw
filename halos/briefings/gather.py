@@ -142,7 +142,11 @@ def gather_nightly(cfg: Config) -> BriefingData:
 
 
 def _get_open_todos(todoctl_config_path: Path) -> list[dict]:
-    """Read open todo items with their details."""
+    """Read open todo items with their details.
+
+    Reads from nightctl unified items (queue/items/) first,
+    falls back to legacy todoctl directory.
+    """
     import yaml
 
     if not todoctl_config_path.exists():
@@ -152,10 +156,15 @@ def _get_open_todos(todoctl_config_path: Path) -> list[dict]:
         cfg = yaml.safe_load(f) or {}
 
     base_dir = todoctl_config_path.parent
-    items_dir_str = cfg.get("items_dir", "./backlog/items")
-    items_dir = Path(items_dir_str)
-    if not items_dir.is_absolute():
-        items_dir = (base_dir / items_dir).resolve()
+
+    # Try nightctl unified items first
+    nightctl_items_dir = (base_dir / "queue" / "items").resolve()
+    legacy_items_dir_str = cfg.get("items_dir", "./backlog/items")
+    legacy_items_dir = Path(legacy_items_dir_str)
+    if not legacy_items_dir.is_absolute():
+        legacy_items_dir = (base_dir / legacy_items_dir).resolve()
+
+    items_dir = nightctl_items_dir if nightctl_items_dir.exists() else legacy_items_dir
 
     if not items_dir.exists():
         return []
@@ -165,6 +174,10 @@ def _get_open_todos(todoctl_config_path: Path) -> list[dict]:
         try:
             with open(f) as fh:
                 data = yaml.safe_load(fh) or {}
+            # Only include task-kind items (not jobs or agent-jobs)
+            kind = data.get("kind", "task")
+            if kind != "task":
+                continue
             if data.get("status", "open") == "open":
                 todos.append({
                     "title": data.get("title", f.stem),

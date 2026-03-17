@@ -5,9 +5,9 @@ Operational modules that comprise the HAL agent operating layer.
 | Module | Command | Source | Purpose | Status |
 |--------|---------|--------|---------|--------|
 | memctl | `memctl` | halos/memctl/ | Structured memory: atomic notes, YAML schema, hash-verified index, pruning | Active |
-| nightctl | `nightctl` | halos/nightctl/ | Overnight batch jobs: deferred execution, windowed scheduling, run records | Active |
+| nightctl | `nightctl` | halos/nightctl/ | Unified work tracker: tasks, jobs, agent-jobs with validated state machine, windowed execution, run records | Active |
 | cronctl | `cronctl` | halos/cronctl/ | Cron management: YAML job definitions, crontab generation, enable/disable | Active |
-| todoctl | `todoctl` | halos/todoctl/ | Backlog tracking: prioritised YAML items, status workflow, blocking | Active |
+| todoctl | ~~`todoctl`~~ | halos/todoctl/ | **Deprecated** — merged into nightctl. Directory preserved for provenance | Retired |
 | logctl | `logctl` | halos/logctl/ | Structured log reader: pino parser, search, filters, error summary | Active |
 | reportctl | `reportctl` | halos/reportctl/ | Periodic digests: briefing, weekly, health from memctl/todoctl/nightctl | Active |
 | agentctl | `agentctl` | halos/agentctl/ | LLM session tracking: usage stats, spinning-to-infinity detection | Active |

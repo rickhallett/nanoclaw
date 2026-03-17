@@ -130,17 +130,41 @@ def execute_item(item: Item, runs_dir: Path, notifier: Notifier, dry_run: bool =
         print(f"  DRY-RUN  {item.id}  {item.title}  [{item.kind}]")
         return "done"
 
-    # Agent-jobs: container execution not yet wired (Phase 3)
+    # Agent-jobs: delegate to container-runner via IPC
     if item.kind == "agent-job":
-        hlog("nightctl", "info", "agent_job_stub", {
-            "id": item.id,
-            "message": "container execution not yet wired",
-        })
-        print(f"  stub     {item.id}  {item.title}  [agent-job: container execution not yet wired]")
-        finished = _now_iso()
-        record = _run_record(item.id, attempt, _now_iso(), finished, 0, "agent-job stub", "", "done")
-        _write_run_record(runs_dir, item.id, record)
-        return "done"
+        from .container import prepare_agent_job, ContainerError
+        started = _now_iso()
+        print(f"  running  {item.id}  {item.title}  [agent-job]")
+
+        try:
+            result_info = prepare_agent_job(item)
+            hlog("nightctl", "info", "agent_job_dispatched", {
+                "id": item.id,
+                "plan_path": str(result_info["plan_path"]),
+            })
+            finished = _now_iso()
+            stdout = f"agent-job dispatched: plan at {result_info['plan_path']}"
+            if result_info.get("ipc_path"):
+                stdout += f", IPC at {result_info['ipc_path']}"
+            record = _run_record(item.id, attempt, started, finished, 0, stdout, "", "done")
+            _write_run_record(runs_dir, item.id, record)
+            return "done"
+        except (ContainerError, Exception) as e:
+            finished = _now_iso()
+            stderr = str(e)
+            hlog("nightctl", "error", "agent_job_failed", {
+                "id": item.id,
+                "error": stderr,
+            })
+            record = _run_record(item.id, attempt, started, finished, 1, "", stderr, "failed")
+            _write_run_record(runs_dir, item.id, record)
+            remaining = item.decrement_retries()
+            if remaining <= 0:
+                notifier.failure(item.id, item.title, f"agent-job: {item.plan_ref or 'inline'}", 1, stderr)
+                return "failed"
+            else:
+                print(f"  retry    {item.id}  ({remaining} retries remaining)")
+                return "retry"
 
     # Regular job execution via subprocess
     if not item.command:
