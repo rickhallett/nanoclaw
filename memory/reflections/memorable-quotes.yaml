@@ -1,0 +1,27 @@
+# Memorable Quotes
+# Lines worth keeping. Context matters more than chronology.
+
+- quote: "What happens when a plan is syntactically valid but operationally garbage?"
+  date: 2026-03-17
+  context: nightctl spec interview, discussing plan validation quality floor
+  who: hal
+
+- quote: "caffeine-driven architecture"
+  date: 2026-03-17
+  context: morning session where tangents produced more load-bearing ideas than the original agenda
+  who: rick
+
+- quote: "your best work happens while you sleep"
+  date: 2026-03-17
+  context: nightctl philosophy, the case against lightctl/nightctl split
+  who: rick
+
+- quote: "there is active cogitation with an LLM; there is collaboration theatre"
+  date: 2026-03-17
+  context: on the difference between genuine human-agent co-planning and handholding that feels productive but isn't
+  who: rick
+
+- quote: "we need to ingress the brainfarts as they come in and allow the ceremony of speccing to occur as the creature evolves from micro wind disturbance to fully formed wind tunnel with thermodynamic consequences on the system"
+  date: 2026-03-17
+  context: on why the planning process must accommodate both quick capture and rigorous specification
+  who: rick

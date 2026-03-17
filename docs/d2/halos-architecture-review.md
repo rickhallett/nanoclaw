@@ -84,4 +84,4 @@ The boundary is clean: NanoClaw owns the runtime, halos owns the state. They com
 
 **agentctl ingests after the fact.** It parses log files that container-runner wrote, which means session data is only available after the container exits and someone runs `agentctl ingest`. A hook that writes the session record at container shutdown would make the data available immediately.
 
-**The "halOS" name.** It works. The capability map suggests reframing "OS" as "Operational Surface" to guard against scope creep. The risk is that calling it an OS invites building one. It's a tool suite, not a kernel. The name should reflect that.
+**The "halos" name.** It works. The capability map suggests reframing "OS" as "Operational Surface" to guard against scope creep. The risk is that calling it an OS invites building one. It's a tool suite, not a kernel. The name should reflect that.

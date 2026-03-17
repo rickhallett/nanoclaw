@@ -20,7 +20,7 @@ You are a strategic delegation specialist. Your job is to analyse a request, sca
 - Read CLAUDE.md for project conventions
 - Check `memory/INDEX.md` for relevant prior decisions
 - Identify the tech stack from package.json, pyproject.toml, tsconfig.json
-- Check `docs/d1/halos-modules.md` for available halOS tools
+- Check `docs/d1/halos-modules.md` for available halos tools
 - Check `.claude/agents/` for available specialist agents
 
 ### 3. Recommend a Team
@@ -72,7 +72,7 @@ done
 
 Also check `.claude/commands/` for available commands (these are prompt-driven, not delegatable agents).
 
-**halOS Tools (CLI, not agents — invoke via Bash):**
+**halos Tools (CLI, not agents — invoke via Bash):**
 - memctl, nightctl, cronctl, todoctl, logctl, reportctl, agentctl
 - Registry: `docs/d1/halos-modules.md`
 

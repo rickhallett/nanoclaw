@@ -205,7 +205,7 @@ def _find_job(jobs_dir: Path, job_id: str) -> CronJob | None:
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="cronctl",
-        description="halOS cron job management CLI",
+        description="halos cron job management CLI",
     )
     parser.add_argument("--config", default=None, help="Path to cronctl.yaml")
     parser.add_argument("--json", action="store_true", help="Output as JSON")

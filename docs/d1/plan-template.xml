@@ -1,0 +1,70 @@
+<!--
+  nightctl agent-job plan template.
+  XML format — distinct from YAML (data) to signal "this is an instruction set."
+
+  Validation rules (enforced at gate time and runtime):
+  1. Must parse as valid XML
+  2. <goal> required, non-empty
+  3. <steps> required, at least one <step> with n and output attributes
+  4. <constraints> required, at least one <constraint>
+  5. <success> required, at least one <criterion>
+
+  Not validated: prose quality, dependency validity, output path existence.
+
+  Remember: promoting an item is declaring it matters. This plan is the
+  downpayment. Make it worth the electricity.
+-->
+
+<plan>
+  <goal>
+    <!-- One sentence. Falsifiable. You should be able to look at the outputs and say yes/no. -->
+  </goal>
+
+  <context>
+    <!--
+      What the agent needs to know before starting.
+      References to files, specs, prior decisions.
+      Not the kitchen sink — just what's load-bearing.
+    -->
+  </context>
+
+  <steps>
+    <!--
+      Ordered steps. Each must declare what it produces.
+      The output attribute is mandatory — it forces you to define "done" per stage.
+      Use depends="N" to declare step dependencies.
+    -->
+    <step n="1" output="path/to/artifact-or-stdout">
+      What to do. Be specific enough that an agent won't spin.
+    </step>
+    <step n="2" depends="1" output="path/to/next-artifact">
+      Next step. Reference prior outputs if needed.
+    </step>
+  </steps>
+
+  <constraints>
+    <!--
+      Mandatory. At least one. Forces the author to think about boundaries.
+      What should the agent NOT do? What's out of scope?
+      This is the anti-deskilling mechanism in schema form.
+    -->
+    <constraint>Example: Do not commit to git without explicit instruction</constraint>
+    <constraint>Example: Stay within docs/d2/ for new files</constraint>
+  </constraints>
+
+  <success>
+    <!--
+      How do we know this worked? Each criterion should be independently testable.
+      If it has "and" in it, split it.
+    -->
+    <criterion>Example: Analysis doc exists at docs/d2/analysis.md</criterion>
+    <criterion>Example: At least 3 sources compared</criterion>
+  </success>
+
+  <output>
+    <!--
+      Where the final artifact lands. File path, stdout, or IPC target.
+      This is what the human reviews after execution.
+    -->
+  </output>
+</plan>

@@ -1,0 +1,17 @@
+id: 20260317-071834-331
+title: Evaluate merging todoctl and nightctl into a single work-tracker module
+status: open
+priority: 2
+tags:
+- halos
+- architecture
+context: "todoctl and nightctl track overlapping state (units of work). Cross-messaging\
+  \ pattern to keep them in sync is a distributed transaction for two participants\
+  \ \u2014 suggests they should be one module with scheduling as a property of the\
+  \ work item. Refactor candidate."
+created: '2026-03-17T07:18:34Z'
+due: null
+blocked_by: null
+entities:
+- todoctl
+- nightctl

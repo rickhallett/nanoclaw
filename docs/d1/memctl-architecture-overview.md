@@ -44,9 +44,9 @@ Backlinks, however, live in the note files themselves. A bad link persists until
 
 59 notes, 18 backlinks, 12 entities, 6 standing decisions exempt from pruning. Slopodar taxonomy is the highest-degree node (3 inbound links). Five semantic clusters have formed: anxiety/deskilling, slopodar/verification, identity/career, learning/post-mortems, and governance/process.
 
-## Relationship to halOS
+## Relationship to halos
 
-memctl is one of four modules in the halOS agent operating layer:
+memctl is one of four modules in the halos agent operating layer:
 
 | Module | Purpose |
 |--------|---------|

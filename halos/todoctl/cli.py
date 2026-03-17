@@ -313,7 +313,7 @@ def _find_item(items_dir: Path, item_id: str) -> TodoItem | None:
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="todoctl",
-        description="halOS backlog tracking CLI",
+        description="halos backlog tracking CLI",
     )
     parser.add_argument("--config", default=None, help="Path to todoctl.yaml")
     parser.add_argument("--json", action="store_true", help="Output as JSON")

@@ -10,7 +10,7 @@ from . import search
 def main():
     ap = argparse.ArgumentParser(
         prog="logctl",
-        description="Structured log reader for halOS",
+        description="Structured log reader for halos",
     )
     ap.add_argument("--config", default="", help="config file (default: ./logctl.yaml)")
     ap.add_argument("--json", action="store_true", dest="json_out", help="output as JSON")

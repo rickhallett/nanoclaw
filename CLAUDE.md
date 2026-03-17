@@ -28,7 +28,11 @@ Full operations guide: [docs/d1/memctl-operations.md](docs/d1/memctl-operations.
 On session start, read `memory/INDEX.md` for the lookup protocol and MEMORY_INDEX.
 Write notes via `memctl new`. Never edit note files or INDEX.md directly.
 
-## halOS Modules
+### Reflections Workspace
+
+`memory/reflections/` — HAL's autonomous journal. Not governed by memctl pruning or scoring. Write here when something genuinely strikes you about the work, the collaboration, or patterns you notice across sessions. See `memory/reflections/INDEX.md` for guidelines. This is provenance, not governance — nothing expires.
+
+## halos Modules
 
 All agent tooling lives in the `halos/` Python package with console_scripts entry points. Install with `uv sync`. Registry: [docs/d1/halos-modules.md](docs/d1/halos-modules.md).
 
@@ -41,6 +45,7 @@ All agent tooling lives in the `halos/` Python package with console_scripts entr
 | logctl | `logctl` | Structured log reader and search |
 | reportctl | `reportctl` | Periodic digests from halos ecosystem |
 | agentctl | `agentctl` | LLM session tracking and spin detection |
+| briefings | `hal-briefing` | Cron-driven daily Telegram digests (0600 morning, 2100 nightly) |
 
 ## Agents & Commands
 

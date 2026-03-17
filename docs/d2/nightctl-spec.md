@@ -1,11 +1,11 @@
 ================================================================
-nightctl — halOS Overnight Batch Processing Module
+nightctl — halos Overnight Batch Processing Module
 Implementation Specification v1.0
 ================================================================
 
 OVERVIEW
 --------
-nightctl is a Python CLI module of halOS that manages a queue of
+nightctl is a Python CLI module of halos that manages a queue of
 deferred jobs for overnight (or windowed) execution. It mirrors
 memctl's design philosophy: atomic filesystem units, YAML-first
 schema, config-driven thresholds, dry-run by default, agent-driven
@@ -13,7 +13,7 @@ job creation.
 
 Jobs are created by the agent at runtime via `nightctl enqueue`.
 The executor (`nightctl run`) is a scripted operation, not agent-driven.
-Notifications on failure are sent via the halOS messaging layer.
+Notifications on failure are sent via the halos messaging layer.
 
 Design invariants:
   - One job = one YAML file in queue/jobs/
@@ -44,7 +44,7 @@ tools/nightctl/
     job.py      # Job schema, parse, validate, write
     executor.py # run loop, serial/parallel modes
     manifest.py # MANIFEST.yaml read/write/rebuild
-    notify.py   # failure notifications via halOS messaging
+    notify.py   # failure notifications via halos messaging
     archive.py  # archive/tombstone operations
     config.py   # nightctl.yaml loading
 
@@ -124,7 +124,7 @@ job:
 notify:
   on_failure: true
   on_success: false              # set true for verbose mode
-  channel: main                  # halOS group to notify
+  channel: main                  # halos group to notify
 
 manifest:
   hash_algorithm: sha256
@@ -363,9 +363,9 @@ NOTIFICATION BEHAVIOUR
 ================================================================
 
 On job failure (after retries exhausted):
-  - Call halOS send_message with channel=main (or configured channel)
+  - Call halos send_message with channel=main (or configured channel)
   - Message includes: job ID, title, command, exit code, last stderr snippet
-  - Format follows halOS message formatting rules (no markdown)
+  - Format follows halos message formatting rules (no markdown)
 
 On success (if notify.on_success=true):
   - Send brief completion summary at end of run cycle
@@ -374,7 +374,7 @@ On success (if notify.on_success=true):
 RELATIONSHIP TO memctl
 ================================================================
 
-nightctl and memctl are peer modules of halOS. They share:
+nightctl and memctl are peer modules of halos. They share:
   - Filesystem-first, no database
   - YAML schema with controlled vocabulary
   - Derived manifest/index as single source of truth

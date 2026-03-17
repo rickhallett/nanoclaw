@@ -322,7 +322,7 @@ def cmd_stats(args, cfg):
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="nightctl",
-        description="halOS overnight batch processing queue",
+        description="halos overnight batch processing queue",
     )
     parser.add_argument("--config", default=None, help="Path to nightctl.yaml")
     parser.add_argument("--json", action="store_true", help="Output as JSON")

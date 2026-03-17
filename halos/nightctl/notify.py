@@ -1,6 +1,6 @@
 """
 Notification stub for nightctl.
-In production this hooks into halOS send_message.
+In production this hooks into halos send_message.
 For the prototype it writes to stderr and a notify log.
 """
 import sys
@@ -37,7 +37,7 @@ class Notifier:
         message = "\n".join(lines)
         print(message, file=sys.stderr)
         self._write_log(message)
-        # TODO: wire to halOS send_message when available in this context
+        # TODO: wire to halos send_message when available in this context
 
     def success_summary(self, done: int, failed: int, skipped: int):
         if not self.cfg.get("on_success", False):

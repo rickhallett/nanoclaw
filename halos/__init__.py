@@ -1,1 +1,1 @@
-"""halOS — HAL agent operating system modules."""
+"""halos — HAL agent operating system modules."""

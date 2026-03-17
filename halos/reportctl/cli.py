@@ -83,7 +83,7 @@ def cmd_digest(args, cfg):
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="reportctl",
-        description="halOS periodic digest generator",
+        description="halos periodic digest generator",
     )
     parser.add_argument("--config", default=None, help="Path to reportctl.yaml")
     parser.add_argument("--json", action="store_true", help="Output as JSON")

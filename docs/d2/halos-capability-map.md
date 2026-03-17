@@ -1,4 +1,4 @@
-# halOS Capability Map
+# halos Capability Map
 
 Analysis of current modules, infrastructure overlap, candidate modules, and design boundaries.
 
@@ -17,7 +17,7 @@ Gaps:
 ### nightctl — Overnight batch processing
 **Status: Production. Well-specified, complete implementation.**
 
-Fully implemented: `enqueue`, `list`, `status`, `run`, `cancel`, `manifest rebuild`, `manifest verify`, `archive`, `hatch`, `stats`. Notification on failure via halOS messaging layer. Serial/parallel execution modes. Dependency resolution between jobs.
+Fully implemented: `enqueue`, `list`, `status`, `run`, `cancel`, `manifest rebuild`, `manifest verify`, `archive`, `hatch`, `stats`. Notification on failure via halos messaging layer. Serial/parallel execution modes. Dependency resolution between jobs.
 
 Gaps:
 - `hatch` (permanent deletion) exists but requires double safety (--execute AND config flag). This is correct, not a gap.
@@ -53,10 +53,10 @@ What's missing across all of them: **tests**. There are no test files in `halos/
 
 ## 2. What NanoClaw Already Provides
 
-halOS modules do not operate in a vacuum. NanoClaw's infrastructure handles several things that a naive module design would try to rebuild:
+halos modules do not operate in a vacuum. NanoClaw's infrastructure handles several things that a naive module design would try to rebuild:
 
 ### Messaging (src/router.ts, src/channels/)
-Multi-channel outbound messaging. WhatsApp, Telegram, Slack, Discord, Gmail. nightctl already uses this for failure notifications via the halOS messaging layer. Any new module that needs to notify the operator can use the same path.
+Multi-channel outbound messaging. WhatsApp, Telegram, Slack, Discord, Gmail. nightctl already uses this for failure notifications via the halos messaging layer. Any new module that needs to notify the operator can use the same path.
 
 ### Scheduling (src/task-scheduler.ts, src/db.ts)
 NanoClaw has a full task scheduler with cron expressions, interval-based scheduling, and one-shot tasks. Tasks run in containers with group isolation. This is the *runtime* scheduler. cronctl is the *definition* layer (YAML files that generate crontab). nightctl is the *batch* layer (deferred jobs with dependency chains). These three layers are complementary, not overlapping:
@@ -68,20 +68,20 @@ NanoClaw has a full task scheduler with cron expressions, interval-based schedul
 File-based IPC with per-group namespaces. Containers write JSON files to `data/ipc/{group}/messages/` or `data/ipc/{group}/tasks/`. The host process polls and dispatches. Authorization model: main group can send anywhere; non-main groups can only send to themselves. Any new module that needs container-to-host communication should use this existing IPC mechanism rather than inventing its own.
 
 ### Container isolation (src/container-runner.ts)
-Containers get volume mounts (read-only project root for main, read-write group folder), credential proxy access, and IPC directories. The halOS tools are installed inside the container via `uv sync`. Modules run inside the container as CLI commands the agent invokes.
+Containers get volume mounts (read-only project root for main, read-write group folder), credential proxy access, and IPC directories. The halos tools are installed inside the container via `uv sync`. Modules run inside the container as CLI commands the agent invokes.
 
 ### SQLite (src/db.ts)
-NanoClaw uses SQLite for task state, run logs, and group metadata. halOS modules deliberately avoid this — they're filesystem-first. This is a design choice, not an oversight. The filesystem approach means the agent's tools are auditable with `cat` and `ls`, diffable with git, and don't require a database client to inspect. But it means halOS modules cannot leverage NanoClaw's existing task/run tables. This is the correct tradeoff.
+NanoClaw uses SQLite for task state, run logs, and group metadata. halos modules deliberately avoid this — they're filesystem-first. This is a design choice, not an oversight. The filesystem approach means the agent's tools are auditable with `cat` and `ls`, diffable with git, and don't require a database client to inspect. But it means halos modules cannot leverage NanoClaw's existing task/run tables. This is the correct tradeoff.
 
 ### What this means for new modules
 
-A new halOS module gets for free:
+A new halos module gets for free:
 - Outbound messaging to any channel (via IPC message files)
 - Scheduled execution (via NanoClaw tasks or cronctl definitions)
 - Container sandboxing with filesystem isolation
 - The `halos` Python package structure and `uv sync` installation
 
-A new halOS module must provide:
+A new halos module must provide:
 - Its own YAML file format and schema validation
 - Its own CLI with the standard flags (--json, --dry-run, --verbose, --config)
 - Its own config file at repo root ({module}.yaml)
@@ -92,7 +92,7 @@ A new halOS module must provide:
 ### Tier 1: Immediate (fills a gap the existing modules expose)
 
 #### testctl
-**One-line:** Test runner and gate for halOS modules.
+**One-line:** Test runner and gate for halos modules.
 
 **Why:** The defensive coding mandate is a standing order. There are no tests. Every module does schema validation, hash computation, file I/O, and pruning logic that should be tested. The modules enforce discipline on the agent but have no enforcement on themselves.
 
@@ -106,16 +106,16 @@ testctl coverage               # show coverage by module
 
 File format: Not YAML files — this is a runner, not a data store. A `testctl.yaml` config pointing to test directories per module. Tests themselves are pytest files in `halos/{module}/tests/`.
 
-**Priority: Immediate.** This is infrastructure debt. The halOS principles document says "every meaningful change must pass through a local gate." halOS itself has no gate.
+**Priority: Immediate.** This is infrastructure debt. The halos principles document says "every meaningful change must pass through a local gate." halos itself has no gate.
 
 **Dependencies:** None. It tests existing modules.
 
-**Counterargument:** This might not be a halOS module at all. It might just be `pytest` with a `Makefile` target. Don't over-engineer a test runner into a YAML-schema CLI. The right move is probably: add `halos/{module}/tests/` directories, add a `make gate` target, and move on. If it needs more than that, revisit.
+**Counterargument:** This might not be a halos module at all. It might just be `pytest` with a `Makefile` target. Don't over-engineer a test runner into a YAML-schema CLI. The right move is probably: add `halos/{module}/tests/` directories, add a `make gate` target, and move on. If it needs more than that, revisit.
 
 ---
 
 #### logctl
-**One-line:** Structured log viewer and query interface for halOS operations.
+**One-line:** Structured log viewer and query interface for halos operations.
 
 **Why:** nightctl writes run records. cronctl runs commands. memctl does pruning. All of these produce output that currently goes to stdout or individual log files. There's no unified way to ask "what happened overnight?" or "show me all failed operations this week."
 
@@ -123,13 +123,13 @@ File format: Not YAML files — this is a runner, not a data store. A `testctl.y
 ```
 logctl query --since yesterday --status failed
 logctl query --module nightctl --tags maintenance
-logctl tail                    # live tail of all halOS operations
+logctl tail                    # live tail of all halos operations
 logctl summary --period 7d     # weekly digest
 ```
 
 Storage: `logs/halos/` directory with one YAML file per operation (following the atomic file pattern). Each module writes a log entry via a shared `halos.log` library function.
 
-**Priority: Soon.** Not blocking anything today, but as halOS grows, the operational visibility gap will compound. The overnight run produces useful data that currently requires reading individual nightctl run records.
+**Priority: Soon.** Not blocking anything today, but as halos grows, the operational visibility gap will compound. The overnight run produces useful data that currently requires reading individual nightctl run records.
 
 **Dependencies:** All modules would need to emit structured log entries. This means a shared logging convention, not just logctl reading existing files.
 
@@ -140,7 +140,7 @@ Storage: `logs/halos/` directory with one YAML file per operation (following the
 #### vaultctl
 **One-line:** Secret reference management — pointers to secrets, never the secrets themselves.
 
-**Why:** NanoClaw has a credential proxy that injects secrets into containers. But there's no halOS-layer tracking of *which* secrets exist, *which* modules need them, *when* they were last rotated, or *when* they expire. The agent can't answer "which API keys are about to expire?" because that information isn't in the knowledge graph.
+**Why:** NanoClaw has a credential proxy that injects secrets into containers. But there's no halos-layer tracking of *which* secrets exist, *which* modules need them, *when* they were last rotated, or *when* they expire. The agent can't answer "which API keys are about to expire?" because that information isn't in the knowledge graph.
 
 **What it looks like:**
 ```
@@ -159,7 +159,7 @@ Storage: `vault/` directory with YAML files. Each file contains metadata about a
 ---
 
 #### reportctl
-**One-line:** Periodic digest generation from halOS module state.
+**One-line:** Periodic digest generation from halos module state.
 
 **Why:** The memory graph has patterns. The backlog has priorities. The overnight queue has results. A daily or weekly digest that synthesizes these into a "state of the system" report would be genuinely useful. Currently the agent has to be asked to do this manually each time.
 
@@ -227,7 +227,7 @@ syncctl status --name github-issues
 #### agentctl
 **One-line:** Agent session metadata and performance tracking.
 
-**Why:** Each container invocation is an agent session. How long did it take? How many tokens did it use? What was the outcome? NanoClaw logs some of this but not in a halOS-accessible way.
+**Why:** Each container invocation is an agent session. How long did it take? How many tokens did it use? What was the outcome? NanoClaw logs some of this but not in a halos-accessible way.
 
 **What it looks like:** Session records as YAML files. Query by group, date, outcome. Token usage tracking over time.
 
@@ -283,28 +283,28 @@ nightctl already sends failure notifications. reportctl would send digests. watc
 The YAML schemas will evolve. The temptation will be to build migration tooling. But the schemas are simple flat YAML. A migration is a `for f in *.yaml; do ...` loop. If you need Alembic for YAML files, your YAML files are too complex.
 
 ### Any module that requires a running daemon
-halOS modules are CLIs. They run, do their thing, exit. nightctl's executor is the closest thing to a daemon and it's invoked by cron, not self-hosting. If a module needs to run continuously, it belongs in NanoClaw's Node.js process, not halOS.
+halos modules are CLIs. They run, do their thing, exit. nightctl's executor is the closest thing to a daemon and it's invoked by cron, not self-hosting. If a module needs to run continuously, it belongs in NanoClaw's Node.js process, not halos.
 
-## 5. The Naming Question: "halOS"
+## 5. The Naming Question: "halos"
 
 ### Arguments for
-- **Identity.** HAL is already the personality name in CLAUDE.md. halOS as the operating layer for HAL is a natural extension. It gives the tooling suite a name that isn't just "those Python scripts."
-- **Scope boundary.** "halOS module" immediately communicates "filesystem-first CLI tool following the shared conventions." It's a membership test, not just a label.
+- **Identity.** HAL is already the personality name in CLAUDE.md. halos as the operating layer for HAL is a natural extension. It gives the tooling suite a name that isn't just "those Python scripts."
+- **Scope boundary.** "halos module" immediately communicates "filesystem-first CLI tool following the shared conventions." It's a membership test, not just a label.
 - **Cohesion.** Four modules with a shared name feel like a system. Four modules without a name feel like a junk drawer.
-- **It already stuck.** The docs, the memory notes, the standing orders — they all reference halOS. Renaming would be churn for no gain.
+- **It already stuck.** The docs, the memory notes, the standing orders — they all reference halos. Renaming would be churn for no gain.
 
 ### Arguments against
-- **Grandiosity.** Calling four Python CLIs an "operating system" is semantic inflation. It's a toolkit. Kai's own memory notes flag governance recursion and the gap between papers-about-systems and working-systems. halOS risks being the former.
+- **Grandiosity.** Calling four Python CLIs an "operating system" is semantic inflation. It's a toolkit. Kai's own memory notes flag governance recursion and the gap between papers-about-systems and working-systems. halos risks being the former.
 - **Scope creep magnet.** An "OS" invites people to think "what else does an OS need?" Networking? Process management? A filesystem abstraction? The name creates expectations the project shouldn't fulfill.
-- **Confusion with NanoClaw.** NanoClaw is the actual runtime. halOS is the tooling layer. But "OS" implies halOS is the runtime, which it's not.
+- **Confusion with NanoClaw.** NanoClaw is the actual runtime. halos is the tooling layer. But "OS" implies halos is the runtime, which it's not.
 
 ### Alternatives
 - **hal-tools** — Accurate but generic. Doesn't convey the design discipline.
 - **halkit** — Short, implies toolkit. Less pretentious than OS. Loses the identity.
-- **halOS** (reframed) — Keep the name but define "OS" as "Operational Scripts" or "Operational Surface" rather than "Operating System." This preserves the name while deflating the grandiosity.
+- **halos** (reframed) — Keep the name but define "OS" as "Operational Scripts" or "Operational Surface" rather than "Operating System." This preserves the name while deflating the grandiosity.
 
 ### Verdict
-Keep halOS. The name works. The grandiosity concern is real but manageable — the standing orders and memory notes already demonstrate that Kai is aware of governance recursion and actively guards against it. The name will stick because it already has. If it starts attracting scope creep, the design principles (filesystem-first, no daemons, no databases, archive-not-delete) are the guardrails, not the name.
+Keep halos. The name works. The grandiosity concern is real but manageable — the standing orders and memory notes already demonstrate that Kai is aware of governance recursion and actively guards against it. The name will stick because it already has. If it starts attracting scope creep, the design principles (filesystem-first, no daemons, no databases, archive-not-delete) are the guardrails, not the name.
 
 ## Summary Table
 
@@ -324,7 +324,7 @@ Keep halOS. The name works. The grandiosity concern is real but manageable — t
 | rulectl | Standing order management | Speculative | No |
 | flowctl | Multi-step workflows | Speculative | No |
 
-\* testctl may be better as a `make gate` target than a halOS module. See analysis above.
+\* testctl may be better as a `make gate` target than a halos module. See analysis above.
 
 ---
 
