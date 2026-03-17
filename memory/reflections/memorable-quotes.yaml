@@ -60,3 +60,13 @@
   date: 2026-03-17
   context: on the language bridge between Node.js and Python — co-existing strangers sharing a vocabulary of filenames
   who: rick (phase 6 review)
+
+- quote: "halogenesis"
+  date: 2026-03-17
+  context: the moment microHAL-ben spoke its first words on Telegram
+  who: rick
+
+- quote: "VICTORY IS OURS HAL"
+  date: 2026-03-17
+  context: after finally getting the CLAUDE.md into the group folder where the agent actually reads it — 45 minutes of debugging a file that was in the right place for humans but the wrong place for agents
+  who: rick
