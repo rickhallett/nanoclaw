@@ -42,8 +42,11 @@ def cmd_create(args):
 
 
 def cmd_list(args):
-    """List fleet instances."""
+    """List fleet instances with live audit data."""
     from .config import load_fleet_manifest
+    from pathlib import Path
+    import re
+    import sqlite3 as sqlite
 
     manifest = load_fleet_manifest()
     instances = manifest.get("instances", [])
@@ -52,16 +55,58 @@ def cmd_list(args):
         print("no instances")
         return 0
 
-    fmt = "{:<16} {:<10} {:<20} {}"
-    print(fmt.format("NAME", "STATUS", "PERSONALITY", "PATH"))
-    print("-" * 80)
+    rows = []
     for inst in instances:
-        print(fmt.format(
-            inst["name"],
-            inst.get("status", "unknown"),
-            inst.get("personality", ""),
-            inst.get("path", ""),
-        ))
+        name = inst["name"]
+        deploy = Path(inst.get("path", ""))
+        status = inst.get("status", "unknown")
+        personality = inst.get("personality", "")
+
+        bot_username = ""
+        tg_group = ""
+        notes = 0
+        host_path = str(deploy).replace(str(Path.home()), "~")
+
+        if deploy.exists():
+            # Bot username from ecosystem config
+            eco = deploy.parent / "ecosystem.config.cjs"
+            if eco.exists():
+                content = eco.read_text()
+                m = re.search(r'TELEGRAM_BOT_TOKEN:\s*["\'](\d+):', content)
+                if m:
+                    # Get username from DB chats or fall back to token prefix
+                    bot_username = m.group(1)
+
+            # Telegram group from registered_groups
+            db_path = deploy / "store" / "messages.db"
+            if db_path.exists():
+                try:
+                    conn = sqlite.connect(str(db_path))
+                    cur = conn.execute("SELECT jid, name FROM registered_groups LIMIT 1")
+                    row = cur.fetchone()
+                    if row:
+                        tg_group = f"{row[0]} ({row[1]})"
+                    conn.close()
+                except Exception:
+                    tg_group = "?"
+
+            # Notes count
+            notes_dir = deploy / "memory" / "notes"
+            if notes_dir.exists():
+                notes = len(list(notes_dir.glob("*.md")))
+
+        rows.append((name, status, personality, bot_username, tg_group, notes, host_path))
+
+    # Print table
+    fmt = "{:<10} {:<8} {:<16} {:<14} {:<28} {:<6} {}"
+    print(fmt.format("NAME", "STATUS", "PERSONALITY", "BOT ID", "TG GROUP", "NOTES", "HOST PATH"))
+    print("─" * 120)
+    for r in rows:
+        print(fmt.format(r[0], r[1], r[2], r[3], r[4], r[5], r[6]))
+
+    # Container perspective (footer)
+    print()
+    print("Container mounts: /workspace/project (ro) · /workspace/group (rw) · /workspace/ipc (rw)")
     return 0
 
 
