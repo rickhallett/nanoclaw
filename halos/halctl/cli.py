@@ -269,6 +269,18 @@ def cmd_reset(args):
     return 0
 
 
+def cmd_smoke(args):
+    """Run tier 2 smoke test against a live instance."""
+    from .smoke import run_smoke
+
+    print(f"smoke test: {args.name}")
+    print("─" * 40)
+    result = run_smoke(args.name, timeout=args.timeout)
+    print("─" * 40)
+    print(f"result: {result.summary()}")
+    return 0 if result.passed else 1
+
+
 def cmd_push(args):
     """Push code updates from prime to microHAL instance(s)."""
     if args.all:
@@ -334,6 +346,11 @@ def build_parser():
     rs = sub.add_parser("reset", help="Nuclear reset: kill container, clear state, restart")
     rs.add_argument("name", help="Instance name")
 
+    # smoke
+    sm = sub.add_parser("smoke", help="Tier 2 smoke test against a live instance")
+    sm.add_argument("name", help="Instance name")
+    sm.add_argument("--timeout", type=float, default=60.0, help="Agent response timeout in seconds")
+
     # push
     pu = sub.add_parser("push", help="Push code updates from prime")
     pu.add_argument("name", nargs="?", default=None, help="Instance name")
@@ -358,6 +375,7 @@ def main():
         "fold": cmd_fold,
         "fry": cmd_fry,
         "reset": cmd_reset,
+        "smoke": cmd_smoke,
         "push": cmd_push,
     }
 

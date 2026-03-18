@@ -27,6 +27,7 @@ base:
     - halos/
     - src/
     - container/
+    - templates/
   open:                    # read-write (owned by service user)
     - workspace/
     - projects/
