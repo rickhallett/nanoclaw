@@ -37,6 +37,18 @@ def main():
     # --- errors ---
     sub.add_parser("errors", help="shorthand for search --level error --since 24h")
 
+    # --- fleet ---
+    p_fleet = sub.add_parser("fleet", help="tail logs across all fleet instances")
+    p_fleet.add_argument("--instance", default="", help="filter to a specific instance")
+    p_fleet.add_argument("--level", default="", help="filter by level")
+    p_fleet.add_argument("-n", "--lines", type=int, default=50, help="lines per source")
+
+    # --- trace ---
+    p_trace = sub.add_parser("trace", help="correlate events around a timestamp")
+    p_trace.add_argument("timestamp", help="seed timestamp (ISO 8601 or HH:MM:SS.mmm)")
+    p_trace.add_argument("--instance", default="", help="filter to a specific instance")
+    p_trace.add_argument("--window", type=float, default=5.0, help="correlation window in seconds")
+
     args = ap.parse_args()
     if not args.command:
         ap.print_help()
@@ -49,6 +61,8 @@ def main():
         "search": cmd_search,
         "stats": cmd_stats,
         "errors": cmd_errors,
+        "fleet": cmd_fleet,
+        "trace": cmd_trace,
     }
     commands[args.command](cfg, args)
 
@@ -163,6 +177,53 @@ def cmd_errors(cfg, args):
             print("No errors in the last 24 hours.")
 
 
+def cmd_fleet(cfg, args):
+    from .fleet import read_fleet_entries
+    from .search import filter_entries
+
+    instance = args.instance or None
+    n = args.lines
+
+    entries = read_fleet_entries(instance_filter=instance, n=n)
+
+    if args.level:
+        entries = filter_entries(entries, level=args.level)
+
+    if args.json_out:
+        json.dump([_entry_dict(e) for e in entries], sys.stdout, indent=2)
+        print()
+    else:
+        for e in entries:
+            print(parser.format_entry(e, show_instance=True))
+        if not entries:
+            print("No fleet log entries found.")
+
+
+def cmd_trace(cfg, args):
+    from .fleet import trace_event
+
+    instance = args.instance or None
+    entries = trace_event(
+        seed_timestamp=args.timestamp,
+        instance_filter=instance,
+        window_seconds=args.window,
+    )
+
+    if args.json_out:
+        json.dump([_entry_dict(e) for e in entries], sys.stdout, indent=2)
+        print()
+    else:
+        print(f"Trace: {args.timestamp} (±{args.window}s window)")
+        print("─" * 100)
+        for e in entries:
+            print(parser.format_entry(e, show_instance=True))
+        if not entries:
+            print("No correlated events found.")
+        else:
+            print("─" * 100)
+            print(f"{len(entries)} events across {len(set(e.instance for e in entries))} instance(s)")
+
+
 def _entry_dict(entry: parser.LogEntry) -> dict:
     """Convert a LogEntry to a JSON-serializable dict."""
     d = {
@@ -173,6 +234,10 @@ def _entry_dict(entry: parser.LogEntry) -> dict:
         d["timestamp"] = entry.timestamp
     if entry.source:
         d["source"] = entry.source
+    if entry.instance:
+        d["instance"] = entry.instance
+    if entry.channel:
+        d["channel"] = entry.channel
     if entry.data:
         d["data"] = entry.data
     return d

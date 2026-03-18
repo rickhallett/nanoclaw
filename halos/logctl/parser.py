@@ -14,6 +14,8 @@ class LogEntry:
     source: str = ""
     message: str = ""
     data: dict = None
+    instance: str = ""       # fleet instance name (e.g., "ben", "dad", "prime")
+    channel: str = ""        # log channel: "pm2", "container", "sqlite", "halos"
 
     def __post_init__(self):
         if self.data is None:
@@ -177,13 +179,133 @@ def parse_line(line: str, fmt: str = "pino") -> Optional[LogEntry]:
     return parse_plain(line)
 
 
-def format_entry(entry: LogEntry) -> str:
+def format_entry(entry: LogEntry, show_instance: bool = False) -> str:
     """Format a LogEntry for human-readable display."""
     parts = []
     if entry.timestamp:
         parts.append(f"[{entry.timestamp}]")
+    if show_instance and entry.instance:
+        parts.append(f"{entry.instance:<10}")
+    if entry.channel:
+        parts.append(f"{entry.channel:<10}")
     parts.append(f"{entry.level.upper():5s}")
-    if entry.source:
+    if entry.source and not show_instance:
         parts.append(f"({entry.source})")
     parts.append(entry.message)
     return " ".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Container log parser
+# ---------------------------------------------------------------------------
+
+def parse_container_log(filepath: str, instance: str = "") -> list[LogEntry]:
+    """Parse a nanoclaw container log file (=== section format).
+
+    Extracts agent-runner stderr lines and NANOCLAW_OUTPUT results.
+    """
+    from pathlib import Path
+
+    p = Path(filepath)
+    if not p.exists():
+        return []
+
+    content = p.read_text(errors="replace")
+    entries = []
+
+    # Extract timestamp from header
+    ts = ""
+    for line in content.splitlines()[:5]:
+        if line.startswith("Timestamp:"):
+            ts = line.split(":", 1)[1].strip()
+            break
+
+    # Parse stderr (agent-runner lines)
+    in_stderr = False
+    for line in content.splitlines():
+        if line.startswith("=== Stderr ==="):
+            in_stderr = True
+            continue
+        if line.startswith("=== ") and in_stderr:
+            in_stderr = False
+            continue
+        if in_stderr and line.strip():
+            level = "error" if "error" in line.lower() else "info"
+            entries.append(LogEntry(
+                timestamp=ts,
+                level=level,
+                source="agent-runner",
+                message=strip_ansi(line.strip()),
+                instance=instance,
+                channel="container",
+            ))
+
+    # Parse stdout for results
+    for chunk in content.split("---NANOCLAW_OUTPUT_START---")[1:]:
+        end = chunk.find("---NANOCLAW_OUTPUT_END---")
+        if end > 0:
+            chunk = chunk[:end].strip()
+        try:
+            obj = json.loads(chunk)
+            result = obj.get("result", "")
+            status = obj.get("status", "")
+            if result:
+                entries.append(LogEntry(
+                    timestamp=ts,
+                    level="error" if status == "error" else "info",
+                    source="agent",
+                    message=f"[{status}] {str(result)[:200]}",
+                    instance=instance,
+                    channel="container",
+                ))
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    return entries
+
+
+# ---------------------------------------------------------------------------
+# SQLite message reader
+# ---------------------------------------------------------------------------
+
+def read_sqlite_messages(
+    db_path: str,
+    instance: str = "",
+    limit: int = 50,
+    since: str = "",
+) -> list[LogEntry]:
+    """Read messages from a nanoclaw SQLite database as LogEntries."""
+    import sqlite3
+    from pathlib import Path
+
+    p = Path(db_path)
+    if not p.exists():
+        return []
+
+    try:
+        conn = sqlite3.connect(str(p))
+        query = "SELECT sender_name, content, timestamp, is_from_me FROM messages"
+        params = []
+        if since:
+            query += " WHERE timestamp > ?"
+            params.append(since)
+        query += " ORDER BY timestamp DESC LIMIT ?"
+        params.append(limit)
+
+        rows = conn.execute(query, params).fetchall()
+        conn.close()
+    except Exception:
+        return []
+
+    entries = []
+    for sender, content, ts, is_from_me in reversed(rows):
+        direction = "OUT" if is_from_me else "IN"
+        entries.append(LogEntry(
+            timestamp=ts,
+            level="info",
+            source=f"msg/{direction}",
+            message=f"{sender}: {content[:200]}",
+            instance=instance,
+            channel="sqlite",
+        ))
+    return entries
