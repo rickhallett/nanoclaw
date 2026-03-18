@@ -42,6 +42,8 @@ def main():
     p_fleet.add_argument("--instance", default="", help="filter to a specific instance")
     p_fleet.add_argument("--level", default="", help="filter by level")
     p_fleet.add_argument("--conversations", action="store_true", help="show only message pairs (user → agent)")
+    p_fleet.add_argument("--full", action="store_true", help="no truncation on conversation output")
+    p_fleet.add_argument("--width", type=int, default=120, help="truncation width for conversations (default: 120)")
     p_fleet.add_argument("-n", "--lines", type=int, default=50, help="lines per source")
 
     # --- trace ---
@@ -191,14 +193,19 @@ def cmd_fleet(cfg, args):
             json.dump(pairs, sys.stdout, indent=2)
             print()
         else:
+            w = 0 if args.full else args.width
             for p in pairs:
                 inst = p["instance"]
                 ts = p["timestamp"]
                 user = p["user_message"]
                 agent = p["agent_response"]
-                print(f"[{ts}] {inst}")
-                print(f"  USER:  {user[:120]}")
-                print(f"  AGENT: {agent[:120]}")
+                u_display = user if not w else user[:w]
+                a_display = agent if not w else agent[:w]
+                status = "" if agent else "  [no response captured]"
+                print(f"[{ts}] {inst}{status}")
+                print(f"  USER:  {u_display}")
+                if agent:
+                    print(f"  AGENT: {a_display}")
                 print()
             if not pairs:
                 print("No conversations found.")
