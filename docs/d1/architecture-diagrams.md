@@ -199,3 +199,165 @@ stateDiagram-v2
         Likert assessment (agent-driven).
     end note
 ```
+
+## 6. halctl — Fleet Management
+
+```mermaid
+flowchart LR
+    subgraph Commands
+        create["create --name --personality"]
+        list["list"]
+        push["push name|--all"]
+        smoke["smoke name"]
+        status["status name"]
+        freeze["freeze"]
+        fold["fold"]
+        fry["fry --confirm"]
+        reset["reset"]
+    end
+
+    subgraph Stores["Data Stores"]
+        FLEET["FLEET.yaml<br/>(fleet manifest)"]
+        ECO["ecosystem.config.cjs<br/>(per instance)"]
+        DB["messages.db<br/>(per instance)"]
+        TMPL["templates/microhal/<br/>(personalities, welcome)"]
+    end
+
+    subgraph Lifecycle["Instance Lifecycle"]
+        direction TB
+        active(["active"])
+        frozen(["frozen"])
+        folded(["folded"])
+        fried(["fried"])
+        active -->|freeze| frozen
+        active -->|fold| folded
+        active -->|fry| fried
+        frozen -->|reset| active
+    end
+
+    create --> FLEET
+    create --> ECO
+    create --> DB
+    create --> TMPL
+    list --> FLEET
+    list --> DB
+    push --> TMPL
+    smoke --> DB
+    status --> FLEET
+    freeze & fold & fry --> FLEET
+```
+
+## 7. memctl — Structured Memory
+
+```mermaid
+flowchart TB
+    subgraph Commands
+        new["new --title --type<br/>--tags --body"]
+        search["search --tags<br/>--entities --text"]
+        link["link --from --to"]
+        enrich["enrich<br/>(propose links)"]
+        prune["prune --execute"]
+        graph["graph --format html"]
+        index["index rebuild|verify"]
+    end
+
+    subgraph Stores["Data Stores"]
+        NOTES["memory/notes/*.md<br/>(frontmatter + body)"]
+        INDEX["memory/INDEX.md<br/>(JSON index)"]
+        ARCHIVE["memory/archive/<br/>(pruned notes)"]
+        CONFIG["memctl.yaml"]
+    end
+
+    new -->|create note + update index| NOTES & INDEX
+    search -->|query| INDEX
+    link -->|add backlink| NOTES
+    link -->|increment backlink_count| INDEX
+    enrich -->|semantic analysis| INDEX
+    prune -->|score < threshold| ARCHIVE
+    prune -->|remove from| NOTES & INDEX
+    graph -->|render| INDEX
+    index -->|rebuild from| NOTES
+
+    subgraph NoteLifecycle["Note Lifecycle"]
+        direction LR
+        created(["created"])
+        active2(["active"])
+        stale(["stale"])
+        archived(["archived"])
+        created -->|backlinked| active2
+        active2 -->|low score| stale
+        stale -->|prune| archived
+        active2 -->|high backlinks| active2
+    end
+```
+
+## 8. nightctl — Work Tracker
+
+```mermaid
+stateDiagram-v2
+    [*] --> open: add
+    open --> planning: plan
+    open --> in_progress: start
+    open --> deferred: defer
+    open --> cancelled: cancel
+
+    planning --> plan_review: review
+    plan_review --> in_progress: approve
+    plan_review --> planning: revise
+
+    in_progress --> review: review
+    in_progress --> running: executor
+    in_progress --> blocked: block
+
+    running --> done: success
+    running --> failed: error
+    running --> in_progress: retry
+
+    review --> testing: testing
+    review --> in_progress: rework
+    review --> done: done
+
+    testing --> done: done
+    testing --> in_progress: rework
+
+    failed --> in_progress: retry
+    failed --> plan_review: revise (agent-job)
+
+    blocked --> in_progress: unblock
+    blocked --> cancelled: cancel
+    deferred --> open: reopen
+
+    done --> [*]
+    cancelled --> [*]
+```
+
+```mermaid
+flowchart LR
+    subgraph Kinds["Item Kinds"]
+        task["task<br/>(state only)"]
+        job["job<br/>(executable)"]
+        agentjob["agent-job<br/>(structured plan)"]
+    end
+
+    subgraph Stores["Data Stores"]
+        ITEMS["queue/items/*.yaml<br/>(unified items)"]
+        MANIFEST["queue/MANIFEST.yaml<br/>(legacy job index)"]
+        RUNS["queue/runs/*.yaml<br/>(execution history)"]
+        ARCHIVE2["queue/archive/<br/>(completed items)"]
+        NCONFIG["nightctl.yaml"]
+    end
+
+    subgraph Execution["Execution Engine"]
+        EXEC["Executor<br/>(overnight window)"]
+        NOTIFY["Notifier<br/>(Telegram/Slack)"]
+    end
+
+    task --> ITEMS
+    job --> ITEMS & MANIFEST
+    agentjob --> ITEMS
+
+    EXEC -->|reads pending| MANIFEST
+    EXEC -->|writes| RUNS
+    EXEC -->|updates status| MANIFEST
+    EXEC -->|on failure/success| NOTIFY
+```
