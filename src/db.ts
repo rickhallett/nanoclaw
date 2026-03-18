@@ -73,6 +73,22 @@ function createSchema(database: Database.Database): void {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS assessments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sender_id TEXT NOT NULL,
+      chat_jid TEXT NOT NULL,
+      question_key TEXT NOT NULL,
+      question_text TEXT NOT NULL,
+      phase TEXT NOT NULL,
+      response_type TEXT NOT NULL,
+      response TEXT NOT NULL,
+      asked_at TEXT NOT NULL,
+      answered_at TEXT NOT NULL,
+      conversation_count INTEGER,
+      session_context TEXT,
+      UNIQUE(sender_id, question_key)
+    );
+
     CREATE TABLE IF NOT EXISTS router_state (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL

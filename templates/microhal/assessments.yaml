@@ -1,0 +1,67 @@
+# Pre/post assessment question bank for microHAL research.
+# Questions are delivered by the agent, not the bot — they need
+# conversational context and timing sensitivity.
+#
+# Each question has a stable key (for cross-user comparison),
+# a phase (pre or post), and a response_type (likert or qualitative).
+# Likert questions are asked during onboarding (after waiver).
+# Qualitative pre-questions are asked after 3-7 natural conversations.
+# Post-questions are triggered by operator command or time threshold.
+
+questions:
+  # --- Likert (pre-assessment, during onboarding) ---
+  - key: ai_comfort
+    phase: pre
+    response_type: likert
+    text: "How comfortable are you using AI assistants? (1 = not at all, 5 = very)"
+    scale: { min: 1, max: 5, min_label: "not at all", max_label: "very" }
+
+  - key: ai_trust
+    phase: pre
+    response_type: likert
+    text: "How much do you trust AI-generated advice? (1 = not at all, 5 = completely)"
+    scale: { min: 1, max: 5, min_label: "not at all", max_label: "completely" }
+
+  - key: ai_frequency
+    phase: pre
+    response_type: likert
+    text: "How often do you currently use AI tools? (1 = never, 5 = daily)"
+    scale: { min: 1, max: 5, min_label: "never", max_label: "daily" }
+
+  - key: ai_evaluation
+    phase: pre
+    response_type: likert
+    text: "How confident are you in evaluating whether AI output is correct? (1 = not at all, 5 = very)"
+    scale: { min: 1, max: 5, min_label: "not at all", max_label: "very" }
+
+  - key: ai_attitude
+    phase: pre
+    response_type: likert
+    text: "How would you describe your attitude toward AI? (1 = skeptical, 5 = enthusiastic)"
+    scale: { min: 1, max: 5, min_label: "skeptical", max_label: "enthusiastic" }
+
+  # --- Qualitative (pre-assessment, after 3-7 conversations) ---
+  - key: hope_pre
+    phase: pre
+    response_type: qualitative
+    text: "What do you hope this will help you with?"
+    delivery_window: { min_conversations: 3, max_conversations: 7 }
+
+  - key: feeling_pre
+    phase: pre
+    response_type: qualitative
+    text: "How do you feel about AI right now, before using this?"
+    delivery_window: { min_conversations: 3, max_conversations: 7 }
+
+  # --- Qualitative (post-assessment, operator-triggered or time-based) ---
+  - key: hope_post
+    phase: post
+    response_type: qualitative
+    text: "What has been the most (and least) helpful so far?"
+    pair_of: hope_pre
+
+  - key: feeling_post
+    phase: post
+    response_type: qualitative
+    text: "How do you feel about AI right now, after having used this for a while?"
+    pair_of: feeling_pre

@@ -121,6 +121,23 @@ def _register_operator_chat(deploy_path: Path, group_name: str) -> None:
             updated_at TEXT NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS assessments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender_id TEXT NOT NULL,
+            chat_jid TEXT NOT NULL,
+            question_key TEXT NOT NULL,
+            question_text TEXT NOT NULL,
+            phase TEXT NOT NULL,
+            response_type TEXT NOT NULL,
+            response TEXT NOT NULL,
+            asked_at TEXT NOT NULL,
+            answered_at TEXT NOT NULL,
+            conversation_count INTEGER,
+            session_context TEXT,
+            UNIQUE(sender_id, question_key)
+        )
+    """)
     conn.execute(
         """INSERT OR REPLACE INTO registered_groups
            (jid, name, folder, trigger_pattern, added_at, requires_trigger, is_main)

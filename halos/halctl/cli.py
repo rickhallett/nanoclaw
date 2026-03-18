@@ -269,6 +269,28 @@ def cmd_reset(args):
     return 0
 
 
+def cmd_assess(args):
+    """Run assessment scenarios against a live instance."""
+    from .eval_harness import run_assessment, SCENARIOS
+
+    scenarios = None
+    if args.scenario:
+        scenarios = [args.scenario]
+
+    print(f"assessment: {args.name}")
+    print("─" * 50)
+    records = run_assessment(args.name, scenarios=scenarios, timeout=args.timeout)
+    print("─" * 50)
+
+    passed = sum(1 for r in records if r.passed)
+    total = len(records)
+    print(f"result: {passed}/{total} scenarios passed")
+
+    print(f"records written to: data/assessments/")
+
+    return 0 if passed == total else 1
+
+
 def cmd_smoke(args):
     """Run tier 2 smoke test against a live instance."""
     from .smoke import run_smoke
@@ -346,6 +368,12 @@ def build_parser():
     rs = sub.add_parser("reset", help="Nuclear reset: kill container, clear state, restart")
     rs.add_argument("name", help="Instance name")
 
+    # assess
+    ass = sub.add_parser("assess", help="Run assessment scenarios against a live instance")
+    ass.add_argument("name", help="Instance name")
+    ass.add_argument("--scenario", default=None, help="Run a specific scenario")
+    ass.add_argument("--timeout", type=float, default=60.0, help="Agent response timeout")
+
     # smoke
     sm = sub.add_parser("smoke", help="Tier 2 smoke test against a live instance")
     sm.add_argument("name", help="Instance name")
@@ -375,6 +403,7 @@ def main():
         "fold": cmd_fold,
         "fry": cmd_fry,
         "reset": cmd_reset,
+        "assess": cmd_assess,
         "smoke": cmd_smoke,
         "push": cmd_push,
     }
