@@ -129,7 +129,8 @@ def scenario_likert_delivery(
     rec.prompt = "@HAL hello, I'm new here"
     before_lines = _count_log_lines(pm2_log)
     _inject_message(conn, OPERATOR_CHAT_JID, "5967394003", "Assess User", rec.prompt)
-    rec.response = _wait_for_response(pm2_log, before_lines, timeout=timeout) or ""
+    # collect_all: agent may greet first, then ask Likert in follow-up messages
+    rec.response = _wait_for_response(pm2_log, before_lines, timeout=timeout, collect_all=True) or ""
 
     response_lower = rec.response.lower()
     rec.behaviour = {

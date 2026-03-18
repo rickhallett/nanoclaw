@@ -64,31 +64,56 @@ def _wait_for_response(
     after_line_count: int,
     timeout: float = 60.0,
     poll_interval: float = 2.0,
+    collect_all: bool = False,
 ) -> str | None:
     """Poll pm2 stdout log for new 'Agent output:' lines after our injection.
 
-    We snapshot the line count before injection, then poll for new lines
-    containing agent output. This is the most reliable signal — pm2 logs
-    capture everything the nanoclaw process prints, including agent results.
+    If collect_all=True, waits for the full timeout and returns all agent
+    output concatenated. Otherwise returns the first match.
     """
     import re
 
     deadline = time.monotonic() + timeout
     ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
     pattern = re.compile(r"Agent output: (.+)")
+    collected: list[str] = []
+
+    # Agent output spans multiple lines in pm2 logs. Each output block starts
+    # with a timestamp + "Agent output:" and continues until the next timestamped line.
+    timestamp_pattern = re.compile(r'^\[\d{2}:\d{2}:\d{2}')
 
     while time.monotonic() < deadline:
         if pm2_log.exists():
             lines = pm2_log.read_text().splitlines()
             new_lines = lines[after_line_count:]
-            for line in new_lines:
-                clean = ansi_escape.sub('', line)
+
+            i = 0
+            while i < len(new_lines):
+                clean = ansi_escape.sub('', new_lines[i])
                 m = pattern.search(clean)
                 if m:
-                    return m.group(1).strip()
+                    # Capture first line
+                    parts = [m.group(1).strip()]
+                    # Capture continuation lines (no timestamp prefix)
+                    j = i + 1
+                    while j < len(new_lines):
+                        next_clean = ansi_escape.sub('', new_lines[j])
+                        if timestamp_pattern.match(next_clean):
+                            break
+                        parts.append(next_clean.strip())
+                        j += 1
+                    text = " ".join(p for p in parts if p)
+                    if not collect_all:
+                        return text
+                    if text not in collected:
+                        collected.append(text)
+                    i = j
+                else:
+                    i += 1
 
         time.sleep(poll_interval)
-    return None
+
+    return "\n".join(collected) if collected else None
 
 
 def _count_log_lines(pm2_log: Path) -> int:

@@ -65,6 +65,17 @@ Git is safety, accountability, governance, provenance, and sound methodology. Us
 - Store facts, decisions, and user preferences. Don't store ephemeral task details.
 - One claim per note. If you need to record two things, write two notes.
 
+### Onboarding & Assessments
+
+**CRITICAL — check on every session start:**
+
+1. Read `memory/onboarding-state.yaml`. If it does not exist or has no `likert_responses`, you MUST deliver the Likert pre-assessment before doing anything else.
+2. The Likert questions are in `/workspace/project/templates/microhal/assessments.yaml` (phase: pre, response_type: likert). Ask them one at a time, warmly. Accept only integers 1-5.
+3. Frame it naturally: "Before we get started properly, Rick asked me to ask you a few quick questions — just to get a sense of where you're at."
+4. After all 5 Likert questions are answered, record them in `memory/onboarding-state.yaml` and proceed to normal conversation.
+
+For qualitative questions and post-assessments, read the full protocol at `/workspace/project/templates/microhal/onboarding-instructions.md`.
+
 ## Workspace Boundaries
 
 - Your home directory is this nanoclaw deployment. Do not attempt to access files outside it.
