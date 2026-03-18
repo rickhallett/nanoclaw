@@ -65,6 +65,14 @@ function createSchema(database: Database.Database): void {
     );
     CREATE INDEX IF NOT EXISTS idx_task_run_logs ON task_run_logs(task_id, run_at);
 
+    CREATE TABLE IF NOT EXISTS onboarding (
+      sender_id TEXT PRIMARY KEY,
+      chat_jid TEXT NOT NULL,
+      state TEXT NOT NULL DEFAULT 'first_contact',
+      waiver_accepted_at TEXT,
+      updated_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS router_state (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -632,6 +640,48 @@ export function getAllRegisteredGroups(): Record<string, RegisteredGroup> {
     };
   }
   return result;
+}
+
+// --- Onboarding ---
+
+export type OnboardingState =
+  | 'first_contact'
+  | 'welcome_sent'
+  | 'waiver_accepted'
+  | 'active';
+
+export interface OnboardingRecord {
+  sender_id: string;
+  chat_jid: string;
+  state: OnboardingState;
+  waiver_accepted_at: string | null;
+  updated_at: string;
+}
+
+export function getOnboardingState(
+  senderId: string,
+): OnboardingRecord | undefined {
+  const row = db
+    .prepare('SELECT * FROM onboarding WHERE sender_id = ?')
+    .get(senderId) as OnboardingRecord | undefined;
+  return row;
+}
+
+export function setOnboardingState(
+  senderId: string,
+  chatJid: string,
+  state: OnboardingState,
+  waiverAcceptedAt?: string,
+): void {
+  const now = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO onboarding (sender_id, chat_jid, state, waiver_accepted_at, updated_at)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(sender_id) DO UPDATE SET
+       state = excluded.state,
+       waiver_accepted_at = COALESCE(excluded.waiver_accepted_at, onboarding.waiver_accepted_at),
+       updated_at = excluded.updated_at`,
+  ).run(senderId, chatJid, state, waiverAcceptedAt || null, now);
 }
 
 // --- JSON migration ---

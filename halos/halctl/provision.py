@@ -11,9 +11,16 @@ try:
 except ImportError:
     from halos.nightctl import yaml_shim as yaml
 
+import sqlite3 as sqlite
+
 from halos.common.log import hlog
 from .config import load_fleet_config, fleet_dir, load_fleet_manifest, save_fleet_manifest
 from .templates import compose_claude_md
+
+# Operator's Telegram chat ID — hardcoded as default main group for all fleet instances.
+# Every instance goes through Rick first; the end user's chat is registered later.
+OPERATOR_CHAT_JID = "tg:5967394003"
+OPERATOR_CHAT_NAME = "Operator"
 
 
 def _make_ignore_fn(exclude_list: list[str]):
@@ -80,6 +87,60 @@ def _create_open_dirs(path: Path, items: list[str]) -> None:
     for item in items:
         target = path / item
         target.mkdir(parents=True, exist_ok=True)
+
+
+def _register_operator_chat(deploy_path: Path, group_name: str) -> None:
+    """Initialize the instance DB and register the operator's chat as main group.
+
+    Creates the schema matching nanoclaw's db.ts so the instance starts with
+    the operator already registered — no manual post-provision step needed.
+    """
+    store_dir = deploy_path / "store"
+    store_dir.mkdir(parents=True, exist_ok=True)
+    db_path = store_dir / "messages.db"
+
+    conn = sqlite.connect(str(db_path))
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS registered_groups (
+            jid TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            folder TEXT NOT NULL UNIQUE,
+            trigger_pattern TEXT NOT NULL,
+            added_at TEXT NOT NULL,
+            container_config TEXT,
+            requires_trigger INTEGER DEFAULT 1,
+            is_main INTEGER DEFAULT 0
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS onboarding (
+            sender_id TEXT PRIMARY KEY,
+            chat_jid TEXT NOT NULL,
+            state TEXT NOT NULL DEFAULT 'first_contact',
+            waiver_accepted_at TEXT,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    conn.execute(
+        """INSERT OR REPLACE INTO registered_groups
+           (jid, name, folder, trigger_pattern, added_at, requires_trigger, is_main)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (
+            OPERATOR_CHAT_JID,
+            group_name,
+            "telegram_main",
+            "@HAL",
+            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            0,  # no trigger required for main
+            1,  # is_main
+        ),
+    )
+    conn.commit()
+    conn.close()
+    hlog("halctl", "info", "operator_registered", {
+        "jid": OPERATOR_CHAT_JID,
+        "group": group_name,
+    })
 
 
 def _rebuild_typescript(deploy_path: Path) -> None:
@@ -189,6 +250,9 @@ def create_instance(
     shutil.copy2(str(claude_path), str(group_dir / "CLAUDE.md"))
 
     hlog("halctl", "info", "claude_md_copied_to_group", {"name": name})
+
+    # Register operator's Telegram chat as main group (no manual post-provision step)
+    _register_operator_chat(deploy_path, name)
 
     # Generate pm2 ecosystem config
     token_env = f"MICROHAL_{name.upper()}_BOT_TOKEN"

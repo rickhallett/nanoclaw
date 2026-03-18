@@ -6,7 +6,15 @@ import { Api, Bot } from 'grammy';
 // bytes in the send buffer, never recovers).
 dns.setDefaultResultOrder('ipv4first');
 
+import fs from 'fs';
+import path from 'path';
+
 import { ASSISTANT_NAME, TRIGGER_PATTERN } from '../config.js';
+import {
+  getOnboardingState,
+  setOnboardingState,
+  type OnboardingState,
+} from '../db.js';
 import { readEnvFile } from '../env.js';
 import { logger } from '../logger.js';
 import { registerChannel, ChannelOpts } from './registry.js';
@@ -44,6 +52,74 @@ async function sendTelegramMessage(
     // Fallback: send as plain text if Markdown parsing fails
     logger.debug({ err }, 'Markdown send failed, falling back to plain text');
     await api.sendMessage(chatId, text, options);
+  }
+}
+
+/**
+ * Load welcome message templates from templates/microhal/welcome/.
+ * Files are sorted by name (01-greeting.md, 02-disclaimer.md, etc.)
+ * and returned as an array of strings.
+ */
+function loadWelcomeMessages(): string[] {
+  const welcomeDir = path.join(process.cwd(), 'templates', 'microhal', 'welcome');
+  try {
+    const files = fs.readdirSync(welcomeDir)
+      .filter(f => f.endsWith('.md'))
+      .sort();
+    return files.map(f => fs.readFileSync(path.join(welcomeDir, f), 'utf-8').trim());
+  } catch {
+    logger.warn({ welcomeDir }, 'Welcome templates not found');
+    return [];
+  }
+}
+
+/**
+ * Write onboarding state to memory/onboarding-state.yaml for agent handoff.
+ * The agent reads this file to know where the bot-level onboarding left off.
+ */
+function writeOnboardingYaml(
+  groupFolder: string,
+  senderId: string,
+  state: OnboardingState,
+  waiverAcceptedAt?: string,
+): void {
+  const groupDir = path.join(process.cwd(), 'groups', groupFolder);
+  const memDir = path.join(process.cwd(), 'memory');
+  const yamlPath = path.join(memDir, 'onboarding-state.yaml');
+
+  const content = [
+    `state: ${state}`,
+    `sender_id: "${senderId}"`,
+    `group_folder: "${groupFolder}"`,
+    waiverAcceptedAt ? `waiver_accepted_at: "${waiverAcceptedAt}"` : null,
+    `transitions:`,
+    `  - to: ${state}`,
+    `    at: "${new Date().toISOString()}"`,
+  ].filter(Boolean).join('\n') + '\n';
+
+  try {
+    fs.mkdirSync(memDir, { recursive: true });
+    fs.writeFileSync(yamlPath, content);
+  } catch (err) {
+    logger.warn({ err, yamlPath }, 'Failed to write onboarding YAML');
+  }
+}
+
+/**
+ * Send the welcome sequence to a new user.
+ * Messages 01-03 are sent immediately; 04 (ready) is sent after waiver acceptance.
+ */
+async function sendWelcomeSequence(
+  api: { sendMessage: Api['sendMessage'] },
+  chatId: string | number,
+  upToIndex: number,
+): Promise<void> {
+  const messages = loadWelcomeMessages();
+  const toSend = messages.slice(0, upToIndex);
+  for (const text of toSend) {
+    await sendTelegramMessage(api, chatId, text);
+    // Brief pause between messages for natural pacing
+    await new Promise(r => setTimeout(r, 1000));
   }
 }
 
@@ -180,9 +256,29 @@ export class TelegramChannel implements Channel {
       ctx.reply(`${ASSISTANT_NAME} is online.`);
     });
 
+    // Welcome/onboarding: /start (Telegram default) and /welcome (re-runnable)
+    const handleWelcome = async (ctx: any) => {
+      const senderId = ctx.from?.id?.toString() || '';
+      const chatJid = `tg:${ctx.chat.id}`;
+      if (!senderId) return;
+
+      // Send messages 01-03 (greeting, disclaimer, waiver)
+      await sendWelcomeSequence(ctx.api, ctx.chat.id, 3);
+      setOnboardingState(senderId, chatJid, 'welcome_sent');
+
+      const group = this.opts.registeredGroups()[chatJid];
+      if (group) {
+        writeOnboardingYaml(group.folder, senderId, 'welcome_sent');
+      }
+
+      logger.info({ chatJid, senderId }, 'Welcome sequence sent, awaiting waiver acceptance');
+    };
+    this.bot.command('start', handleWelcome);
+    this.bot.command('welcome', handleWelcome);
+
     // Telegram bot commands handled above — skip them in the general handler
     // so they don't also get stored as messages. All other /commands flow through.
-    const TELEGRAM_BOT_COMMANDS = new Set(['chatid', 'ping']);
+    const TELEGRAM_BOT_COMMANDS = new Set(['chatid', 'ping', 'start', 'welcome']);
 
     this.bot.on('message:text', async (ctx) => {
       if (ctx.message.text.startsWith('/')) {
@@ -202,6 +298,39 @@ export class TelegramChannel implements Channel {
         ctx.from?.id.toString() ||
         'Unknown';
       const sender = ctx.from?.id.toString() || '';
+
+      // Onboarding gate: if sender is awaiting waiver acceptance, intercept YES/NO
+      if (sender) {
+        const onboarding = getOnboardingState(sender);
+        if (onboarding?.state === 'welcome_sent') {
+          const reply = content.trim().toUpperCase();
+          if (reply === 'YES') {
+            const now = new Date().toISOString();
+            setOnboardingState(sender, chatJid, 'waiver_accepted', now);
+            // Send only the "ready" message (04, index 3)
+            const messages = loadWelcomeMessages();
+            if (messages[3]) {
+              await sendTelegramMessage(ctx.api, ctx.chat.id, messages[3]);
+            }
+            // Advance to active — agent takes over from here
+            setOnboardingState(sender, chatJid, 'active');
+            const group = this.opts.registeredGroups()[chatJid];
+            if (group) {
+              writeOnboardingYaml(group.folder, sender, 'active', now);
+            }
+            logger.info({ chatJid, sender }, 'Waiver accepted, onboarding complete');
+            return;
+          } else {
+            // Not YES — gently redirect
+            await sendTelegramMessage(
+              ctx.api,
+              ctx.chat.id,
+              'No rush. Reply YES when you\'re ready to accept, or ask Rick if you have questions.',
+            );
+            return;
+          }
+        }
+      }
       const msgId = ctx.message.message_id.toString();
 
       // Determine chat name
