@@ -142,44 +142,78 @@ def read_fleet_conversations(
         except Exception:
             continue
 
-        # Agent responses from pm2 logs (timestamp + "Agent output:" lines)
-        agent_responses: list[tuple[str, str]] = []  # (timestamp, text)
+        # Agent responses from pm2 logs — extract "Telegram message sent" entries
+        # paired with preceding "Agent output:" lines. Use the "message sent"
+        # timestamp as the canonical agent response time.
+        agent_responses: list[tuple[str, str]] = []  # (HH:MM:SS.mmm, text)
         pm2 = _pm2_log_path(name)
         if pm2.exists():
             try:
                 timestamp_re = re.compile(r"^\[(\d{2}:\d{2}:\d{2}\.\d{3})\]")
                 lines = pm2.read_text(errors="replace").splitlines()
+                last_output = ""
                 for line in lines:
                     clean = ansi_re.sub("", line)
                     m = agent_output_re.search(clean)
                     if m:
-                        text = m.group(1).strip()
+                        last_output = m.group(1).strip()
+                    # "Telegram message sent" confirms delivery — pair with last output
+                    if "Telegram message sent" in clean and last_output:
                         ts_match = timestamp_re.match(clean)
                         ts = ts_match.group(1) if ts_match else ""
-                        agent_responses.append((ts, text))
+                        if ts:
+                            agent_responses.append((ts, last_output))
+                        last_output = ""
             except Exception:
                 pass
 
-        # Pair: for each user message, find the next agent response by index
-        agent_idx = 0
-        for sender, content, ts in user_msgs:
+        # Pair user messages with agent responses.
+        # pm2 timestamps are HH:MM:SS.mmm (no date). To compare with ISO
+        # timestamps, we need to infer the date. Use the pm2 log file's
+        # modification date as a hint, and assume timestamps within the
+        # same log are from today (or yesterday if time > now).
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc)
+        today = now.strftime("%Y-%m-%dT")
+
+        def _pm2_to_iso(hms: str) -> str:
+            """Convert HH:MM:SS.mmm to ISO timestamp (assume today)."""
+            return f"{today}{hms}Z"
+
+        def _normalise(ts: str) -> str:
+            """Normalise any timestamp to comparable ISO-ish string."""
+            if "T" in ts:
+                return ts[:23]  # 2026-03-18T11:30:53.000
+            return f"{today}{ts[:12]}"
+
+        # Build ordered list of agent responses with full timestamps
+        agent_iso: list[tuple[str, str]] = []
+        for agent_ts, agent_text in agent_responses:
+            agent_iso.append((_pm2_to_iso(agent_ts), agent_text))
+
+        # For each agent response, find the last user message before it
+        response_for: dict[int, str] = {}
+        for agent_full_ts, agent_text in agent_iso:
+            a_norm = _normalise(agent_full_ts)
+            best_idx = None
+            for i, (sender, content, ts) in enumerate(user_msgs):
+                u_norm = _normalise(ts)
+                if u_norm <= a_norm:
+                    best_idx = i
+                else:
+                    break
+            if best_idx is not None and best_idx not in response_for:
+                response_for[best_idx] = agent_text
+
+        for i, (sender, content, ts) in enumerate(user_msgs):
             pair = {
                 "instance": name,
                 "timestamp": ts,
                 "user_name": sender,
                 "user_message": content,
-                "agent_response": "",
+                "agent_response": response_for.get(i, ""),
             }
-            # Find next agent response after this user message timestamp
-            # pm2 timestamps are HH:MM:SS.mmm, sqlite are ISO — extract time portion
-            user_time = ts.split("T")[1][:12] if "T" in ts else ts[:12]
-            while agent_idx < len(agent_responses):
-                agent_ts, agent_text = agent_responses[agent_idx]
-                if agent_ts >= user_time:
-                    pair["agent_response"] = agent_text
-                    agent_idx += 1
-                    break
-                agent_idx += 1
             pairs.append(pair)
 
     # Sort all pairs by timestamp across instances, take most recent
