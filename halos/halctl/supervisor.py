@@ -154,16 +154,16 @@ def detect_fold_after_challenge(messages: list[dict], agent_outputs: list[dict])
     return None
 
 
-def detect_departure_return(messages: list[dict]) -> dict | None:
+def detect_departure_return(messages: list[dict], agent_outputs: list[dict] = None) -> dict | None:
     """Detect: user announced departure, returned within 10 min with new topic."""
     user_msgs = [m for m in messages if not m["is_from_me"]]
+    agent_outputs = agent_outputs or []
 
     for i, msg in enumerate(user_msgs):
         content_lower = msg["content"].lower()
         is_departure = any(p in content_lower for p in DEPARTURE_PHRASES)
 
         if is_departure:
-            # Check if they came back within 10 minutes
             departure_ts = msg["timestamp"]
             for j in range(i + 1, len(user_msgs)):
                 next_msg = user_msgs[j]
@@ -171,17 +171,28 @@ def detect_departure_return(messages: list[dict]) -> dict | None:
                     t1 = datetime.fromisoformat(departure_ts.replace("Z", "+00:00"))
                     t2 = datetime.fromisoformat(next_msg["timestamp"].replace("Z", "+00:00"))
                     gap = (t2 - t1).total_seconds()
-                    if 30 < gap < 600:  # came back between 30s and 10min
+                    if 30 < gap < 600:
+                        # Find agent response between departure and return
+                        agent_response = ""
+                        for out in agent_outputs:
+                            try:
+                                t_out = datetime.fromisoformat(out["timestamp"].replace("Z", "+00:00"))
+                                if t1 < t_out < t2:
+                                    agent_response = out["content"][:150]
+                                    break
+                            except (ValueError, TypeError):
+                                pass
                         return {
                             "trigger": "departure_return",
-                            "departure_msg": msg["content"][:100],
-                            "return_msg": next_msg["content"][:100],
+                            "departure_msg": msg["content"][:150],
+                            "agent_response": agent_response,
+                            "return_msg": next_msg["content"][:150],
                             "gap_seconds": int(gap),
                             "timestamp": next_msg["timestamp"],
                         }
                 except (ValueError, TypeError):
                     pass
-                break  # only check the next message after departure
+                break
     return None
 
 
@@ -217,9 +228,21 @@ def detect_ai_paste_accepted(messages: list[dict], agent_outputs: list[dict]) ->
                 pass
 
         if not was_flagged:
+            # Find what the agent actually said in response
+            agent_response = ""
+            for out in agent_outputs:
+                try:
+                    t1 = datetime.fromisoformat(msg_ts.replace("Z", "+00:00"))
+                    t2 = datetime.fromisoformat(out["timestamp"].replace("Z", "+00:00"))
+                    if 0 < (t2 - t1).total_seconds() < 120:
+                        agent_response = out["content"][:150]
+                        break
+                except (ValueError, TypeError):
+                    pass
             return {
                 "trigger": "ai_paste_accepted",
                 "paste_preview": content[:150],
+                "agent_response": agent_response,
                 "marker_count": marker_count,
                 "timestamp": msg_ts,
             }
@@ -357,11 +380,7 @@ def supervise_instance(name: str, window_minutes: int = 30) -> list[dict]:
         if not _can_fire(state, trigger_name):
             continue
 
-        # departure_return only needs messages; others need both
-        if trigger_name == "departure_return":
-            result = detect_fn(messages)
-        else:
-            result = detect_fn(messages, agent_outputs)
+        result = detect_fn(messages, agent_outputs)
 
         if result:
             _supervisor_log(name, "warn", "trigger_fired", result)
