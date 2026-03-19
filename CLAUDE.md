@@ -62,6 +62,7 @@ All agent tooling lives in the `halos/` Python package with console_scripts entr
 | /spec                | command | `.claude/commands/spec.md`               | Interview-driven specification before coding                                  |
 | /decompose           | command | `.claude/commands/decompose.md`          | Break tasks into atomic testable steps                                        |
 | /dump                | command | `.claude/commands/dump.md`               | Checkpoint session context before compaction                                  |
+| /review              | command | `.claude/commands/review.md`             | Orchestrated 3-round adversarial review (handoff → blind → targeted)          |
 | /review-handoff      | command | `.claude/commands/review-handoff.md`     | Implementation model produces review map (not self-certification)             |
 | /review-blind        | command | `.claude/commands/review-blind.md`       | Pass 1: blind adversarial review, ignores author framing                      |
 | /review-targeted     | command | `.claude/commands/review-targeted.md`    | Pass 2: verify handoff claims against code                                    |
