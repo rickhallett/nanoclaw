@@ -222,7 +222,14 @@ async function processGroupMessages(chatJid: string): Promise<boolean> {
           : JSON.stringify(result.result);
       // Strip <internal>...</internal> blocks — agent uses these for internal reasoning
       const text = raw.replace(/<internal>[\s\S]*?<\/internal>/g, '').trim();
-      logger.info({ group: group.name }, `Agent output: ${raw.slice(0, 200)}`);
+      logger.info(
+        {
+          group: group.name,
+          inputMsgIds: missedMessages.map((m) => m.id),
+          chatJid,
+        },
+        `Agent output: ${raw.slice(0, 200)}`,
+      );
       if (text) {
         await channel.sendMessage(chatJid, text);
         outputSentToUser = true;

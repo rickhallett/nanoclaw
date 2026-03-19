@@ -1,0 +1,28 @@
+id: 20260319-182501-92a5fd07
+title: 'Agent commit hygiene: only commit own work, not unrelated staged changes'
+kind: task
+status: cancelled
+priority: 2
+tags:
+- nanoclaw
+- governance
+- container
+entities: []
+context: 'Agent-job committed operator''s uncommitted changes alongside its own work.
+  The container agent should: (1) check git status before committing, (2) only git
+  add files it actually modified, (3) warn or abort if unrelated changes exist. Triggered
+  by yaml_shim deletion job grabbing IPC wiring changes. See commit c158dba.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-19T18:25:01Z'
+modified: '2026-03-19T18:54:40Z'
+created_by: human

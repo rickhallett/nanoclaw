@@ -1,7 +1,7 @@
 id: 20260316-082712
 title: Write up memctl for external audience
-kind: task
-status: open
+kind: agent-job
+status: in-progress
 priority: 3
 tags:
 - memctl
@@ -14,14 +14,14 @@ context: Architecture overview drafted at docs/d1/memctl-architecture-overview.m
 due: null
 blocked_by: null
 command: null
-schedule: null
+schedule: overnight
 window: null
 depends_on: []
 retries: 2
 retries_remaining: 2
 timeout_secs: 300
 plan: null
-plan_ref: null
+plan_ref: queue/plans/memctl-writeup-plan.md
 created: '2026-03-16T08:27:12Z'
-modified: '2026-03-16T08:27:12Z'
+modified: '2026-03-19T18:32:39Z'
 created_by: human

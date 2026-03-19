@@ -1,0 +1,10 @@
+id: fleet-health
+title: Fleet Health Ping
+schedule: 0 * * * *
+command: HALOS_LOG_FILE=./logs/halos.log uv run halctl health all --heal
+enabled: true
+tags:
+  - fleet
+  - health
+  - hourly
+created: "2026-03-18T17:50:00Z"

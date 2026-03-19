@@ -1,7 +1,7 @@
 id: 20260317-135614-68c99e93
 title: "Plan for index saturation \u2014 INDEX.md scaling wall at ~1000 notes"
-kind: task
-status: open
+kind: agent-job
+status: in-progress
 priority: 3
 tags:
 - halos
@@ -13,14 +13,14 @@ context: 'Cross-model review finding 3. At 1000 notes the MEMORY_INDEX YAML bloc
 due: null
 blocked_by: null
 command: null
-schedule: null
+schedule: overnight
 window: null
 depends_on: []
 retries: 2
 retries_remaining: 2
 timeout_secs: 300
 plan: null
-plan_ref: null
+plan_ref: queue/plans/index-saturation-plan.md
 created: '2026-03-17T13:56:14Z'
-modified: '2026-03-17T13:56:14Z'
+modified: '2026-03-19T18:32:40Z'
 created_by: human

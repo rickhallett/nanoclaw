@@ -99,6 +99,16 @@ function buildVolumeMounts(
       readonly: false,
     });
 
+    // Fleet visibility: main group can inspect all microHAL deployments (read-only).
+    const fleetDir = path.join(path.dirname(projectRoot), 'halfleet');
+    if (fs.existsSync(fleetDir)) {
+      mounts.push({
+        hostPath: fleetDir,
+        containerPath: '/workspace/fleet',
+        readonly: true,
+      });
+    }
+
     // Main also gets its group folder as the working directory
     mounts.push({
       hostPath: groupDir,
@@ -122,18 +132,6 @@ function buildVolumeMounts(
         containerPath: '/workspace/global',
         readonly: true,
       });
-    }
-
-    // Fleet visibility: main group can inspect all microHAL deployments (read-only).
-    if (isMain) {
-      const fleetDir = path.join(path.dirname(projectRoot), 'halfleet');
-      if (fs.existsSync(fleetDir)) {
-        mounts.push({
-          hostPath: fleetDir,
-          containerPath: '/workspace/fleet',
-          readonly: true,
-        });
-      }
     }
 
     // Memory directory — writable so non-main agents can also write notes.

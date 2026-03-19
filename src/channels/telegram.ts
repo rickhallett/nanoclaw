@@ -61,12 +61,20 @@ async function sendTelegramMessage(
  * and returned as an array of strings.
  */
 function loadWelcomeMessages(): string[] {
-  const welcomeDir = path.join(process.cwd(), 'templates', 'microhal', 'welcome');
+  const welcomeDir = path.join(
+    process.cwd(),
+    'templates',
+    'microhal',
+    'welcome',
+  );
   try {
-    const files = fs.readdirSync(welcomeDir)
-      .filter(f => f.endsWith('.md'))
+    const files = fs
+      .readdirSync(welcomeDir)
+      .filter((f) => f.endsWith('.md'))
       .sort();
-    return files.map(f => fs.readFileSync(path.join(welcomeDir, f), 'utf-8').trim());
+    return files.map((f) =>
+      fs.readFileSync(path.join(welcomeDir, f), 'utf-8').trim(),
+    );
   } catch {
     logger.warn({ welcomeDir }, 'Welcome templates not found');
     return [];
@@ -87,15 +95,18 @@ function writeOnboardingYaml(
   const memDir = path.join(process.cwd(), 'memory');
   const yamlPath = path.join(memDir, 'onboarding-state.yaml');
 
-  const content = [
-    `state: ${state}`,
-    `sender_id: "${senderId}"`,
-    `group_folder: "${groupFolder}"`,
-    waiverAcceptedAt ? `waiver_accepted_at: "${waiverAcceptedAt}"` : null,
-    `transitions:`,
-    `  - to: ${state}`,
-    `    at: "${new Date().toISOString()}"`,
-  ].filter(Boolean).join('\n') + '\n';
+  const content =
+    [
+      `state: ${state}`,
+      `sender_id: "${senderId}"`,
+      `group_folder: "${groupFolder}"`,
+      waiverAcceptedAt ? `waiver_accepted_at: "${waiverAcceptedAt}"` : null,
+      `transitions:`,
+      `  - to: ${state}`,
+      `    at: "${new Date().toISOString()}"`,
+    ]
+      .filter(Boolean)
+      .join('\n') + '\n';
 
   try {
     fs.mkdirSync(memDir, { recursive: true });
@@ -119,7 +130,7 @@ async function sendWelcomeSequence(
   for (const text of toSend) {
     await sendTelegramMessage(api, chatId, text);
     // Brief pause between messages for natural pacing
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 1000));
   }
 }
 
@@ -221,7 +232,11 @@ export class TelegramChannel implements Channel {
   /** JIDs this bot instance has received messages from (used for routing). */
   private ownedJids = new Set<string>();
 
-  constructor(botToken: string, opts: TelegramChannelOpts, channelName = 'telegram') {
+  constructor(
+    botToken: string,
+    opts: TelegramChannelOpts,
+    channelName = 'telegram',
+  ) {
     this.name = channelName;
     this.botToken = botToken;
     this.opts = opts;
@@ -271,14 +286,22 @@ export class TelegramChannel implements Channel {
         writeOnboardingYaml(group.folder, senderId, 'welcome_sent');
       }
 
-      logger.info({ chatJid, senderId }, 'Welcome sequence sent, awaiting waiver acceptance');
+      logger.info(
+        { chatJid, senderId },
+        'Welcome sequence sent, awaiting waiver acceptance',
+      );
     };
     this.bot.command('start', handleWelcome);
     this.bot.command('welcome', handleWelcome);
 
     // Telegram bot commands handled above — skip them in the general handler
     // so they don't also get stored as messages. All other /commands flow through.
-    const TELEGRAM_BOT_COMMANDS = new Set(['chatid', 'ping', 'start', 'welcome']);
+    const TELEGRAM_BOT_COMMANDS = new Set([
+      'chatid',
+      'ping',
+      'start',
+      'welcome',
+    ]);
 
     this.bot.on('message:text', async (ctx) => {
       if (ctx.message.text.startsWith('/')) {
@@ -318,14 +341,17 @@ export class TelegramChannel implements Channel {
             if (group) {
               writeOnboardingYaml(group.folder, sender, 'active', now);
             }
-            logger.info({ chatJid, sender }, 'Waiver accepted, onboarding complete');
+            logger.info(
+              { chatJid, sender },
+              'Waiver accepted, onboarding complete',
+            );
             return;
           } else {
             // Not YES — gently redirect
             await sendTelegramMessage(
               ctx.api,
               ctx.chat.id,
-              'No rush. Reply YES when you\'re ready to accept, or ask Rick if you have questions.',
+              "No rush. Reply YES when you're ready to accept, or ask Rick if you have questions.",
             );
             return;
           }

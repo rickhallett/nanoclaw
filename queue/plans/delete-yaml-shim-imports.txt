@@ -1,0 +1,18 @@
+Files importing yaml_shim (13 sites):
+
+halos/nightctl/job.py:4-7        try/except → from . import yaml_shim as yaml
+halos/nightctl/config.py:3-6     try/except → from . import yaml_shim as yaml
+halos/nightctl/migrate_todoctl.py:17-20  try/except → from . import yaml_shim as yaml
+halos/nightctl/cli.py:13-16      try/except → from . import yaml_shim as yaml
+halos/nightctl/manifest.py:2-5   try/except → from . import yaml_shim as yaml
+halos/nightctl/archive.py:2-5    try/except → from . import yaml_shim as yaml
+halos/nightctl/container.py:19-22  try/except → from . import yaml_shim as yaml
+halos/nightctl/executor.py:4-7   try/except → from . import yaml_shim as yaml
+halos/nightctl/item.py:17-20     try/except → from . import yaml_shim as yaml
+halos/halctl/config.py:5-8       try/except → from halos.nightctl import yaml_shim as yaml
+halos/halctl/renderer.py:12-15   try/except → from halos.nightctl import yaml_shim as yaml
+halos/halctl/provision.py:9-12   try/except → from halos.nightctl import yaml_shim as yaml
+halos/halctl/eval_harness.py:23-26  try/except → from halos.nightctl import yaml_shim as yaml
+
+Pattern 1 (nightctl): replace 4-line try/except with: import yaml
+Pattern 2 (halctl):   replace 4-line try/except with: import yaml

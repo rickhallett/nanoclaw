@@ -2,7 +2,7 @@ id: 20260317-070508-080
 title: 'Boot-time decision audit: present standing decisions to agents on startup
   with logctl trail'
 kind: task
-status: open
+status: cancelled
 priority: 2
 tags:
 - halos
@@ -29,5 +29,5 @@ timeout_secs: 300
 plan: null
 plan_ref: null
 created: '2026-03-17T07:05:08Z'
-modified: '2026-03-17T07:05:08Z'
+modified: '2026-03-19T18:54:40Z'
 created_by: human

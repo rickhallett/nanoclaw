@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-18T03:26:45Z'
-note_count: 101
+generated: '2026-03-19T15:47:11Z'
+note_count: 110
 entities:
 - kai
 - oceanheart-ai
@@ -77,6 +77,7 @@ entities:
 - rick
 - bathw
 - halos
+- Simon Willison
 tag_vocabulary:
 - anti-pattern
 - architecture
@@ -1765,5 +1766,140 @@ notes:
   hash: c38ebb116c7957ce698c82a045870990b179ce0b35aee753e07aac8e04c5f2eb
   backlink_count: 0
   modified: '2026-03-18T03:26:45Z'
+  expires: null
+- id: 20260318-150241-770
+  file: memory/notes/20260318-150241-770-alignment-as-a-service-curated-accelerated-ai-learning-exper.md
+  title: 'Alignment-as-a-service: curated accelerated AI learning experiences'
+  type: fact
+  tags:
+  - strategy
+  - fleet
+  - rft
+  summary: 'Extension of alignment-as-a-service concept: not just recording AI alignment
+    but actively curating accelerated AI learni...'
+  hash: ab85f7e5e4f94a97b4c154355bb4f0b501a877d1cb237355afbddeed8d7bc6fe
+  backlink_count: 0
+  modified: '2026-03-18T15:02:41Z'
+  expires: null
+- id: 20260318-150248-676
+  file: memory/notes/20260318-150248-676-the-captain-d-d-card-sheet-as-ai-onboarding-frame.md
+  title: 'The Captain: D&D card sheet as AI onboarding frame'
+  type: fact
+  tags:
+  - fleet
+  - dad
+  - onboarding
+  summary: The Captain played tabletop D&D as a kid. A character sheet format — capability
+    manifest with stats, defined roles, boun...
+  hash: 431442c43a49a8edb4a8a70813f168110fd59e1c6509d1549f940390fb4062fd
+  backlink_count: 0
+  modified: '2026-03-18T15:02:48Z'
+  expires: null
+- id: 20260319-150923-396
+  file: memory/notes/20260319-150923-396-daily-src-reading-habit-anti-atrophy.md
+  title: Daily src reading habit — anti-atrophy
+  type: decision
+  tags:
+  - standup
+  - reminder
+  summary: 'Rick needs daily time reading NanoClaw src code. Goal: avoid treating
+    the system as a black box. Don''t let the codebase ...'
+  hash: 0367b814d05063d6dadbdc8f871b36e561c8c289606907e135f0eee5020df72a
+  backlink_count: 0
+  modified: '2026-03-19T15:09:23Z'
+  expires: null
+- id: 20260319-151037-776
+  file: memory/notes/20260319-151037-776-telegram-polling-watchdog-fix-zombie-root-cause.md
+  title: Telegram polling watchdog — fix zombie root cause
+  type: decision
+  tags:
+  - fleet
+  - telegram
+  - bug
+  summary: 'Root cause identified 2026-03-19: grammY long-poll connections silently
+    stall on Linux. dns.setDefaultResultOrder(''ipv4f...'
+  hash: 02918be8af6cb0daa6dd377188f117563d64cdd10fe6018685a4220717655fb5
+  backlink_count: 0
+  modified: '2026-03-19T15:10:37Z'
+  expires: null
+- id: 20260319-154649-803
+  file: memory/notes/20260319-154649-803-the-lethal-trifecta-prompt-injection-compound-failure-mode.md
+  title: The Lethal Trifecta — prompt injection compound failure mode
+  type: fact
+  tags:
+  - ai-failure-modes
+  - security
+  - prompt-injection
+  - taxonomy
+  entities:
+  - Simon Willison
+  summary: 'Simon Willison''s named failure mode: when an AI agent combines private
+    data access + exposure to malicious instructions ...'
+  hash: c8d6f15378515299c783bc8711cf159294a1ee7cc1b3e09b9fc8da752895f220
+  backlink_count: 0
+  modified: '2026-03-19T15:46:49Z'
+  expires: null
+- id: 20260319-154657-427
+  file: memory/notes/20260319-154657-427-code-review-abdication-removing-ai-code-review-as-practice.md
+  title: Code Review Abdication — removing AI code review as practice
+  type: fact
+  tags:
+  - security
+  - ai-failure-modes
+  - taxonomy
+  entities:
+  - Simon Willison
+  summary: 'Failure mode where teams stop reading AI-generated code entirely. Willison:
+    ''nobody reads any code'' at StrongDM is ''clea...'
+  hash: 8cf9e13f8abe8d8df0b9320bf2984bac79f15436ef58765ca02af04b741dcf17
+  backlink_count: 0
+  modified: '2026-03-19T15:46:57Z'
+  expires: null
+- id: 20260319-154711-375
+  file: memory/notes/20260319-154711-375-capability-staleness-operating-on-outdated-model-capability.md
+  title: Capability Staleness — operating on outdated model capability map
+  type: fact
+  tags:
+  - ai-failure-modes
+  - taxonomy
+  entities:
+  - Simon Willison
+  summary: Teams that do not continuously re-probe model capabilities as models evolve
+    are operating on a stale map. Willison examp...
+  hash: a1ffb934d57ade609372e5c09997cdfa9a1217427ceaab4f77652c0d82a7b5b3
+  backlink_count: 0
+  modified: '2026-03-19T15:47:11Z'
+  expires: null
+- id: 20260319-154711-561
+  file: memory/notes/20260319-154711-561-test-evasion-skipping-free-verification-gate-when-using-codi.md
+  title: Test Evasion — skipping free verification gate when using coding agents
+  type: fact
+  tags:
+  - ai-failure-modes
+  - taxonomy
+  - testing
+  entities:
+  - Simon Willison
+  summary: Not using TDD/automated tests when working with coding agents, even though
+    tests are now effectively free. The asymmetry...
+  hash: 0c4fc0a0907219df923ce786382fa58218a627992307459b40ed784e2c36495c
+  backlink_count: 0
+  modified: '2026-03-19T15:47:11Z'
+  expires: null
+- id: 20260319-154711-750
+  file: memory/notes/20260319-154711-750-sandboxing-gap-running-agents-without-environment-isolation.md
+  title: Sandboxing Gap — running agents without environment isolation
+  type: fact
+  tags:
+  - ai-failure-modes
+  - taxonomy
+  - security
+  entities:
+  - Simon Willison
+  summary: Running coding agents locally without an isolated execution environment
+    provides a ready-made exfiltration vector, compl...
+  hash: c6e55aeafed09078f20632b718f936c8ec3415464b685bc8b8217da1050406dc
+  backlink_count: 0
+  modified: '2026-03-19T15:47:11Z'
   expires: null
 ```

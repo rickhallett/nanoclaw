@@ -41,3 +41,4 @@ groups/global/*
 .nanoclaw/
 
 agents-sdk-docs
+credentials-prime.json

@@ -2,7 +2,7 @@ id: 20260317-135614-9e493fc7
 title: "CRITICAL: Non-main groups can rm -rf shared memory \u2014 mount is rw not\
   \ ro"
 kind: task
-status: open
+status: cancelled
 priority: 1
 tags:
 - nanoclaw
@@ -25,5 +25,5 @@ timeout_secs: 300
 plan: null
 plan_ref: null
 created: '2026-03-17T13:56:14Z'
-modified: '2026-03-17T13:56:14Z'
+modified: '2026-03-19T18:54:38Z'
 created_by: human

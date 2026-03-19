@@ -1,0 +1,10 @@
+id: nightctl-summary
+title: Overnight Agent-Job Summary
+schedule: 45 5 * * *
+command: uv run hal-briefing nightctl
+enabled: true
+tags:
+  - briefings
+  - nightctl
+  - daily
+created: '2026-03-19T18:35:00Z'

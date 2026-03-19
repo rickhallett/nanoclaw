@@ -1,8 +1,8 @@
 id: 20260317-134708-a3cffe91
 title: "Delete yaml_shim.py \u2014 PyYAML is already a dependency"
-kind: task
-status: open
-priority: 1
+kind: agent-job
+status: done
+priority: 2
 tags:
 - halos
 - architecture
@@ -14,14 +14,14 @@ context: Cross-model review finding. The shim is ~200 lines of regex YAML that c
 due: null
 blocked_by: null
 command: null
-schedule: null
+schedule: overnight
 window: null
 depends_on: []
 retries: 2
-retries_remaining: 2
+retries_remaining: 1
 timeout_secs: 300
 plan: null
-plan_ref: null
+plan_ref: queue/plans/delete-yaml-shim-plan.md
 created: '2026-03-17T13:47:08Z'
-modified: '2026-03-17T13:47:08Z'
+modified: '2026-03-19T18:11:42Z'
 created_by: human

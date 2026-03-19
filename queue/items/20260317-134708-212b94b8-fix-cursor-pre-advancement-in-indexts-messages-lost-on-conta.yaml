@@ -1,7 +1,7 @@
 id: 20260317-134708-212b94b8
 title: "Fix cursor pre-advancement in index.ts \u2014 messages lost on container crash"
 kind: task
-status: open
+status: cancelled
 priority: 1
 tags:
 - nanoclaw
@@ -22,5 +22,5 @@ timeout_secs: 300
 plan: null
 plan_ref: null
 created: '2026-03-17T13:47:08Z'
-modified: '2026-03-17T13:47:08Z'
+modified: '2026-03-19T18:54:38Z'
 created_by: human

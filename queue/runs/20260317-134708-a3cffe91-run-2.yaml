@@ -1,0 +1,10 @@
+id: 20260317-134708-a3cffe91
+attempt: 2
+started: '2026-03-19T18:11:42Z'
+finished: '2026-03-19T18:11:42Z'
+exit_code: 0
+stdout: 'agent-job dispatched: plan at /home/mrkai/code/nanoclaw/queue/plans/20260317-134708-a3cffe91-plan.xml,
+  IPC at /home/mrkai/code/nanoclaw/data/ipc/telegram_main/tasks/nightctl-20260317-134708-a3cffe91-20260319-181142.json'
+stderr: ''
+duration_secs: 0
+outcome: done

@@ -1,7 +1,7 @@
 id: 20260317-135614-87d5395b
 title: Advisory file locking for memctl index to prevent rebuild race
 kind: task
-status: open
+status: cancelled
 priority: 2
 tags:
 - halos
@@ -23,5 +23,5 @@ timeout_secs: 300
 plan: null
 plan_ref: null
 created: '2026-03-17T13:56:14Z'
-modified: '2026-03-17T13:56:14Z'
+modified: '2026-03-19T18:54:40Z'
 created_by: human
