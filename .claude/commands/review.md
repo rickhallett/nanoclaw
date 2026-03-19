@@ -1,35 +1,41 @@
 # Adversarial Review (Orchestrated)
 
-Run a full adversarial review cycle: blind review → handoff → targeted verification.
+Run a full adversarial review cycle using three isolated subagents.
 
 ## Process
 
-This review uses three rounds. The order matters: blind review MUST happen before the implementation model produces its handoff, otherwise the handoff framing contaminates the review.
+You are the orchestrator. You will spawn three subagents sequentially, controlling what context each receives. **Do not run these yourself** — dispatch to subagents via the Task tool.
 
 ### Round 1: Blind Review
 
-Run `/review-blind` FIRST.
+Spawn a subagent with:
 
-Approach the code fresh. Assume the author is overstating what the code proves. Document all findings.
+- The files/code to review (list them explicitly)
+- The `/review-blind` instructions
+- **Nothing else** — no implementation context, no author claims
 
-You have not seen any author claims yet. This is intentional.
+Wait for completion. Save the output as `blind_findings`.
 
 ### Round 2: Handoff Generation
 
-NOW produce the review handoff by running `/review-handoff`.
+Spawn a second subagent with:
 
-This documents what the implementation claims to do, where to look, and what it explicitly does NOT prove.
+- The files/code changed
+- The `/review-handoff` instructions
+- **Do not include the blind findings** — this subagent doesn't know what the reviewer found
+
+Wait for completion. Save the output as `handoff`.
 
 ### Round 3: Targeted Verification
 
-Run `/review-targeted` with the handoff as input.
+Spawn a third subagent with:
 
-Compare the handoff claims against:
+- The files/code
+- The `/review-targeted` instructions
+- The `blind_findings` from Round 1
+- The `handoff` from Round 2
 
-1. What you found in the blind review
-2. What the code actually demonstrates
-
-Flag any discrepancies between the author's framing and your blind findings.
+This subagent compares the handoff claims against the blind findings and the actual code.
 
 ## Output
 
@@ -74,13 +80,13 @@ Produce a unified review report:
 
 ## Rules
 
-1. **Order is mandatory.** Blind review → handoff → targeted. Never generate the handoff before blind review.
+1. **Sequential dispatch.** Round 1 must complete before Round 2 starts. Round 2 must complete before Round 3 starts.
 
-2. **Prefer skepticism.** "Partially true" over "confirmed" unless evidence is unambiguous.
+2. **Context isolation.** Each subagent gets only what's listed above. The blind reviewer never sees the handoff. The handoff author never sees the blind findings.
 
-3. **Name the non-claims.** What does this change explicitly NOT prove? The author should have said; verify they did.
+3. **You are the orchestrator, not the reviewer.** Do not perform the review yourself. Dispatch to subagents.
 
-4. **Discrepancies are signal.** If blind review found something the handoff omitted, that's information about handoff quality.
+4. **Collect and synthesize.** After Round 3, combine all outputs into the final report.
 
 ## When to Use
 
@@ -89,8 +95,8 @@ Produce a unified review report:
 - When claims about behavior need verification
 - When you suspect the implementation model is pattern-matching rather than reasoning
 
-## Limitations
+## Why Subagents
 
-This orchestration runs in a single context. The blind review genuinely happens before the handoff exists, so there's no contamination in that direction. However, the same model that did the implementation is doing the review — true adversarial review would use a separate model instance with no shared context.
+Each subagent starts with fresh context. The blind reviewer cannot be contaminated by the handoff because it doesn't exist in their context. The handoff author cannot defensively address blind findings because they don't know what was found.
 
-This is a pragmatic approximation: better than self-certification, worse than independent review.
+This is true isolation, not "try not to think about it."
