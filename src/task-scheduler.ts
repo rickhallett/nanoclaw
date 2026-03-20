@@ -114,9 +114,13 @@ async function runTask(
   );
 
   if (!group) {
+    // SCHED.RUN.01: Pause the task when its group is missing, instead of
+    // leaving it active and retrying forever on every scheduler poll.
+    // This prevents log churn and wasted queue slots for orphaned tasks.
+    updateTask(task.id, { status: 'paused' });
     logger.error(
       { taskId: task.id, groupFolder: task.group_folder },
-      'Group not found for task',
+      'Group not found for task, pausing to stop retry churn',
     );
     logTaskRun({
       task_id: task.id,
@@ -124,7 +128,7 @@ async function runTask(
       duration_ms: Date.now() - startTime,
       status: 'error',
       result: null,
-      error: `Group not found: ${task.group_folder}`,
+      error: `Group not found: ${task.group_folder} (task paused)`,
     });
     return;
   }
