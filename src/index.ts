@@ -43,6 +43,7 @@ import {
   setSession,
   storeChatMetadata,
   storeMessage,
+  storeMessageDirect,
 } from './db.js';
 import { GroupQueue } from './group-queue.js';
 import { resolveGroupFolderPath } from './group-folder.js';
@@ -233,6 +234,23 @@ async function processGroupMessages(chatJid: string): Promise<boolean> {
       );
       if (text) {
         await channel.sendMessage(chatJid, text);
+        // OBS.LOG.02: Persist outbound agent response to SQLite so the
+        // response history is queryable and postmortems can distinguish
+        // "agent generated output" from "agent never generated output".
+        try {
+          storeMessageDirect({
+            id: `out-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            chat_jid: chatJid,
+            sender: ASSISTANT_NAME,
+            sender_name: ASSISTANT_NAME,
+            content: text,
+            timestamp: new Date().toISOString(),
+            is_from_me: true,
+            is_bot_message: true,
+          });
+        } catch (err) {
+          logger.warn({ chatJid, err }, 'Failed to persist outbound response');
+        }
         outputSentToUser = true;
       }
       // Only reset idle timer on actual results, not session-update markers (result: null)
@@ -508,11 +526,14 @@ async function main(): Promise<void> {
     PROXY_BIND_HOST,
   );
 
-  // Graceful shutdown handlers
+  // SVC.SHUT.01 / COMB.RACE.01: Graceful shutdown now stops active
+  // containers deterministically instead of detaching them. This prevents
+  // the restart sequence (startup orphan cleanup) from killing containers
+  // that still have in-flight responses.
   const shutdown = async (signal: string) => {
     logger.info({ signal }, 'Shutdown signal received');
     proxyServer.close();
-    await queue.shutdown(10000);
+    await queue.shutdown(15000);
     for (const ch of channels) await ch.disconnect();
     process.exit(0);
   };
@@ -647,14 +668,46 @@ async function main(): Promise<void> {
         return;
       }
       const text = formatOutbound(rawText);
-      if (text) await channel.sendMessage(jid, text);
+      if (text) {
+        await channel.sendMessage(jid, text);
+        // OBS.LOG.02: Persist outbound responses from scheduler sends
+        try {
+          storeMessageDirect({
+            id: `out-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            chat_jid: jid,
+            sender: ASSISTANT_NAME,
+            sender_name: ASSISTANT_NAME,
+            content: text,
+            timestamp: new Date().toISOString(),
+            is_from_me: true,
+            is_bot_message: true,
+          });
+        } catch (err) {
+          logger.warn({ jid, err }, 'Failed to persist outbound scheduler response');
+        }
+      }
     },
   });
   startIpcWatcher({
-    sendMessage: (jid, text) => {
+    sendMessage: async (jid, text) => {
       const channel = findChannel(channels, jid);
       if (!channel) throw new Error(`No channel for JID: ${jid}`);
-      return channel.sendMessage(jid, text);
+      await channel.sendMessage(jid, text);
+      // OBS.LOG.02: Persist outbound responses from IPC sends
+      try {
+        storeMessageDirect({
+          id: `out-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          chat_jid: jid,
+          sender: ASSISTANT_NAME,
+          sender_name: ASSISTANT_NAME,
+          content: text,
+          timestamp: new Date().toISOString(),
+          is_from_me: true,
+          is_bot_message: true,
+        });
+      } catch (err) {
+        logger.warn({ jid, err }, 'Failed to persist outbound IPC response');
+      }
     },
     registeredGroups: () => registeredGroups,
     registerGroup,

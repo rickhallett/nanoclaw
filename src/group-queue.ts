@@ -1,8 +1,9 @@
-import { ChildProcess } from 'child_process';
+import { ChildProcess, exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
 import { DATA_DIR, MAX_CONCURRENT_CONTAINERS } from './config.js';
+import { stopContainer } from './container-runtime.js';
 import { logger } from './logger.js';
 
 interface QueuedTask {
@@ -265,9 +266,19 @@ export class GroupQueue {
     if (state.retryCount > MAX_RETRIES) {
       logger.error(
         { groupJid, retryCount: state.retryCount },
-        'Max retries exceeded, dropping messages (will retry on next incoming message)',
+        'Max retries exceeded, scheduling recovery check',
       );
       state.retryCount = 0;
+      // GQ.RETRY.02: Instead of just dropping and waiting for the next
+      // inbound message, schedule a recovery check so stranded messages
+      // are eventually retried even if the conversation goes quiet.
+      const recoveryMs = BASE_RETRY_MS * Math.pow(2, MAX_RETRIES);
+      setTimeout(() => {
+        if (!this.shuttingDown) {
+          state.pendingMessages = true;
+          this.enqueueMessageCheck(groupJid);
+        }
+      }, recoveryMs);
       return;
     }
 
@@ -344,22 +355,76 @@ export class GroupQueue {
     }
   }
 
-  async shutdown(_gracePeriodMs: number): Promise<void> {
+  // SVC.SHUT.01: Shutdown now signals active containers to close gracefully
+  // via the _close sentinel, then waits up to gracePeriodMs for them to exit.
+  // If they don't exit in time, they are stopped via docker stop. This prevents
+  // the startup orphan cleanup from killing containers with in-flight responses.
+  async shutdown(gracePeriodMs: number): Promise<void> {
     this.shuttingDown = true;
 
-    // Count active containers but don't kill them — they'll finish on their own
-    // via idle timeout or container timeout. The --rm flag cleans them up on exit.
-    // This prevents WhatsApp reconnection restarts from killing working agents.
-    const activeContainers: string[] = [];
+    const activeContainers: Array<{
+      name: string;
+      jid: string;
+      groupFolder: string | null;
+    }> = [];
     for (const [jid, state] of this.groups) {
-      if (state.process && !state.process.killed && state.containerName) {
-        activeContainers.push(state.containerName);
+      if (state.active && state.containerName) {
+        activeContainers.push({
+          name: state.containerName,
+          jid,
+          groupFolder: state.groupFolder,
+        });
+        // Signal graceful exit via _close sentinel
+        this.closeStdin(jid);
       }
     }
 
+    if (activeContainers.length === 0) {
+      logger.info('GroupQueue shutting down (no active containers)');
+      return;
+    }
+
     logger.info(
-      { activeCount: this.activeCount, detachedContainers: activeContainers },
-      'GroupQueue shutting down (containers detached, not killed)',
+      {
+        activeCount: activeContainers.length,
+        containers: activeContainers.map((c) => c.name),
+      },
+      `GroupQueue shutting down, signalled ${activeContainers.length} container(s) to close`,
     );
+
+    // Wait for containers to exit gracefully, then force-stop stragglers
+    await new Promise<void>((resolve) => {
+      const deadline = setTimeout(() => {
+        for (const c of activeContainers) {
+          // Container names are generated internally (nanoclaw-{safe}-{ts}),
+          // not from user input, so exec with stopContainer is safe here.
+          exec(stopContainer(c.name), { timeout: 10000 }, (err) => {
+            if (err) {
+              logger.debug(
+                { container: c.name, err },
+                'Container stop during shutdown (may already be gone)',
+              );
+            }
+          });
+        }
+        resolve();
+      }, gracePeriodMs);
+
+      // Check periodically if all containers have exited
+      const check = () => {
+        const stillActive = [...this.groups.values()].some(
+          (s) => s.active && s.process && !s.process.killed,
+        );
+        if (!stillActive) {
+          clearTimeout(deadline);
+          resolve();
+        } else {
+          setTimeout(check, 500);
+        }
+      };
+      setTimeout(check, 500);
+    });
+
+    logger.info('GroupQueue shutdown complete');
   }
 }
