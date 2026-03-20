@@ -68,13 +68,19 @@ def _run_record(
 
 
 def _write_run_record(runs_dir: Path, job_id: str, record: dict):
+    # HALO.NIGHT.02: Use atomic write (tmp + os.replace) consistent with
+    # the broader nightctl subsystem, so a crash during write does not
+    # leave a truncated YAML artifact that corrupts reporting/audit tools.
+    import os
     runs_dir.mkdir(parents=True, exist_ok=True)
     attempt = record["attempt"]
     filename = f"{job_id}-run-{attempt}.yaml"
-    path = runs_dir / filename
-    with open(path, "w") as f:
+    final_path = runs_dir / filename
+    tmp_path = runs_dir / f"{filename}.tmp"
+    with open(tmp_path, "w") as f:
         yaml.dump(record, f, default_flow_style=False, sort_keys=False)
-    return path
+    os.replace(str(tmp_path), str(final_path))
+    return final_path
 
 
 def _get_attempt_number(runs_dir: Path, job_id: str) -> int:

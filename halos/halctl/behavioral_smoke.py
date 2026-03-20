@@ -164,6 +164,16 @@ class BehavioralSuiteResult:
         ]
 
     @property
+    def ungated_scenarios(self) -> list[BehavioralResult]:
+        """FLT.EVAL.02: Scenarios that have neither blocking nor min_pass_rate
+        metadata. These can fail silently inside an overall passing suite."""
+        return [
+            s
+            for s in self.scenarios
+            if not s.blocking and s.min_pass_rate == 0 and s.runs
+        ]
+
+    @property
     def passed(self) -> bool:
         # Global threshold must be met
         if self.success_rate < self.threshold:

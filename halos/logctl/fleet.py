@@ -177,22 +177,35 @@ def read_fleet_conversations(
         now = datetime.now(timezone.utc)
         today = now.strftime("%Y-%m-%dT")
 
+        # OBS.LOG.01: Use the pm2 log file's mtime to infer the date for
+        # HH:MM:SS timestamps instead of blindly assuming today. This prevents
+        # responses from previous days being paired to the wrong user messages.
+        log_date = now.strftime("%Y-%m-%dT")
+        if pm2.exists():
+            try:
+                mtime = datetime.fromtimestamp(pm2.stat().st_mtime, tz=timezone.utc)
+                log_date = mtime.strftime("%Y-%m-%dT")
+            except Exception:
+                pass
+
         def _pm2_to_iso(hms: str) -> str:
-            """Convert HH:MM:SS.mmm to ISO timestamp (assume today)."""
-            return f"{today}{hms}Z"
+            """Convert HH:MM:SS.mmm to ISO timestamp using log file date."""
+            return f"{log_date}{hms}Z"
 
         def _normalise(ts: str) -> str:
             """Normalise any timestamp to comparable ISO-ish string."""
             if "T" in ts:
                 return ts[:23]  # 2026-03-18T11:30:53.000
-            return f"{today}{ts[:12]}"
+            return f"{log_date}{ts[:12]}"
 
         # Build ordered list of agent responses with full timestamps
         agent_iso: list[tuple[str, str]] = []
         for agent_ts, agent_text in agent_responses:
             agent_iso.append((_pm2_to_iso(agent_ts), agent_text))
 
-        # For each agent response, find the last user message before it
+        # OBS.LOG.01: For each agent response, find the last user message
+        # before it. Allow multiple agent responses per user message by
+        # concatenating them instead of dropping later ones.
         response_for: dict[int, str] = {}
         for agent_full_ts, agent_text in agent_iso:
             a_norm = _normalise(agent_full_ts)
@@ -203,8 +216,12 @@ def read_fleet_conversations(
                     best_idx = i
                 else:
                     break
-            if best_idx is not None and best_idx not in response_for:
-                response_for[best_idx] = agent_text
+            if best_idx is not None:
+                if best_idx in response_for:
+                    # Append multi-part responses instead of dropping them
+                    response_for[best_idx] += "\n---\n" + agent_text
+                else:
+                    response_for[best_idx] = agent_text
 
         for i, (sender, content, ts) in enumerate(user_msgs):
             pair = {

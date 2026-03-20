@@ -89,7 +89,11 @@ def session_clear(group_folder: str, instance: str | None) -> int:
     })
     print(f"{target}: cleared session for '{group_folder}'")
     print(f"  was: {old_sid}")
-    print(f"  next message will start a fresh session")
+    # HALO.HALCTL.04: Warn that the live process has an in-memory session map
+    # that is not coordinated with this SQLite mutation. The clear only takes
+    # full effect after a service restart.
+    print(f"  WARNING: the live process may still hold the old session in memory")
+    print(f"  restart the service for the clear to take full effect")
     return 0
 
 
@@ -118,5 +122,7 @@ def session_clear_all(instance: str | None) -> int:
     print(f"{target}: cleared {len(cleared)} session(s)")
     for folder, sid in rows:
         print(f"  {folder}: {sid[:16]}...")
-    print(f"  next messages will start fresh sessions")
+    # HALO.HALCTL.04: Same in-memory coherence warning as session_clear
+    print(f"  WARNING: the live process may still hold old sessions in memory")
+    print(f"  restart the service for clears to take full effect")
     return 0
