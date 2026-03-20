@@ -108,46 +108,52 @@ function createSchema(database: Database.Database): void {
     );
   `);
 
-  // Add context_mode column if it doesn't exist (migration for existing DBs)
-  try {
-    database.exec(
-      `ALTER TABLE scheduled_tasks ADD COLUMN context_mode TEXT DEFAULT 'isolated'`,
-    );
-  } catch {
-    /* column already exists */
-  }
+  // DAT.MIG.01: Migration helper that only swallows "duplicate column" errors.
+  // Other failures (disk full, table locked, corruption) are propagated so
+  // startup does not continue with a half-migrated schema.
+  // Note: database.exec() here is better-sqlite3's exec, not child_process.
+  const migrateColumn = (sql: string): boolean => {
+    try {
+      database.exec(sql);
+      return true; // column was added
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('duplicate column') || msg.includes('already exists')) {
+        return false; // column already exists, safe to skip
+      }
+      throw err; // real failure -- propagate
+    }
+  };
 
-  // Add is_bot_message column if it doesn't exist (migration for existing DBs)
-  try {
-    database.exec(
+  migrateColumn(
+    `ALTER TABLE scheduled_tasks ADD COLUMN context_mode TEXT DEFAULT 'isolated'`,
+  );
+
+  if (
+    migrateColumn(
       `ALTER TABLE messages ADD COLUMN is_bot_message INTEGER DEFAULT 0`,
-    );
-    // Backfill: mark existing bot messages that used the content prefix pattern
+    )
+  ) {
     database
       .prepare(`UPDATE messages SET is_bot_message = 1 WHERE content LIKE ?`)
       .run(`${ASSISTANT_NAME}:%`);
-  } catch {
-    /* column already exists */
   }
 
-  // Add is_main column if it doesn't exist (migration for existing DBs)
-  try {
-    database.exec(
+  if (
+    migrateColumn(
       `ALTER TABLE registered_groups ADD COLUMN is_main INTEGER DEFAULT 0`,
-    );
-    // Backfill: existing rows with folder = 'main' are the main group
+    )
+  ) {
     database.exec(
       `UPDATE registered_groups SET is_main = 1 WHERE folder = 'main'`,
     );
-  } catch {
-    /* column already exists */
   }
 
-  // Add channel and is_group columns if they don't exist (migration for existing DBs)
-  try {
-    database.exec(`ALTER TABLE chats ADD COLUMN channel TEXT`);
-    database.exec(`ALTER TABLE chats ADD COLUMN is_group INTEGER DEFAULT 0`);
-    // Backfill from JID patterns
+  const addedChannel = migrateColumn(
+    `ALTER TABLE chats ADD COLUMN channel TEXT`,
+  );
+  migrateColumn(`ALTER TABLE chats ADD COLUMN is_group INTEGER DEFAULT 0`);
+  if (addedChannel) {
     database.exec(
       `UPDATE chats SET channel = 'whatsapp', is_group = 1 WHERE jid LIKE '%@g.us'`,
     );
@@ -160,8 +166,6 @@ function createSchema(database: Database.Database): void {
     database.exec(
       `UPDATE chats SET channel = 'telegram', is_group = 1 WHERE jid LIKE 'tg:%'`,
     );
-  } catch {
-    /* columns already exist */
   }
 }
 
@@ -337,18 +341,18 @@ export function getNewMessages(
   const placeholders = jids.map(() => '?').join(',');
   // Filter bot messages using both the is_bot_message flag AND the content
   // prefix as a backstop for messages written before the migration ran.
-  // Subquery takes the N most recent, outer query re-sorts chronologically.
+  // DAT.QUERY.01: Use ASC ordering so the oldest unseen messages are returned
+  // first. The previous DESC+reverse pattern returned the *newest* N, which
+  // permanently skipped older messages when backlog exceeded the cap.
   const sql = `
-    SELECT * FROM (
-      SELECT id, chat_jid, sender, sender_name, content, timestamp, is_from_me
-      FROM messages
-      WHERE timestamp > ? AND chat_jid IN (${placeholders})
-        AND is_bot_message = 0 AND is_from_me = 0
-        AND content NOT LIKE ?
-        AND content != '' AND content IS NOT NULL
-      ORDER BY timestamp DESC
-      LIMIT ?
-    ) ORDER BY timestamp
+    SELECT id, chat_jid, sender, sender_name, content, timestamp, is_from_me
+    FROM messages
+    WHERE timestamp > ? AND chat_jid IN (${placeholders})
+      AND is_bot_message = 0 AND is_from_me = 0
+      AND content NOT LIKE ?
+      AND content != '' AND content IS NOT NULL
+    ORDER BY timestamp ASC
+    LIMIT ?
   `;
 
   const rows = db
@@ -371,18 +375,18 @@ export function getMessagesSince(
 ): NewMessage[] {
   // Filter bot messages using both the is_bot_message flag AND the content
   // prefix as a backstop for messages written before the migration ran.
-  // Subquery takes the N most recent, outer query re-sorts chronologically.
+  // DAT.QUERY.01: Use ASC ordering so the oldest unseen messages are returned
+  // first, preventing silent backlog truncation when more than LIMIT messages
+  // accumulate between polls.
   const sql = `
-    SELECT * FROM (
-      SELECT id, chat_jid, sender, sender_name, content, timestamp, is_from_me
-      FROM messages
-      WHERE chat_jid = ? AND timestamp > ?
-        AND is_bot_message = 0 AND is_from_me = 0
-        AND content NOT LIKE ?
-        AND content != '' AND content IS NOT NULL
-      ORDER BY timestamp DESC
-      LIMIT ?
-    ) ORDER BY timestamp
+    SELECT id, chat_jid, sender, sender_name, content, timestamp, is_from_me
+    FROM messages
+    WHERE chat_jid = ? AND timestamp > ?
+      AND is_bot_message = 0 AND is_from_me = 0
+      AND content NOT LIKE ?
+      AND content != '' AND content IS NOT NULL
+    ORDER BY timestamp ASC
+    LIMIT ?
   `;
   return db
     .prepare(sql)
