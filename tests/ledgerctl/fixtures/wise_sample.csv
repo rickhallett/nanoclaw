@@ -1,0 +1,11 @@
+TransferWise ID,Date,Amount,Currency,Description,Payment Reference,Running Balance,Exchange From,Exchange To
+TW-001,21-03-2026,-150.00,NZD,Transfer to savings,SAV001,4850.00,,
+TW-002,20-03-2026,-42.00,NZD,Netflix subscription,NFLX,5000.00,,
+TW-003,19-03-2026,3200.00,NZD,Freelance payment,INV-042,5042.00,,
+TW-004,18-03-2026,-89.00,NZD,Amazon purchase,AMZ-123,1842.00,,
+TW-005,17-03-2026,-25.00,NZD,Spotify yearly,SPOT-Y,1931.00,,
+TW-006,16-03-2026,-120.00,NZD,Electric bill,ELEC-MAR,1956.00,,
+TW-007,15-03-2026,1500.00,NZD,Contract work,CTR-007,2076.00,,
+TW-008,14-03-2026,-35.50,NZD,Uber Eats,UBER-EAT,576.00,,
+TW-009,13-03-2026,-65.00,NZD,Phone top-up,SPARK-NZ,611.50,,
+TW-010,12-03-2026,-200.00,NZD,Insurance premium,INS-Q1,676.50,,

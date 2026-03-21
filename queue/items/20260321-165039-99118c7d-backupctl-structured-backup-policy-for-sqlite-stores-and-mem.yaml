@@ -1,0 +1,26 @@
+id: 20260321-165039-99118c7d
+title: 'backupctl: structured backup policy for SQLite stores and memory corpus'
+kind: task
+status: open
+quadrant: q2
+tags:
+- backupctl
+- data-safety
+- taxonomy-gap
+entities: []
+context: 'Spec: docs/d2/spec-backupctl.md. Restic-backed with sqlite3.backup() for
+  safe DB snapshots. Briefing + statusctl integration. ~15 agent-min.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-21T16:50:39Z'
+modified: '2026-03-21T16:50:39Z'
+created_by: human
