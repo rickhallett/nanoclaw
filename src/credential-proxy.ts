@@ -37,6 +37,7 @@ interface ApiUsageEvent {
   ts: string;
   path: string;
   model: string;
+  group: string;
   input_tokens: number;
   output_tokens: number;
   cache_creation_input_tokens: number;
@@ -48,6 +49,15 @@ function logApiUsage(event: ApiUsageEvent): void {
     const dir = path.dirname(USAGE_LOG_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.appendFileSync(USAGE_LOG_PATH, JSON.stringify(event) + '\n');
+    logger.debug(
+      {
+        group: event.group,
+        model: event.model,
+        input: event.input_tokens,
+        output: event.output_tokens,
+      },
+      'Token usage logged',
+    );
   } catch {
     // Never fail loudly — telemetry is best-effort
   }
@@ -57,7 +67,7 @@ function logApiUsage(event: ApiUsageEvent): void {
  * Create a Transform stream that tees SSE data looking for usage info.
  * Passes all data through unmodified — only reads, never mutates.
  */
-function createUsageTap(requestPath: string): Transform {
+function createUsageTap(requestPath: string, group: string): Transform {
   let sseBuffer = '';
   let model = '';
   let finalUsage: Record<string, number> | null = null;
@@ -115,6 +125,7 @@ function createUsageTap(requestPath: string): Transform {
           ts: new Date().toISOString(),
           path: requestPath,
           model: model || 'unknown',
+          group,
           input_tokens: finalUsage.input_tokens || 0,
           output_tokens: finalUsage.output_tokens || 0,
           cache_creation_input_tokens:
@@ -154,6 +165,16 @@ export function startCredentialProxy(
       req.on('data', (c) => chunks.push(c));
       req.on('end', () => {
         const body = Buffer.concat(chunks);
+
+        // Extract group attribution from URL prefix: /g/{groupFolder}/v1/messages → group=groupFolder
+        let group = 'unknown';
+        let upstreamPath = req.url || '/';
+        const groupMatch = upstreamPath.match(/^\/g\/([^/]+)(\/.*)/);
+        if (groupMatch) {
+          group = groupMatch[1];
+          upstreamPath = groupMatch[2];
+        }
+
         const headers: Record<string, string | number | string[] | undefined> =
           {
             ...(req.headers as Record<string, string>),
@@ -193,7 +214,7 @@ export function startCredentialProxy(
           {
             hostname: upstreamUrl.hostname,
             port: upstreamUrl.port || (isHttps ? 443 : 80),
-            path: req.url,
+            path: upstreamPath,
             method: req.method,
             headers,
             timeout: UPSTREAM_TIMEOUT_MS,
@@ -201,9 +222,9 @@ export function startCredentialProxy(
           (upRes) => {
             res.writeHead(upRes.statusCode!, upRes.headers);
             // BATHW: tap the response stream for token usage data
-            const isApiCall = req.url?.startsWith('/v1/messages');
+            const isApiCall = upstreamPath.startsWith('/v1/messages');
             if (isApiCall) {
-              const tap = createUsageTap(req.url || '/unknown');
+              const tap = createUsageTap(upstreamPath, group);
               upRes.pipe(tap).pipe(res);
             } else {
               upRes.pipe(res);

@@ -8,6 +8,7 @@ import yaml
 @dataclass
 class Config:
     log_dir: str = "./logs"
+    data_dir: str = "./data"
     sources: dict[str, str] = field(default_factory=lambda: {
         "nanoclaw": "./logs/nanoclaw.log",
         "nanoclaw_error": "./logs/nanoclaw.error.log",
@@ -31,6 +32,7 @@ def load(path: str = "") -> Config:
 
     return Config(
         log_dir=raw.get("log_dir", "./logs"),
+        data_dir=raw.get("data_dir", "./data"),
         sources=raw.get("sources", {
             "nanoclaw": "./logs/nanoclaw.log",
             "nanoclaw_error": "./logs/nanoclaw.error.log",

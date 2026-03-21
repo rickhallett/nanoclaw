@@ -222,6 +222,16 @@ function buildVolumeMounts(
     });
   }
 
+  // Google Workspace MCP credentials (Calendar, Drive, Docs, Sheets)
+  const googleWorkspaceDir = path.join(homeDir, '.google-workspace-mcp');
+  if (fs.existsSync(googleWorkspaceDir)) {
+    mounts.push({
+      hostPath: googleWorkspaceDir,
+      containerPath: '/home/node/.google-workspace-mcp',
+      readonly: false, // Token refresh needs write access
+    });
+  }
+
   // Per-group IPC namespace: each group gets its own IPC directory
   // This prevents cross-group privilege escalation via IPC
   const groupIpcDir = resolveGroupIpcPath(group.folder);
@@ -289,16 +299,18 @@ function buildVolumeMounts(
 function buildContainerArgs(
   mounts: VolumeMount[],
   containerName: string,
+  groupFolder: string,
 ): string[] {
   const args: string[] = ['run', '-i', '--rm', '--name', containerName];
 
   // Pass host timezone so container's local time matches the user's
   args.push('-e', `TZ=${TIMEZONE}`);
 
-  // Route API traffic through the credential proxy (containers never see real secrets)
+  // Route API traffic through the credential proxy (containers never see real secrets).
+  // The /g/{groupFolder} prefix lets the proxy attribute token usage per group.
   args.push(
     '-e',
-    `ANTHROPIC_BASE_URL=http://${CONTAINER_HOST_GATEWAY}:${CONTAINER_PROXY_PORT}`,
+    `ANTHROPIC_BASE_URL=http://${CONTAINER_HOST_GATEWAY}:${CONTAINER_PROXY_PORT}/g/${groupFolder}`,
   );
 
   // Mirror the host's auth method with a placeholder value.
@@ -352,7 +364,7 @@ export async function runContainerAgent(
   const mounts = buildVolumeMounts(group, input.isMain);
   const safeName = group.folder.replace(/[^a-zA-Z0-9-]/g, '-');
   const containerName = `nanoclaw-${safeName}-${Date.now()}`;
-  const containerArgs = buildContainerArgs(mounts, containerName);
+  const containerArgs = buildContainerArgs(mounts, containerName, group.folder);
 
   logger.debug(
     {

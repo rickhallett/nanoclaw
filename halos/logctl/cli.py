@@ -46,6 +46,12 @@ def main():
     p_fleet.add_argument("--width", type=int, default=120, help="truncation width for conversations (default: 120)")
     p_fleet.add_argument("-n", "--lines", type=int, default=50, help="lines per source")
 
+    # --- usage ---
+    p_usage = sub.add_parser("usage", help="token usage and cost summary")
+    p_usage.add_argument("--since", default="24h", help="time window (e.g. 1h, 24h, 7d)")
+    p_usage.add_argument("--group", default="", help="filter to a specific group")
+    p_usage.add_argument("--by", default="group", choices=["group", "model"], help="aggregate by field")
+
     # --- trace ---
     p_trace = sub.add_parser("trace", help="correlate events around a timestamp")
     p_trace.add_argument("timestamp", help="seed timestamp (ISO 8601 or HH:MM:SS.mmm)")
@@ -65,6 +71,7 @@ def main():
         "stats": cmd_stats,
         "errors": cmd_errors,
         "fleet": cmd_fleet,
+        "usage": cmd_usage,
         "trace": cmd_trace,
     }
     commands[args.command](cfg, args)
@@ -224,6 +231,46 @@ def cmd_fleet(cfg, args):
             print(parser.format_entry(e, show_instance=True))
         if not entries:
             print("No fleet log entries found.")
+
+
+def cmd_usage(cfg, args):
+    from pathlib import Path
+    from .usage import read_usage, summarize
+
+    usage_path = Path(cfg.data_dir) / "api-usage.jsonl"
+    events = read_usage(usage_path, since=args.since)
+
+    if args.group:
+        events = [e for e in events if e.get("group") == args.group]
+
+    if not events:
+        print(f"No usage data found (looked in {usage_path}, since={args.since}).")
+        return
+
+    summary = summarize(events, by=args.by)
+
+    if args.json_out:
+        json.dump(summary, sys.stdout, indent=2, default=str)
+        print()
+        return
+
+    print(f"Token usage (since {args.since}, by {args.by})")
+    print("─" * 80)
+    print(f"{'Group/Model':<30} {'Input':>10} {'Output':>10} {'Cache R':>10} {'Reqs':>6} {'Cost':>10}")
+    print("─" * 80)
+
+    for key, t in sorted(summary["by"].items(), key=lambda x: -x[1]["cost_usd"]):
+        print(
+            f"{key:<30} {t['input_tokens']:>10,} {t['output_tokens']:>10,} "
+            f"{t['cache_read_tokens']:>10,} {t['requests']:>6} ${t['cost_usd']:>9.4f}"
+        )
+
+    total = summary["total"]
+    print("─" * 80)
+    print(
+        f"{'TOTAL':<30} {total['input_tokens']:>10,} {total['output_tokens']:>10,} "
+        f"{total['cache_read_tokens']:>10,} {total['requests']:>6} ${total['cost_usd']:>9.4f}"
+    )
 
 
 def cmd_trace(cfg, args):
