@@ -1,3 +1,10 @@
+---
+title: "Behavioural Pattern Tracking: Schema & Lookup Design"
+category: analysis
+status: active
+created: 2026-03-21
+---
+
 # Behavioural Pattern Tracking: Schema & Lookup Design
 
 ## 1. Context

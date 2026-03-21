@@ -1,3 +1,10 @@
+---
+title: "Taxonomy Review Phase 6"
+category: review
+status: active
+created: 2026-03-20
+---
+
 # Taxonomy Review Phase 6
 
 Date: 2026-03-20

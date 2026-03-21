@@ -1,3 +1,10 @@
+---
+title: "nightctl Unified Work Tracker — Specification"
+category: spec
+status: active
+created: 2026-03-17
+---
+
 # nightctl Unified Work Tracker — Specification
 
 > "Your best work happens while you sleep."

@@ -1,3 +1,10 @@
+---
+title: "dashctl --html — Static HTML Dashboard Export"
+category: spec
+status: active
+created: 2026-03-21
+---
+
 # dashctl --html — Static HTML Dashboard Export
 
 **Date:** 2026-03-21

@@ -1,3 +1,10 @@
+---
+title: "halos Module Registry"
+category: reference
+status: active
+created: 2026-03-15
+---
+
 # halos Module Registry
 
 Operational modules that comprise the HAL agent operating layer.

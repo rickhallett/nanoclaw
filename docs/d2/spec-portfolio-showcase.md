@@ -1,3 +1,10 @@
+---
+title: "NanoClaw/halos Portfolio Showcase — Specification"
+category: spec
+status: active
+created: 2026-03-17
+---
+
 # NanoClaw/halos Portfolio Showcase — Specification
 
 ## Goal

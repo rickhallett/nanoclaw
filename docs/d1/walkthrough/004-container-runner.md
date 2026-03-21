@@ -1,3 +1,10 @@
+---
+title: "004 — Container Runner (`src/container-runner.ts`)"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 004 — Container Runner (`src/container-runner.ts`)
 
 *2026-03-20 — How agents are born, fed, and reaped*

@@ -1,3 +1,10 @@
+---
+title: "halos Architecture Review — 2026-03-16"
+category: analysis
+status: active
+created: 2026-03-16
+---
+
 # halos Architecture Review — 2026-03-16
 
 ## What halos is

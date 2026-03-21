@@ -1,3 +1,10 @@
+---
+title: "nightctl — halos Overnight Batch Processing Module"
+category: spec
+status: active
+created: 2026-03-16
+---
+
 ================================================================
 nightctl — halos Overnight Batch Processing Module
 Implementation Specification v1.0

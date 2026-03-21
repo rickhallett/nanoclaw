@@ -1,3 +1,10 @@
+---
+title: "Agent-Era Development Principles"
+category: reference
+status: active
+created: 2026-03-21
+---
+
 # Agent-Era Development Principles
 
 Notes distilled from Simon Willison's talk on coding agent workflows (Statig, June 2026). These form core operating principles for NanoClaw development going forward.

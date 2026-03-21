@@ -1,3 +1,10 @@
+---
+title: "Development Logbook"
+category: journal
+status: active
+created: 2026-03-15
+---
+
 # Development Logbook
 
 Architectural decisions, design tensions, and the reasoning behind them. Written as they happen so future readers (human, agent, or article audience) don't have to reverse-engineer intent from code.

@@ -1,3 +1,10 @@
+---
+title: "Code Review Taxonomy"
+category: review
+status: active
+created: 2026-03-20
+---
+
 # Code Review Taxonomy
 
 Hierarchical labelling system for exhaustive code review of NanoClaw. Each finding is labelled on two axes:

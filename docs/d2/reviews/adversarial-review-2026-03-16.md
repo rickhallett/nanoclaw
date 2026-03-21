@@ -1,3 +1,10 @@
+---
+title: "Adversarial Code Review — 2026-03-16"
+category: reference
+status: active
+created: 2026-03-16
+---
+
 # Adversarial Code Review — 2026-03-16
 
 5 independent reviewers, one per target. 91 total findings.

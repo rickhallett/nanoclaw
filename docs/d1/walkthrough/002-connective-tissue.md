@@ -1,3 +1,10 @@
+---
+title: "002 — The Connective Tissue"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 002 — The Connective Tissue
 
 *2026-03-20 — Tier 2 breakdown: the files that wire the spine together*

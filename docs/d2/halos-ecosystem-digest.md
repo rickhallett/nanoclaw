@@ -1,3 +1,10 @@
+---
+title: "The Halos Ecosystem"
+category: analysis
+status: active
+created: 2026-03-21
+---
+
 # The Halos Ecosystem
 
 **A personal operating system layer, built for agents.**

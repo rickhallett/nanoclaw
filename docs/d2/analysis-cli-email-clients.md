@@ -1,3 +1,10 @@
+---
+title: "CLI/TUI Email Clients for Arch Linux with Gmail"
+category: analysis
+status: active
+created: 2026-03-21
+---
+
 # CLI/TUI Email Clients for Arch Linux with Gmail
 
 **Date:** 2026-03-21

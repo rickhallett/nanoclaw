@@ -1,3 +1,10 @@
+---
+title: "statusctl — Fleet Health Monitoring"
+category: spec
+status: active
+created: 2026-03-21
+---
+
 # statusctl — Fleet Health Monitoring
 
 **Date:** 2026-03-21

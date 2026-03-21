@@ -1,3 +1,10 @@
+---
+title: "Responsiveness Combinatorial Findings Table"
+category: review
+status: active
+created: 2026-03-20
+---
+
 # Responsiveness Combinatorial Findings Table
 
 Date: 2026-03-20

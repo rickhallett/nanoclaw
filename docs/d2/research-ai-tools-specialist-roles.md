@@ -1,3 +1,10 @@
+---
+title: "Research: AI Tools Specialist Role Archetype"
+category: analysis
+status: active
+created: 2026-03-17
+---
+
 # Research: AI Tools Specialist Role Archetype
 
 *Conducted 2026-03-16. Research into the prevalence and form of roles adjacent to "Internal AI Tools Specialist" — the emerging archetype at the intersection of AI/LLM expertise, internal tooling, automation, and business operations.*

@@ -1,3 +1,10 @@
+---
+title: "009 — Halos Ecosystem"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 009 — Halos Ecosystem
 
 *2026-03-20 — The Python tooling layer (~17,200 LOC)*

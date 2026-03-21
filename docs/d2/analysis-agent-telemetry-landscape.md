@@ -1,3 +1,10 @@
+---
+title: "Competitive Landscape: LLM Agent Operational Telemetry"
+category: analysis
+status: active
+created: 2026-03-17
+---
+
 # Competitive Landscape: LLM Agent Operational Telemetry
 
 **Date:** 2026-03-16

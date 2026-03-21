@@ -1,3 +1,10 @@
+---
+title: "Responsiveness Review Findings Table"
+category: review
+status: active
+created: 2026-03-20
+---
+
 # Responsiveness Review Findings Table
 
 Date: 2026-03-20

@@ -1,3 +1,10 @@
+---
+title: "BATHW — Building Agents the Hard Way"
+category: spec
+status: active
+created: 2026-03-17
+---
+
 ================================================================
 BATHW — Building Agents the Hard Way
 Technical Publication — Specification v0.1

@@ -1,3 +1,10 @@
+---
+title: "Eval Baseline — 2026-03-18"
+category: reference
+status: active
+created: 2026-03-18
+---
+
 # Eval Baseline — 2026-03-18
 
 > First comprehensive eval run across personality profiles. Establishes pass rates before test pilot launch.

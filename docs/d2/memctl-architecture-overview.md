@@ -1,3 +1,10 @@
+---
+title: "memctl — Architecture Overview"
+category: reference
+status: active
+created: 2026-03-15
+---
+
 # memctl — Architecture Overview
 
 A personal knowledge operating system that treats memory as infrastructure, not a feature.

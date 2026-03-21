@@ -1,3 +1,10 @@
+---
+title: "memctl graph — Knowledge Graph Analysis"
+category: spec
+status: active
+created: 2026-03-21
+---
+
 # memctl graph — Knowledge Graph Analysis
 
 **Date:** 2026-03-21

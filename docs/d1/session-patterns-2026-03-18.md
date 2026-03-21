@@ -1,3 +1,10 @@
+---
+title: "Patterns and Lessons — 2026-03-18 Session"
+category: journal
+status: active
+created: 2026-03-18
+---
+
 # Patterns and Lessons — 2026-03-18 Session
 
 > Captured hot. 16 commits, fleet provisioned, eval harness built, dialogue scenarios passing.

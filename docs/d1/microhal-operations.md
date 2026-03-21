@@ -1,3 +1,10 @@
+---
+title: "microHAL Operations Guide"
+category: runbook
+status: active
+created: 2026-03-17
+---
+
 # microHAL Operations Guide
 
 Lessons learned the hard way. 2026-03-17.

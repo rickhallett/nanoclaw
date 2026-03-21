@@ -1,3 +1,10 @@
+---
+title: "NanoClaw Requirements"
+category: spec
+status: active
+created: 2026-01-31
+---
+
 # NanoClaw Requirements
 
 Original requirements and design decisions from the project creator.

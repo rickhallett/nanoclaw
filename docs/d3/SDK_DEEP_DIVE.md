@@ -1,3 +1,10 @@
+---
+title: "Claude Agent SDK Deep Dive"
+category: reference
+status: active
+created: 2026-03-15
+---
+
 # Claude Agent SDK Deep Dive
 
 Findings from reverse-engineering `@anthropic-ai/claude-agent-sdk` v0.2.29–0.2.34 to understand how `query()` works, why agent teams subagents were being killed, and how to fix it. Supplemented with official SDK reference docs.

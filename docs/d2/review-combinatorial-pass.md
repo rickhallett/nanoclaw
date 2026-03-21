@@ -1,3 +1,10 @@
+---
+title: "Combinatorial Risk Pass"
+category: review
+status: active
+created: 2026-03-20
+---
+
 # Combinatorial Risk Pass
 
 Separate review step, executed **after** the primary taxonomy-labelled review is complete. Takes the full findings table as input and looks for interactions between findings that elevate risk beyond what any single label captures.

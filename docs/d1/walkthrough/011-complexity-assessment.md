@@ -1,3 +1,10 @@
+---
+title: "011 — Complexity Assessment"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 011 — Complexity Assessment
 
 Where NanoClaw sits on the difficulty spectrum, calibrated against common software archetypes.

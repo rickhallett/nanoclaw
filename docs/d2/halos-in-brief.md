@@ -1,3 +1,10 @@
+---
+title: "halos in brief"
+category: guide
+status: active
+created: 2026-03-15
+---
+
 # halos in brief
 
 NanoClaw runs agents. halos is what they remember, schedule, and audit.

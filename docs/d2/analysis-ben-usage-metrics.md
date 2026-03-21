@@ -1,3 +1,10 @@
+---
+title: "Analysis: Ben Usage Metrics"
+category: analysis
+status: active
+created: 2026-03-21
+---
+
 # Analysis: Ben Usage Metrics
 
 **Date:** 2026-03-21

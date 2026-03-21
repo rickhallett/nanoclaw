@@ -1,3 +1,10 @@
+---
+title: "Halos × Agent-Native Software Taxonomy: Gap Analysis & Expansion Roadmap"
+category: analysis
+status: active
+created: 2026-03-21
+---
+
 # Halos × Agent-Native Software Taxonomy: Gap Analysis & Expansion Roadmap
 
 **Date:** 2026-03-21

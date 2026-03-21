@@ -1,3 +1,10 @@
+---
+title: "NanoClaw/halos Architecture — Deep Trace"
+category: reference
+status: active
+created: 2026-03-17
+---
+
 # NanoClaw/halos Architecture — Deep Trace
 
 > Phase 6 architectural review, 2026-03-17. These diagrams trace the physical and logical boundaries where data is transformed, mounted, or proxied.

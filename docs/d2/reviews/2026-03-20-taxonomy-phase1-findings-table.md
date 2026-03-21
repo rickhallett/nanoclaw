@@ -1,3 +1,10 @@
+---
+title: "Taxonomy Review Phase 1 Findings Table"
+category: review
+status: active
+created: 2026-03-20
+---
+
 # Taxonomy Review Phase 1 Findings Table
 
 Date: 2026-03-20

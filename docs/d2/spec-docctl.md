@@ -1,3 +1,10 @@
+---
+title: "docctl — Document Assembly & Template Rendering"
+category: spec
+status: active
+created: 2026-03-21
+---
+
 # docctl — Document Assembly & Template Rendering
 
 **Date:** 2026-03-21

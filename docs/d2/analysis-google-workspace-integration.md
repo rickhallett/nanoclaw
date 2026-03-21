@@ -1,3 +1,10 @@
+---
+title: "Analysis: Google Calendar + Drive Integration for NanoClaw"
+category: analysis
+status: active
+created: 2026-03-21
+---
+
 # Analysis: Google Calendar + Drive Integration for NanoClaw
 
 **Date:** 2026-03-21

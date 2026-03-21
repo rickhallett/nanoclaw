@@ -1,3 +1,10 @@
+---
+title: "calctl — Unified Schedule View"
+category: spec
+status: active
+created: 2026-03-21
+---
+
 # calctl — Unified Schedule View
 
 **Date:** 2026-03-21

@@ -1,3 +1,10 @@
+---
+title: "NanoClaw Skills Architecture"
+category: spec
+status: superseded
+created: 2026-02-19
+---
+
 # NanoClaw Skills Architecture
 
 ## Core Principle

@@ -1,3 +1,10 @@
+---
+title: "Architecture Diagrams"
+category: reference
+status: active
+created: 2026-03-18
+---
+
 # Architecture Diagrams
 
 > System as of 2026-03-18. Minted after fleet provisioning, onboarding system, and tier 2 smoke tests.

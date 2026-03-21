@@ -1,3 +1,10 @@
+---
+title: "Plan: Parameterised Personality Configuration for microHAL Fleet"
+category: spec
+status: active
+created: 2026-03-17
+---
+
 # Plan: Parameterised Personality Configuration for microHAL Fleet
 
 ## Context

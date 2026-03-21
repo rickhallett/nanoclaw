@@ -1,3 +1,10 @@
+---
+title: "halos Capability Map"
+category: analysis
+status: active
+created: 2026-03-16
+---
+
 # halos Capability Map
 
 Analysis of current modules, infrastructure overlap, candidate modules, and design boundaries.

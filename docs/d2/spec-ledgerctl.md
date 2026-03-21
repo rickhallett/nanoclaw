@@ -1,3 +1,10 @@
+---
+title: "ledgerctl — Personal Finance Aggregation"
+category: spec
+status: active
+created: 2026-03-21
+---
+
 # ledgerctl — Personal Finance Aggregation
 
 **Date:** 2026-03-21

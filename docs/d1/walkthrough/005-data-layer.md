@@ -1,3 +1,10 @@
+---
+title: "005 — Data Layer (`src/db.ts`)"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 005 — Data Layer (`src/db.ts`)
 
 *2026-03-20 — What gets stored and how*

@@ -1,3 +1,10 @@
+---
+title: "backupctl — Structured Backup Policy"
+category: spec
+status: active
+created: 2026-03-21
+---
+
 # backupctl — Structured Backup Policy
 
 **Date:** 2026-03-21

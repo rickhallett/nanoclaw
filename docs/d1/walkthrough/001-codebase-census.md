@@ -1,3 +1,10 @@
+---
+title: "001 — Codebase Census"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 001 — Codebase Census
 
 *2026-03-20 — Baseline measurement before systematic walkthrough*
