@@ -141,10 +141,16 @@ class NightctlSource(Source):
 
 
 class CronctlSource(Source):
-    """Compute next run times for cronctl jobs within the query range."""
+    """Compute next run times for cronctl jobs within the query range.
 
-    def __init__(self, jobs_dir: Optional[Path] = None):
+    By default, filters out high-frequency jobs (hourly or more frequent)
+    to reduce noise in schedule views. Use max_daily_runs to control
+    the threshold, or set to 0 to include everything.
+    """
+
+    def __init__(self, jobs_dir: Optional[Path] = None, max_daily_runs: int = 12):
         self._jobs_dir = jobs_dir
+        self._max_daily_runs = max_daily_runs
 
     def _resolve_jobs_dir(self) -> Path:
         if self._jobs_dir:
@@ -184,6 +190,10 @@ class CronctlSource(Source):
             except Exception:
                 continue
 
+            # Filter out high-frequency jobs (noise reduction)
+            if self._max_daily_runs and len(runs) > self._max_daily_runs:
+                continue
+
             for run_time in runs:
                 events.append(CalendarEvent(
                     source="cronctl",
@@ -214,15 +224,22 @@ class GoogleCalendarSource(Source):
         self._calendar_id = calendar_id
         self._credentials_dir = credentials_dir
 
+    _warned = False  # class-level: only warn once per process
+
     def fetch(self, start: datetime, end: datetime) -> list[CalendarEvent]:
         try:
             return self._fetch_impl(start, end)
         except ImportError:
-            warnings.warn(
-                "Google Calendar API libraries not available. "
-                "Install google-auth and google-api-python-client for calendar integration.",
-                stacklevel=2,
-            )
+            if not GoogleCalendarSource._warned:
+                GoogleCalendarSource._warned = True
+                # Silent in normal use; visible with --verbose or in logs
+                try:
+                    from halos.common.log import hlog
+                    hlog("calctl", "debug", "google_calendar_unavailable", {
+                        "hint": "pip install google-auth google-api-python-client"
+                    })
+                except Exception:
+                    pass
             return []
         except Exception as e:
             warnings.warn(
