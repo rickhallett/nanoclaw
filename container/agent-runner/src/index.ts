@@ -437,6 +437,7 @@ async function runQuery(
         'NotebookEdit',
         'mcp__nanoclaw__*',
         'mcp__gmail__*',
+        'mcp__google_workspace__*',
       ],
       env: sdkEnv,
       permissionMode: 'bypassPermissions',
@@ -455,6 +456,16 @@ async function runQuery(
         gmail: {
           command: 'npx',
           args: ['-y', '@gongrzhe/server-gmail-autoauth-mcp'],
+        },
+        google_workspace: {
+          command: 'uvx',
+          args: ['workspace-mcp', '--single-user', '--tools', 'calendar', 'drive'],
+          env: {
+            GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+            GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET || '',
+            USER_GOOGLE_EMAIL: process.env.USER_GOOGLE_EMAIL || '',
+            WORKSPACE_MCP_CREDENTIALS_DIR: '/home/node/.google-workspace-mcp/credentials',
+          },
         },
       },
       hooks: {

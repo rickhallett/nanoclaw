@@ -2,7 +2,6 @@ id: 20260319-182501-92a5fd07
 title: 'Agent commit hygiene: only commit own work, not unrelated staged changes'
 kind: task
 status: cancelled
-priority: 2
 tags:
 - nanoclaw
 - governance
@@ -26,3 +25,4 @@ plan_ref: null
 created: '2026-03-19T18:25:01Z'
 modified: '2026-03-19T18:54:40Z'
 created_by: human
+quadrant: q2

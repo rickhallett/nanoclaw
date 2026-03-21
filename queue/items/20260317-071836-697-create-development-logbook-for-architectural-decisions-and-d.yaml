@@ -2,7 +2,6 @@ id: 20260317-071836-697
 title: Create development logbook for architectural decisions and design tensions
 kind: task
 status: done
-priority: 1
 tags:
 - halos
 - architecture
@@ -27,3 +26,4 @@ plan_ref: null
 created: '2026-03-17T07:18:36Z'
 modified: '2026-03-17T07:40:49Z'
 created_by: human
+quadrant: q1

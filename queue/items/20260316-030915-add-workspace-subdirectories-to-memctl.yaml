@@ -2,7 +2,6 @@ id: 20260316-030915
 title: Add workspace subdirectories to memctl
 kind: task
 status: open
-priority: 2
 tags:
 - memctl
 - architecture
@@ -23,3 +22,4 @@ plan_ref: null
 created: '2026-03-16T03:09:15Z'
 modified: '2026-03-16T03:09:15Z'
 created_by: human
+quadrant: q2

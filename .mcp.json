@@ -1,3 +1,14 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "google_workspace": {
+      "command": "uvx",
+      "args": ["workspace-mcp", "--single-user", "--tools", "gmail", "calendar", "drive"],
+      "env": {
+        "GOOGLE_OAUTH_CLIENT_ID": "917577831263-71jdgsuct3fmpcfsobj0kbooudas2qjv.apps.googleusercontent.com",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "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",
+        "USER_GOOGLE_EMAIL": "kai@oceanheart.ai",
+        "WORKSPACE_MCP_CREDENTIALS_DIR": "/home/mrkai/.google-workspace-mcp/credentials"
+      }
+    }
+  }
 }

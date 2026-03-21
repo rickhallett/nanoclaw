@@ -23,6 +23,26 @@ import path from 'path';
 import { readEnvFile } from './env.js';
 import { DATA_DIR } from './config.js';
 import { logger } from './logger.js';
+import os from 'os';
+
+/**
+ * Read the current OAuth token from ~/.claude/.credentials.json.
+ * Claude Code refreshes this file automatically, so reading per-request
+ * ensures the proxy always uses a valid token without restarts.
+ * Falls back to the .env value if the credentials file is missing.
+ */
+function readOAuthTokenFromCredentials(envFallback?: string): string | undefined {
+  try {
+    const credPath = path.join(os.homedir(), '.claude', '.credentials.json');
+    const raw = fs.readFileSync(credPath, 'utf-8');
+    const creds = JSON.parse(raw);
+    const token = creds?.claudeAiOauth?.accessToken;
+    if (token) return token;
+  } catch {
+    // credentials file missing or malformed — fall through
+  }
+  return envFallback;
+}
 
 export type AuthMode = 'api-key' | 'oauth';
 
@@ -150,7 +170,7 @@ export function startCredentialProxy(
   ]);
 
   const authMode: AuthMode = secrets.ANTHROPIC_API_KEY ? 'api-key' : 'oauth';
-  const oauthToken =
+  const envOauthFallback =
     secrets.CLAUDE_CODE_OAUTH_TOKEN || secrets.ANTHROPIC_AUTH_TOKEN;
 
   const upstreamUrl = new URL(
@@ -192,14 +212,16 @@ export function startCredentialProxy(
           delete headers['x-api-key'];
           headers['x-api-key'] = secrets.ANTHROPIC_API_KEY;
         } else {
-          // OAuth mode: replace placeholder Bearer token with the real one
-          // only when the container actually sends an Authorization header
+          // OAuth mode: read token fresh from ~/.claude/.credentials.json
+          // on every request so token rotation is handled without restarts.
+          // Only inject when the container sends an Authorization header
           // (exchange request + auth probes). Post-exchange requests use
           // x-api-key only, so they pass through without token injection.
           if (headers['authorization']) {
             delete headers['authorization'];
-            if (oauthToken) {
-              headers['authorization'] = `Bearer ${oauthToken}`;
+            const currentToken = readOAuthTokenFromCredentials(envOauthFallback);
+            if (currentToken) {
+              headers['authorization'] = `Bearer ${currentToken}`;
             }
           }
         }

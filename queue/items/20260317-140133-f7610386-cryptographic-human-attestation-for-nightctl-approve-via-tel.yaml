@@ -2,7 +2,6 @@ id: 20260317-140133-f7610386
 title: Cryptographic human attestation for nightctl approve via Telegram OTP
 kind: task
 status: cancelled
-priority: 3
 tags:
 - halos
 - security
@@ -27,3 +26,4 @@ plan_ref: null
 created: '2026-03-17T14:01:33Z'
 modified: '2026-03-19T18:54:42Z'
 created_by: human
+quadrant: q3

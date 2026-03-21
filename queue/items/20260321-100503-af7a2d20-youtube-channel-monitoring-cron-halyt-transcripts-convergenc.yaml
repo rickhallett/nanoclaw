@@ -1,0 +1,29 @@
+id: 20260321-100503-af7a2d20
+title: "YouTube channel monitoring \u2014 cron + halyt transcripts + convergence/divergence\
+  \ reports"
+kind: task
+status: open
+tags:
+- youtube
+- halyt
+- cron
+- cluster-4
+entities: []
+context: Extend halyt with cron-driven monitoring of specified YouTube channels. Download
+  transcripts, generate reports on convergent/divergent knowledge and strategies relevant
+  to our stack. halyt already fetches transcripts.
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-21T10:05:03Z'
+modified: '2026-03-21T10:05:03Z'
+created_by: human
+quadrant: q3

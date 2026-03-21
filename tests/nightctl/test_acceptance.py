@@ -619,21 +619,21 @@ class TestAC15RetryJob:
 # ---------------------------------------------------------------------------
 
 class TestAC16Graph:
-    def test_ac_16_graph_has_backlog_header(self, tmp_path):
-        """AC16: Graph output contains BACKLOG header."""
+    def test_ac_16_graph_has_eisenhower_header(self, tmp_path):
+        """AC16: Graph output contains EISENHOWER header."""
         cfg = _make_config(tmp_path)
         rc, out, _ = _run_cli("--config", cfg, "graph")
         assert rc == 0
-        assert "BACKLOG" in out
+        assert "EISENHOWER" in out
 
-    def test_ac_16_graph_shows_priority_sections(self, tmp_path):
-        """AC16: Items grouped by priority label."""
+    def test_ac_16_graph_shows_quadrant_sections(self, tmp_path):
+        """AC16: Items grouped by Eisenhower quadrant."""
         cfg = _make_config(tmp_path)
         _cli_add_json(cfg, "Critical task", "task", priority=1)
         _cli_add_json(cfg, "Low task", "task", priority=4)
         rc, out, _ = _run_cli("--config", cfg, "graph")
-        assert "CRITICAL" in out
-        assert "LOW" in out
+        assert "Q1" in out
+        assert "Q4" in out
         assert "Critical task" in out
         assert "Low task" in out
 
@@ -713,12 +713,12 @@ class TestAC19AtomicWrites:
         items_dir = tmp_path / "items"
         item = Item.create(items_dir, title="Persist test", kind="task")
         original_path = item.file_path
-        item.data["priority"] = 1
+        item.data["quadrant"] = "q1"
         item.save()
         # File should still exist at the same path
         assert original_path.exists()
         reloaded = Item.from_file(original_path)
-        assert reloaded.priority == 1
+        assert reloaded.quadrant == "q1"
 
 
 # ---------------------------------------------------------------------------

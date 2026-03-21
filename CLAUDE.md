@@ -98,6 +98,26 @@ Single Node.js process with skill-based channel system. Channels (WhatsApp, Tele
 │  ├─ agentctl  :555    ├─ trackctl  :728       │  fleet aggregation │
 │  │  spin detection    │  pluggable domains    └─ cronctl    :519   │
 │  └────────────────    └───────────────           crontab gen       │
+│                                                                     │
+│  Mail & External      TUI                                           │
+│  ├─ mailctl           ├─ dashctl                                    │
+│  │  himalaya engine   │  RPG character sheet                        │
+│  │  inbox triage      │  Eisenhower view                            │
+│  │  filter mgmt       └────────────────                             │
+│  │  briefing summary                                                │
+│  └────────────────                                                  │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ Local CLI Tooling (user workstation, not in containers)             │
+│                                                                     │
+│  aerc          TUI mail client (interactive Gmail reading)          │
+│  himalaya      Rust CLI mail engine (programmatic Gmail access)     │
+│                                                                     │
+│  Auth: Google OAuth2 via ~/.config/aerc/gmail-oauth2.sh            │
+│  Tokens: ~/.config/aerc/gmail-tokens.json (IMAP scope)             │
+│  Shared creds: same Google OAuth client as workspace-mcp            │
+│  Config: ~/.config/aerc/accounts.conf, ~/.config/himalaya/config.toml │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,6 +148,7 @@ Single Node.js process with skill-based channel system. Channels (WhatsApp, Tele
 | Cron/briefings | `halos/cronctl/`, `halos/briefings/` |
 | Memory system | `halos/memctl/`, `memory/INDEX.md` |
 | Metrics | `halos/trackctl/` (add domain: `halos/trackctl/domains/`) |
+| Email ops | `halos/mailctl/` (engine→himalaya, triage rules, filter audit) |
 
 ## Memory System
 
@@ -153,10 +174,11 @@ All agent tooling lives in the `halos/` Python package with console_scripts entr
 | logctl    | `logctl`       | Structured log reader and search                                           |
 | reportctl | `reportctl`    | Periodic digests from halos ecosystem                                      |
 | agentctl  | `agentctl`     | LLM session tracking and spin detection                                    |
-| briefings | `hal-briefing` | Cron-driven daily Telegram digests (0600 morning, 2100 nightly)            |
+| briefings | `hal-briefing` | Daily digests (morning/nightly) + Ben check-in system                      |
 | trackctl  | `trackctl`     | Personal metrics tracker (domains: zazen, movement, study-source, study-neetcode, study-crafters) |
 | dashctl   | `dashctl`      | TUI dashboard — RPG character sheet for personal metrics + Eisenhower view |
 | halctl    | `halctl`       | Fleet management + session lifecycle (see below)                           |
+| mailctl   | `mailctl`      | Gmail operations via himalaya: inbox, search, triage, filters, briefing summary |
 
 ### trackctl API
 
@@ -218,6 +240,71 @@ dashctl --text         # plain-text for agent/briefing consumption
 ```
 
 **Programmatic access:** `halos.dashctl.panels.full_dashboard()` returns a list of Rich renderables.
+
+### mailctl API
+
+Gmail operations powered by himalaya (Rust CLI). Requires `himalaya` on PATH with a configured account at `~/.config/himalaya/config.toml`.
+
+```bash
+mailctl inbox [--unread] [--json]     # inbox snapshot (* = unread)
+mailctl read <id> [--json]            # read a message
+mailctl search <query> [--json]       # search (IMAP query syntax)
+mailctl triage [--dry-run] [--json]   # run triage rules on unread inbox
+mailctl send --to X --subject Y       # send (body from stdin)
+mailctl folders [--json]              # list Gmail folders/labels
+mailctl filters                       # list managed Gmail filters
+mailctl actions [--limit N]           # audit log of mailctl operations
+mailctl summary                       # one-line briefing summary
+```
+
+**Architecture:** `engine.py` wraps the himalaya CLI with structured JSON output. `triage.py` defines inbox triage rules (VIP senders, automated noise patterns). `briefing.py` produces one-liner summaries for morning briefing integration. `store.py` tracks managed Gmail filters and audit log in `store/mail.db`.
+
+**Triage rules** (`halos/mailctl/triage.py`): Define VIP senders and noise patterns. Rules evaluate in order, first match wins. Actions: `SURFACE` (keep visible), `ARCHIVE` (mark read, move), `LABEL` (apply label), `SKIP` (next rule).
+
+**Gmail filter taxonomy** (managed via Google Workspace MCP, tracked in mailctl store):
+
+| Label | Contents | Filter action |
+|---|---|---|
+| `jobs` | Wellfound, Indeed, LinkedIn, Lever, Workable, Ashby, Greenhouse | Skip inbox, label |
+| `infra` | Stripe, Linear, npm, Docker, Slack, Namecheap, Zoom, Zapier | Skip inbox, label |
+| `newsletters` | HackerNoon, Mermaid, kubecraft, Substack, Beehiiv, Medium | Skip inbox, label |
+| `commerce` | Capital on Tap, iwoca, Trainline, Evri, Eflorist, Monzo, HMRC | Skip inbox, label |
+| `noise` | Cold outreach, surveys, LightInTheBox (hidden label) | Skip inbox, label |
+| *(fallthrough)* | Real humans, unlisted senders | Stays in inbox |
+
+**Programmatic access:**
+- `halos.mailctl.engine.list_messages(folder, page, page_size)` — returns list of envelope dicts
+- `halos.mailctl.engine.search(query, folder)` — IMAP search
+- `halos.mailctl.engine.read_message(message_id, folder)` — full message content
+- `halos.mailctl.briefing.text_summary()` — one-line inbox summary for briefings
+
+### Ben Check-in System
+
+Daily structured check-in with Ben's microhal, exec summary delivered to Kai.
+
+```bash
+hal-briefing checkin-setup              # register daily 7pm check-in task (one-time)
+hal-briefing checkin-setup --cron "0 20 * * *"  # custom time
+hal-briefing checkin-digest             # gather + synthesise + deliver summary to Kai
+hal-briefing --dry-run checkin-digest   # preview without sending
+```
+
+**Flow:** Cron triggers `hal-briefing checkin-digest` after morning briefing → queries Ben's responses from assessments DB → synthesises exec summary → delivers as separate Telegram message to Kai.
+
+### Google Workspace Integration (Calendar + Drive)
+
+MCP server (`workspace-mcp`) runs inside agent containers alongside Gmail. Agents can read/write Calendar events and search/read Drive files.
+
+**Setup (one-time human steps):**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/library) → project `microhal-ben-1`
+2. Enable: Google Calendar API, Google Drive API
+3. Set `USER_GOOGLE_EMAIL` in `.env` to your Google account email
+4. Rebuild container: `./container/build.sh`
+5. First container run will trigger OAuth consent flow in logs — approve it
+
+**Architecture:** `container/agent-runner/src/index.ts` registers `google_workspace` MCP server. Credentials from `.env` (`GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`) are passed through Docker env vars. Token storage at `~/.google-workspace-mcp/credentials/` is bind-mounted writable for refresh.
+
+**Available tools:** `mcp__google_workspace__*` — includes `list_calendar_events`, `create_calendar_event`, `search_drive_files`, `get_drive_file_content`, `create_drive_file`, plus 100+ more across Calendar, Drive, Docs, Sheets.
 
 ## Agents & Commands
 
@@ -294,6 +381,7 @@ When to clear a session:
 | `memory/INDEX.md`                   | Memory index (auto-maintained by memctl)                    |
 | `memctl.yaml`                       | Memory governance config                                    |
 | `store/messages.db`                 | SQLite: messages, sessions, onboarding, assessments, groups |
+| `store/mail.db`                     | SQLite: managed Gmail filters, mailctl audit log            |
 | `container/skills/agent-browser.md` | Browser automation tool (available to all agents via Bash)  |
 
 ### Documentation
@@ -355,6 +443,14 @@ systemctl --user restart nanoclaw
 ## Troubleshooting
 
 **WhatsApp not connecting after upgrade:** WhatsApp is now a separate channel fork, not bundled in core. Run `/add-whatsapp` (or `git remote add whatsapp https://github.com/qwibitai/nanoclaw-whatsapp.git && git fetch whatsapp main && (git merge whatsapp/main || { git checkout --theirs package-lock.json && git add package-lock.json && git merge --continue; }) && npm run build`) to install it. Existing auth credentials and groups are preserved.
+
+**Agent containers timing out ("Request timed out") after migration or fresh host setup:** Three things to verify in order:
+
+1. **API key vs OAuth token.** The Agent SDK requires `ANTHROPIC_API_KEY` (starts with `sk-ant-api03-...`). OAuth tokens from Claude Code login (`CLAUDE_CODE_OAUTH_TOKEN`) do **not** have the `org:create_api_key` scope the SDK needs for token exchange. Add `ANTHROPIC_API_KEY=sk-ant-...` to `.env` — the credential proxy auto-detects the auth mode.
+
+2. **Firewall: container → host port 3001.** The credential proxy listens on the host; containers reach it via `host.docker.internal` (maps to `172.17.0.1`). If `ufw` or another firewall is active, it will silently block this traffic. Fix: `sudo ufw allow from 172.17.0.0/16 to any port 3001`. Symptom: session initializes, then hangs indefinitely with no proxy log entries.
+
+3. **Proxy bind address.** Verify with `ss -tlnp | grep 3001`. Must be reachable from the Docker bridge network (`172.17.0.1` or `0.0.0.0`). If bound to `127.0.0.1`, containers can't reach it.
 
 ## Container Build Cache
 

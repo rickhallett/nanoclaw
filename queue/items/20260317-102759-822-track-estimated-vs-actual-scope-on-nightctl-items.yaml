@@ -2,7 +2,6 @@ id: 20260317-102759-822
 title: Track estimated vs actual scope on nightctl items
 kind: task
 status: cancelled
-priority: 2
 tags:
 - halos
 - architecture
@@ -27,3 +26,4 @@ plan_ref: null
 created: '2026-03-17T10:27:59Z'
 modified: '2026-03-19T18:54:40Z'
 created_by: human
+quadrant: q2

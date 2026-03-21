@@ -1,0 +1,30 @@
+id: 20260321-100506-bff9d3cc
+title: "Behavioural awareness agent \u2014 long-horizon pattern tracking, flexible\
+  \ schema design"
+kind: task
+status: open
+tags:
+- behavioural
+- agent
+- schema
+- cluster-5
+entities: []
+context: Design phase first. Agent(s) with awareness of personal strengths, weaknesses,
+  behavioural patterns. Contextually rich logging over days/weeks/months. Evaluate
+  whether memctl is the right substrate or needs purpose-built time-series store.
+  Data schema RFC before implementation.
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-21T10:05:06Z'
+modified: '2026-03-21T10:24:56Z'
+created_by: human
+quadrant: q2

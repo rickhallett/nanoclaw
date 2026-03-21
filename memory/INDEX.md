@@ -53,8 +53,8 @@ Use --link-to <id> if the new note references an existing one.
 
 ## MEMORY_INDEX
 ```yaml
-generated: '2026-03-19T15:47:11Z'
-note_count: 110
+generated: '2026-03-21T10:09:23Z'
+note_count: 111
 entities:
 - kai
 - oceanheart-ai
@@ -78,6 +78,7 @@ entities:
 - bathw
 - halos
 - Simon Willison
+- claude-md
 tag_vocabulary:
 - anti-pattern
 - architecture
@@ -1901,5 +1902,23 @@ notes:
   hash: c6e55aeafed09078f20632b718f936c8ec3415464b685bc8b8217da1050406dc
   backlink_count: 0
   modified: '2026-03-19T15:47:11Z'
+  expires: null
+- id: 20260321-100923-228
+  file: memory/notes/20260321-100923-228-defensive-agentic-programming-all-new-apis-must-map-to-claud.md
+  title: 'Defensive agentic programming: all new APIs must map to CLAUDE.md'
+  type: decision
+  tags:
+  - architecture
+  - governance
+  - defensive-programming
+  entities:
+  - nanoclaw
+  - hal
+  - claude-md
+  summary: All new surface-layer API development must be explicitly documented in
+    CLAUDE.md so it is in the agent boot sequence. Ag...
+  hash: d16992c1b3bd9024f7a3da5e4c947780ddb198bed35db6c5857c997f38b3d542
+  backlink_count: 0
+  modified: '2026-03-21T10:09:23Z'
   expires: null
 ```

@@ -2,7 +2,6 @@ id: 20260317-075446-291
 title: 'Merge todoctl into nightctl: unified work tracker'
 kind: task
 status: cancelled
-priority: 1
 tags:
 - halos
 - architecture
@@ -27,3 +26,4 @@ plan_ref: null
 created: '2026-03-17T07:54:46Z'
 modified: '2026-03-19T18:54:37Z'
 created_by: human
+quadrant: q1

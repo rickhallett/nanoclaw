@@ -502,12 +502,12 @@ class TestEdit(BaseItemTest):
         self.assertEqual(rc, 0)
         self.assertIn("Updated", out)
 
-    def test_edit_priority(self):
+    def test_edit_quadrant(self):
         data = self.add_json("Task", "task")
-        self.nightctl("edit", data["id"], "--priority", "1")
+        self.nightctl("edit", data["id"], "--quadrant", "q1")
         from halos.nightctl.item import Item
         item = Item.from_file(Path(data["file"]))
-        self.assertEqual(item.priority, 1)
+        self.assertEqual(item.quadrant, "q1")
 
     def test_edit_tags(self):
         data = self.add_json("Task", "task")
@@ -551,15 +551,15 @@ class TestGraph(BaseItemTest):
     def test_graph_empty_exits_zero(self):
         rc, out, _ = self.nightctl("graph")
         self.assertEqual(rc, 0)
-        self.assertIn("BACKLOG", out)
+        self.assertIn("EISENHOWER", out)
 
     def test_graph_shows_items(self):
         self.add_json("Critical task", "task", priority=1)
         self.add_json("Low task", "task", priority=4)
         rc, out, _ = self.nightctl("graph")
         self.assertEqual(rc, 0)
-        self.assertIn("CRITICAL", out)
-        self.assertIn("LOW", out)
+        self.assertIn("Q1", out)
+        self.assertIn("Q4", out)
         self.assertIn("Critical task", out)
 
     def test_graph_shows_kind_for_non_tasks(self):

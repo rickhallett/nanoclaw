@@ -27,6 +27,7 @@ import {
   stopContainer,
 } from './container-runtime.js';
 import { detectAuthMode } from './credential-proxy.js';
+import { readEnvFile } from './env.js';
 import { validateAdditionalMounts } from './mount-security.js';
 import { RegisteredGroup } from './types.js';
 
@@ -205,6 +206,16 @@ function buildVolumeMounts(
       fs.cpSync(srcDir, dstDir, { recursive: true });
     }
   }
+  // Copy host credentials into group .claude/ so the SDK can do OAuth
+  // exchange through the proxy. Copied per-spawn to pick up token rotation.
+  const hostCredsFile = path.join(os.homedir(), '.claude', '.credentials.json');
+  if (fs.existsSync(hostCredsFile)) {
+    fs.copyFileSync(
+      hostCredsFile,
+      path.join(groupSessionsDir, '.credentials.json'),
+    );
+  }
+
   mounts.push({
     hostPath: groupSessionsDir,
     containerPath: '/home/node/.claude',
@@ -322,6 +333,18 @@ function buildContainerArgs(
     args.push('-e', 'ANTHROPIC_API_KEY=placeholder');
   } else {
     args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=placeholder');
+  }
+
+  // Google Workspace MCP OAuth credentials (Calendar, Drive)
+  // Read from .env and pass through to container for MCP server auth
+  const googleKeys = [
+    'GOOGLE_OAUTH_CLIENT_ID',
+    'GOOGLE_OAUTH_CLIENT_SECRET',
+    'USER_GOOGLE_EMAIL',
+  ];
+  const googleEnv = readEnvFile(googleKeys);
+  for (const [key, val] of Object.entries(googleEnv)) {
+    args.push('-e', `${key}=${val}`);
   }
 
   // Runtime-specific args for host gateway resolution

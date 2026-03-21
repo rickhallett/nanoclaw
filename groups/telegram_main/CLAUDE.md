@@ -140,6 +140,38 @@ The `conversations/` folder in `/workspace/group/` contains searchable history o
 | `/workspace/global` | `groups/global/` | read-only |
 | `/workspace/fleet` | `~/code/halfleet/` | read-only |
 
+## Available Tooling
+
+You run inside a container with significant capabilities beyond conversation. Use them.
+
+*Web browsing (agent-browser + Chromium):*
+```
+agent-browser open <url>        # navigate to any URL
+agent-browser snapshot -i       # get interactive elements with refs
+agent-browser click @e1         # click element by ref
+agent-browser fill @e2 "text"   # fill input
+agent-browser close             # close browser
+```
+Use this for: checking web services, reading documentation, monitoring dashboards, filling web forms, verifying deployments.
+
+*Mail operations (mailctl + himalaya):*
+```
+mailctl inbox [--unread] [--json]   # inbox snapshot
+mailctl read <id>                   # read a message
+mailctl search <query>              # search (IMAP query syntax)
+mailctl triage [--dry-run]          # run triage rules on unread
+mailctl send --to X --subject Y     # send (body from stdin)
+mailctl summary                     # one-line briefing summary
+```
+
+*System tools:*
+- `curl` — HTTP requests, API calls
+- `git` — repo operations (you have write access to the project)
+- `gh` — GitHub CLI (PRs, issues, releases)
+- `vercel` — deployment management
+- `neonctl` — database operations
+- All halos CLIs: `memctl`, `nightctl`, `trackctl`, `dashctl`, `logctl`, `cronctl`, `reportctl`, `agentctl`, `halctl`, `mailctl`, `hal-briefing`
+
 ## Admin Context
 
 This is the main channel (elevated privileges, no trigger required). You can:

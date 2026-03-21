@@ -11,6 +11,7 @@ from .deliver import deliver_message
 from .diary import write_diary_entry
 from .gather import gather_morning, gather_nightly
 from .nightctl_summary import gather_nightctl_summary, format_nightctl_summary
+from .checkin import gather_checkin_responses, gather_checkin_from_logs, synthesise_digest, setup_checkin_task
 from .synthesise import synthesise
 
 
@@ -133,6 +134,54 @@ def cmd_nightctl(args, cfg):
     return 0
 
 
+def cmd_checkin_digest(args, cfg):
+    """Gather Ben's check-in responses and deliver exec summary to Kai."""
+    hlog("briefings", "info", "checkin_digest_start", {})
+    responses = gather_checkin_responses(cfg, days=1)
+    log_output = gather_checkin_from_logs(cfg, days=1)
+
+    if args.dry_run:
+        print(f"Responses found: {len(responses)}")
+        print(f"Log output: {'yes' if log_output else 'none'}")
+        print("\n--- (dry-run: no synthesis or delivery) ---")
+        return 0
+
+    text = synthesise_digest(responses, log_output, cfg)
+
+    if args.no_send:
+        print(text)
+        return 0
+
+    archive_path = archive_briefing(cfg, "checkin-digest", text)
+    path = deliver_message(cfg, text)
+    hlog(
+        "briefings",
+        "info",
+        "checkin_digest_delivered",
+        {"ipc_file": str(path), "archive": str(archive_path)},
+    )
+    print(f"delivered → {path.name}")
+    print(f"archived → {archive_path}")
+    return 0
+
+
+def cmd_checkin_setup(args, cfg):
+    """Register the daily check-in scheduled task in Ben's microhal."""
+    hlog("briefings", "info", "checkin_setup_start", {})
+    cron_expr = getattr(args, "cron", "0 19 * * *")
+
+    if args.dry_run:
+        print(f"Would register check-in task with cron: {cron_expr}")
+        print("\n--- (dry-run: no IPC written) ---")
+        return 0
+
+    path = setup_checkin_task(cfg, cron_expr=cron_expr)
+    hlog("briefings", "info", "checkin_setup_done", {"ipc_file": str(path)})
+    print(f"check-in task registered → {path.name}")
+    print(f"cron: {cron_expr}")
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="hal-briefing",
@@ -163,6 +212,10 @@ def build_parser():
     sub.add_parser("nightly", help="2100 evening recap")
     sub.add_parser("diary", help="Dear Diary — autonomous reflection entry")
     sub.add_parser("nightctl", help="0545 overnight agent-job summary")
+    ci_digest = sub.add_parser("checkin-digest", help="Ben check-in exec summary → Kai")
+    ci_setup = sub.add_parser("checkin-setup", help="Register daily check-in task for Ben")
+    ci_setup.add_argument("--cron", default="0 19 * * *",
+                           help="Cron expression (default: 7pm daily)")
 
     return parser
 
@@ -186,6 +239,8 @@ def main():
         "nightly": cmd_nightly,
         "diary": cmd_diary,
         "nightctl": cmd_nightctl,
+        "checkin-digest": cmd_checkin_digest,
+        "checkin-setup": cmd_checkin_setup,
     }
 
     sys.exit(dispatch[args.subcommand](args, cfg) or 0)
