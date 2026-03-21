@@ -59,6 +59,7 @@ All agent tooling lives in the `halos/` Python package with console_scripts entr
 | agent-organizer      | agent   | `.claude/agents/agent-organizer.md`      | Analyses requests, recommends agent teams (scans .claude/agents/ dynamically) |
 | test-automator       | agent   | `.claude/agents/test-automator.md`       | Designs and implements test suites (pytest, vitest, Makefile gate)            |
 | debugger             | agent   | `.claude/agents/debugger.md`             | Systematic root cause analysis (traces, doesn't guess)                        |
+| tdd-driver           | agent   | `.claude/agents/tdd-driver.md`           | Red-green TDD: test first, minimum implementation, manual exercise            |
 | documentation-expert | agent   | `.claude/agents/documentation-expert.md` | Maintains docs after changes (knows d1/d2/d3 hierarchy)                       |
 | /spec                | command | `.claude/commands/spec.md`               | Interview-driven specification before coding                                  |
 | /decompose           | command | `.claude/commands/decompose.md`          | Break tasks into atomic testable steps                                        |
