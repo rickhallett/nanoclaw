@@ -1,3 +1,10 @@
+---
+title: "NanoClaw Security Model"
+category: reference
+status: active
+created: 2026-03-15
+---
+
 # NanoClaw Security Model
 
 ## Trust Model

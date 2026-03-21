@@ -2,7 +2,6 @@ id: 20260316-030927
 title: Name the halos meta-system
 kind: task
 status: done
-priority: 3
 tags:
 - halos
 entities: []
@@ -22,3 +21,4 @@ plan_ref: null
 created: '2026-03-16T03:09:27Z'
 modified: '2026-03-17T07:40:50Z'
 created_by: human
+quadrant: q3

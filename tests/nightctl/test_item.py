@@ -357,12 +357,12 @@ class TestValidation:
         with pytest.raises(ValidationError, match="invalid status"):
             item.validate()
 
-    def test_validate_priority_not_int(self):
-        item = Item({"id": "x", "title": "t", "kind": "task", "priority": "high"})
-        with pytest.raises(ValidationError, match="priority must be int"):
+    def test_validate_quadrant_invalid_string(self):
+        item = Item({"id": "x", "title": "t", "kind": "task", "quadrant": "high"})
+        with pytest.raises(ValidationError, match="invalid quadrant"):
             item.validate()
 
-    def test_validate_priority_bool_rejected(self):
-        item = Item({"id": "x", "title": "t", "kind": "task", "priority": True})
-        with pytest.raises(ValidationError, match="priority must be int"):
+    def test_validate_legacy_priority_out_of_range(self):
+        item = Item({"id": "x", "title": "t", "kind": "task", "priority": 9})
+        with pytest.raises(ValidationError, match="legacy priority must be 1-4"):
             item.validate()

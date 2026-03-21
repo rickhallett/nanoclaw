@@ -1357,12 +1357,12 @@ class TestItemValidationEdgeCases:
         with pytest.raises(ValidationError, match="invalid kind"):
             Item.create(tmp_path / "items", title="Bad kind", kind="daemon")
 
-    def test_boolean_priority_rejected(self, tmp_path):
-        """Python's bool is a subclass of int. Priority validation must reject booleans."""
+    def test_invalid_quadrant_rejected(self, tmp_path):
+        """Quadrant validation rejects values outside q1-q4."""
         items_dir = tmp_path / "items"
-        item = Item.create(items_dir, title="Bool pri", kind="task")
-        item.data["priority"] = True
-        with pytest.raises(ValidationError, match="priority must be int"):
+        item = Item.create(items_dir, title="Bad quadrant", kind="task")
+        item.data["quadrant"] = "q5"
+        with pytest.raises(ValidationError, match="invalid quadrant"):
             item.validate()
 
     def test_invalid_schedule_rejected(self, tmp_path):

@@ -2,7 +2,6 @@ id: 20260317-135614-4a7d7ba1
 title: 'CRITICAL: executor shell=True enables command injection from nightctl jobs'
 kind: task
 status: cancelled
-priority: 1
 tags:
 - nanoclaw
 - security
@@ -25,3 +24,4 @@ plan_ref: null
 created: '2026-03-17T13:56:14Z'
 modified: '2026-03-19T18:54:38Z'
 created_by: human
+quadrant: q1

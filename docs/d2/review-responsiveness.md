@@ -1,3 +1,10 @@
+---
+title: "Responsiveness Review Guide"
+category: review
+status: active
+created: 2026-03-20
+---
+
 # Responsiveness Review Guide
 
 Systematic code review for the microhal-ben non-response / hung server pattern. Multiple targeted fixes have not resolved the issue — this guide steps back to examine the full message-to-response lifecycle and all the places where a message can enter the system and never produce a visible response.

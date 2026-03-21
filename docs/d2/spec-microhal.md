@@ -1,3 +1,10 @@
+---
+title: "microHAL PoC — Specification"
+category: spec
+status: active
+created: 2026-03-17
+---
+
 # microHAL PoC — Specification
 
 > "It just works." — the entire UX requirement.

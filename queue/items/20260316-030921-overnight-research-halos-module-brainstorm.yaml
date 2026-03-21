@@ -2,7 +2,6 @@ id: 20260316-030921
 title: 'Overnight research: halos module brainstorm'
 kind: task
 status: done
-priority: 3
 tags:
 - halos
 - architecture
@@ -23,3 +22,4 @@ plan_ref: null
 created: '2026-03-16T03:09:21Z'
 modified: '2026-03-17T07:40:49Z'
 created_by: human
+quadrant: q3

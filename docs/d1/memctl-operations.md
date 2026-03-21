@@ -1,3 +1,10 @@
+---
+title: "memctl Operations Guide"
+category: runbook
+status: active
+created: 2026-03-15
+---
+
 # memctl Operations Guide
 
 How to use the memory governance system. This is the operational reference

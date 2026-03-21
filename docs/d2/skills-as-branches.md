@@ -1,3 +1,10 @@
+---
+title: "Skills as Branches"
+category: spec
+status: active
+created: 2026-03-10
+---
+
 # Skills as Branches
 
 ## Overview

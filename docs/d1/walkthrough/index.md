@@ -1,3 +1,10 @@
+---
+title: "System Walkthrough"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # System Walkthrough
 
 Structured exploration of the NanoClaw + halos codebase. Each entry is a waypoint — a piece of the system understood well enough to navigate from.

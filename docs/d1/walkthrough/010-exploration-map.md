@@ -1,3 +1,10 @@
+---
+title: "010 — Exploration Map"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 010 — Exploration Map
 
 *2026-03-20 — The full map of the system, with time estimates and recommended routes*

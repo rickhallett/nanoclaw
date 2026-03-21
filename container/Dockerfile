@@ -77,7 +77,7 @@ RUN printf '#!/bin/bash\nset -e\ncd /app && npx tsc --outDir /tmp/dist 2>&1 >&2\
 COPY pyproject.toml /opt/halos/
 COPY halos/ /opt/halos/halos/
 RUN cd /opt/halos && uv venv /opt/halos/.venv && uv pip install --python /opt/halos/.venv/bin/python -e . && \
-    for cmd in memctl nightctl cronctl logctl reportctl agentctl halctl trackctl dashctl todoctl hal-briefing; do \
+    for cmd in memctl nightctl cronctl logctl reportctl agentctl halctl trackctl dashctl todoctl hal-briefing mailctl; do \
       [ -f /opt/halos/.venv/bin/$cmd ] && ln -s /opt/halos/.venv/bin/$cmd /usr/local/bin/$cmd || true; \
     done
 

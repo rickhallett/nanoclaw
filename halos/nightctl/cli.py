@@ -91,7 +91,8 @@ def cmd_add(args, cfg):
     command = getattr(args, "command", None)
     schedule = getattr(args, "schedule", None)
     window = getattr(args, "window", None)
-    priority = getattr(args, "priority", 3)
+    quadrant = getattr(args, "quadrant", None)
+    legacy_priority = getattr(args, "priority", None)
     retries = getattr(args, "retries", 2)
     timeout = getattr(args, "timeout", 300)
     plan = getattr(args, "plan", None)
@@ -104,7 +105,8 @@ def cmd_add(args, cfg):
             items_dir=cfg.items_dir,
             title=args.title,
             kind=kind,
-            priority=priority,
+            quadrant=quadrant or "q3",
+            priority=legacy_priority,
             tags=tags,
             entities=entities,
             context=context,
@@ -258,8 +260,9 @@ def cmd_edit(args, cfg):
 
     if args.title is not None:
         item.data["title"] = args.title
-    if args.priority is not None:
-        item.data["priority"] = args.priority
+    if getattr(args, "quadrant", None) is not None:
+        item.data["quadrant"] = args.quadrant
+        item.data.pop("priority", None)  # drop legacy field
     if args.tags is not None:
         item.data["tags"] = [t.strip() for t in args.tags.split(",")]
     if args.context is not None:
@@ -288,7 +291,7 @@ def cmd_edit(args, cfg):
 
 
 def cmd_graph(args, cfg):
-    """ASCII priority tree of active items."""
+    """Eisenhower matrix view of active items."""
     items = _load_all_items(cfg.items_dir)
     items.sort(key=lambda i: (i.priority, i.created))
 
@@ -299,12 +302,17 @@ def cmd_graph(args, cfg):
     done = [i for i in items if i.status == "done"]
     deferred = [i for i in items if i.status == "deferred"]
 
-    width = 64
+    width = 72
     print(f"{'=' * width}")
-    print(f"  BACKLOG  ·  {len(items)} items  ·  {len(active)} active  ·  {len(done)} done")
+    print(f"  EISENHOWER  ·  {len(items)} items  ·  {len(active)} active  ·  {len(done)} done")
     print(f"{'=' * width}")
 
-    priority_labels = {1: "CRITICAL", 2: "HIGH", 3: "MEDIUM", 4: "LOW"}
+    quadrant_labels = {
+        "q1": "Q1 · DO FIRST (urgent + important)",
+        "q2": "Q2 · SCHEDULE (important, not urgent)",
+        "q3": "Q3 · DELEGATE (urgent, not important)",
+        "q4": "Q4 · ELIMINATE (neither)",
+    }
 
     status_marker = {
         "open": " ",
@@ -316,11 +324,11 @@ def cmd_graph(args, cfg):
         "blocked": "!",
     }
 
-    for pri in sorted(priority_labels):
-        group = [i for i in active if i.priority == pri]
+    for q in ("q1", "q2", "q3", "q4"):
+        group = [i for i in active if i.quadrant == q]
         if not group:
             continue
-        print(f"\n  \u250c\u2500 {priority_labels[pri]} ({len(group)})")
+        print(f"\n  \u250c\u2500 {quadrant_labels[q]} ({len(group)})")
         for idx, i in enumerate(group):
             is_last = idx == len(group) - 1
             prefix = "  \u2514\u2500" if is_last else "  \u251c\u2500"
@@ -432,7 +440,7 @@ def cmd_list(args, cfg):
             print("no jobs found")
             return 0
         fmt = "{:<22} {:<35} {:<12} {:<4} {:<10} {}"
-        print(fmt.format("ID", "TITLE", "STATUS", "PRI", "KIND", "SCHEDULE"))
+        print(fmt.format("ID", "TITLE", "STATUS", "Q", "KIND", "SCHEDULE"))
         print("-" * 95)
 
         # Print unified items first
@@ -443,7 +451,7 @@ def cmd_list(args, cfg):
             title = i.title[:34]
             kind = i.kind
             sched = i.schedule or ""
-            print(fmt.format(i.id, title, i.status, str(i.priority), kind, sched))
+            print(fmt.format(i.id, title, i.status, i.quadrant, kind, sched))
             count += 1
 
         # Then legacy jobs
@@ -451,9 +459,10 @@ def cmd_list(args, cfg):
             if count >= limit:
                 break
             title = j["title"][:34]
+            q = j.get("quadrant", f"q{min(max(j.get('priority', 3), 1), 4)}")
             print(fmt.format(
                 j["id"], title, j["status"],
-                str(j.get("priority", 5)), "job",
+                q, "job",
                 j.get("schedule", ""),
             ))
             count += 1
@@ -478,7 +487,7 @@ def cmd_status(args, cfg):
             print(f"Title:    {item.title}")
             print(f"Kind:     {item.kind}")
             print(f"Status:   {item.status}")
-            print(f"Priority: {item.priority}")
+            print(f"Quadrant: {item.quadrant}")
             if item.schedule:
                 print(f"Schedule: {item.schedule}")
             if item.tags:
@@ -756,7 +765,10 @@ def build_parser():
                       help="Path to file containing XML plan (agent-jobs)")
     add.add_argument("--schedule", default=None)
     add.add_argument("--window", default=None)
-    add.add_argument("--priority", type=int, default=3)
+    add.add_argument("--quadrant", default=None, choices=["q1", "q2", "q3", "q4"],
+                      help="Eisenhower quadrant: q1=do first, q2=schedule, q3=delegate, q4=eliminate")
+    add.add_argument("--priority", type=int, default=None,
+                      help="Legacy priority (1-4), auto-maps to quadrant")
     add.add_argument("--depends-on", default=None, dest="depends_on")
     add.add_argument("--retries", type=int, default=2)
     add.add_argument("--timeout", type=int, default=300)
@@ -827,7 +839,7 @@ def build_parser():
     ed = sub.add_parser("edit", help="Edit an existing item")
     ed.add_argument("id")
     ed.add_argument("--title", default=None)
-    ed.add_argument("--priority", type=int, default=None)
+    ed.add_argument("--quadrant", default=None, choices=["q1", "q2", "q3", "q4"])
     ed.add_argument("--tags", default=None)
     ed.add_argument("--context", default=None)
     ed.add_argument("--due", default=None)

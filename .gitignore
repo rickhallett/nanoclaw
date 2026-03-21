@@ -42,3 +42,4 @@ groups/global/*
 
 agents-sdk-docs
 credentials-prime.json
+.mcp.json

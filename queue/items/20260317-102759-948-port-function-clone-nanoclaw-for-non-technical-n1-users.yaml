@@ -2,7 +2,6 @@ id: 20260317-102759-948
 title: 'Port function: clone nanoclaw for non-technical n>1 users'
 kind: task
 status: cancelled
-priority: 3
 tags:
 - architecture
 entities:
@@ -28,3 +27,4 @@ plan_ref: null
 created: '2026-03-17T10:27:59Z'
 modified: '2026-03-19T18:54:41Z'
 created_by: human
+quadrant: q3

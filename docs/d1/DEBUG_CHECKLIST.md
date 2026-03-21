@@ -1,3 +1,10 @@
+---
+title: "NanoClaw Debug Checklist"
+category: runbook
+status: active
+created: 2026-03-15
+---
+
 # NanoClaw Debug Checklist
 
 ## Known Issues (2026-02-08)

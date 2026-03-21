@@ -1,0 +1,28 @@
+id: 20260321-100455-ee4e6a7c
+title: "Ben usage metrics \u2014 research existing data, propose quantified metrics"
+kind: task
+status: open
+tags:
+- ben
+- metrics
+- research
+- cluster-1
+entities: []
+context: 'Dispatch agent to analyse Ben''s microhal usage patterns since onboarding.
+  Propose metrics: message volume, session frequency, feature adoption, response quality
+  signals. Track change over time.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-21T10:04:55Z'
+modified: '2026-03-21T10:04:55Z'
+created_by: human
+quadrant: q2

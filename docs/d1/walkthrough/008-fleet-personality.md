@@ -1,3 +1,10 @@
+---
+title: "008 — Fleet & Personality System"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 008 — Fleet & Personality System
 
 *2026-03-20 — How agents get their identity, users get onboarded, and instances get tested*

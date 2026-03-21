@@ -1,0 +1,11 @@
+rules:
+  - pattern: "COUNTDOWN|NEW WORLD|PAKNSAVE"
+    account: expenses:food
+  - pattern: "BP 2GO|Z ENERGY"
+    account: expenses:transport
+  - pattern: "VODAFONE|SPARK"
+    account: expenses:phone
+  - pattern: "EMPLOYER|SALARY"
+    account: income:salary
+  - pattern: "SPOTIFY|NETFLIX"
+    account: expenses:entertainment

@@ -1,3 +1,10 @@
+---
+title: "007 — Security Model"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 007 — Security Model
 
 *2026-03-20 — Defense-in-depth across five layers*

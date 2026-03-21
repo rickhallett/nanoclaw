@@ -1,3 +1,10 @@
+---
+title: "MEMCTL — NanoClaw Memory Governance System"
+category: spec
+status: active
+created: 2026-03-15
+---
+
 ================================================================
 MEMCTL — NanoClaw Memory Governance System
 Implementation Specification v1.0

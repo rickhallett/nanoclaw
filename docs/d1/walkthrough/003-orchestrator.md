@@ -1,3 +1,10 @@
+---
+title: "003 — The Orchestrator (`src/index.ts`)"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 003 — The Orchestrator (`src/index.ts`)
 
 *2026-03-20 — Deep structural analysis of the system's brain*

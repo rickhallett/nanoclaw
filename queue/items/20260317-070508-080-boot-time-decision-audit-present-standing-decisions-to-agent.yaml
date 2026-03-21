@@ -3,7 +3,6 @@ title: 'Boot-time decision audit: present standing decisions to agents on startu
   with logctl trail'
 kind: task
 status: cancelled
-priority: 2
 tags:
 - halos
 - memctl
@@ -31,3 +30,4 @@ plan_ref: null
 created: '2026-03-17T07:05:08Z'
 modified: '2026-03-19T18:54:40Z'
 created_by: human
+quadrant: q2

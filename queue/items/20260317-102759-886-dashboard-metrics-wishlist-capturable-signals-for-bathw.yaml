@@ -2,7 +2,6 @@ id: 20260317-102759-886
 title: 'Dashboard metrics wishlist: capturable signals for BATHW'
 kind: agent-job
 status: in-progress
-priority: 3
 tags:
 - halos
 - bathw
@@ -27,3 +26,4 @@ plan_ref: queue/plans/bathw-metrics-plan.md
 created: '2026-03-17T10:27:59Z'
 modified: '2026-03-19T18:32:39Z'
 created_by: human
+quadrant: q3

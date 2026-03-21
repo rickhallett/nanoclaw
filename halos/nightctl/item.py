@@ -182,8 +182,19 @@ class Item:
         return self.data.get("status", "open")
 
     @property
+    def quadrant(self) -> str:
+        """Eisenhower quadrant: q1 (urgent+important), q2 (important),
+        q3 (urgent), q4 (neither). Accepts legacy int priority as fallback."""
+        val = self.data.get("quadrant", self.data.get("priority"))
+        if isinstance(val, int):
+            return f"q{min(max(val, 1), 4)}"
+        return val or "q3"
+
+    @property
     def priority(self) -> int:
-        return self.data.get("priority", 3)
+        """Legacy priority accessor — maps quadrant to int for sort compatibility."""
+        q_map = {"q1": 1, "q2": 2, "q3": 3, "q4": 4}
+        return q_map.get(self.quadrant, 3)
 
     @property
     def tags(self) -> list:
@@ -362,10 +373,16 @@ class Item:
         if status not in VALID_STATUSES:
             raise ValidationError(f"invalid status: {status}. Valid: {VALID_STATUSES}")
 
-        priority = self.data.get("priority", 3)
-        if not isinstance(priority, int) or isinstance(priority, bool):
+        quadrant = self.data.get("quadrant", self.data.get("priority"))
+        valid_quadrants = ("q1", "q2", "q3", "q4")
+        if isinstance(quadrant, int):
+            if quadrant < 1 or quadrant > 4:
+                raise ValidationError(
+                    f"legacy priority must be 1-4, got {quadrant}"
+                )
+        elif quadrant is not None and quadrant not in valid_quadrants:
             raise ValidationError(
-                f"priority must be int, got {type(priority).__name__}"
+                f"invalid quadrant: {quadrant}. Valid: {valid_quadrants}"
             )
 
         schedule = self.data.get("schedule")
@@ -405,7 +422,8 @@ class Item:
         items_dir: Path,
         title: str,
         kind: str = "task",
-        priority: int = 3,
+        quadrant: str = "q3",
+        priority: int | None = None,
         tags: list[str] | None = None,
         entities: list[str] | None = None,
         context: str = "",
@@ -454,7 +472,7 @@ class Item:
             "title": title,
             "kind": kind,
             "status": "open",
-            "priority": priority,
+            "quadrant": quadrant if not priority else f"q{min(max(priority, 1), 4)}",
             "tags": tags or [],
             "entities": entities or [],
             "context": context or "",

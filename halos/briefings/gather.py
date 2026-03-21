@@ -35,6 +35,10 @@ class BriefingData:
     session_stats: dict = field(default_factory=dict)
     open_todos: list[dict] = field(default_factory=list)
 
+    # Personal metrics (trackctl + dashctl)
+    tracker_summary: str = ""
+    eisenhower_summary: str = ""
+
     def to_context(self) -> str:
         """Format gathered data as a context block for the synthesis prompt."""
         lines = [f"Data gathered at {self.timestamp} for {self.kind} briefing:\n"]
@@ -58,8 +62,8 @@ class BriefingData:
         if self.open_todos:
             lines.append("  Open items:")
             for t in self.open_todos:
-                pri = t.get("priority", "?")
-                lines.append(f"    [{pri}] {t.get('title', 'untitled')}")
+                q = t.get("quadrant", "q3")
+                lines.append(f"    [{q}] {t.get('title', 'untitled')}")
                 if t.get("tags"):
                     lines.append(f"        tags: {', '.join(t['tags'])}")
 
@@ -96,6 +100,14 @@ class BriefingData:
             for k, v in self.session_stats.items():
                 lines.append(f"  {k}: {v}")
 
+        if self.tracker_summary:
+            lines.append("\n## Personal Metrics (trackctl)")
+            lines.append(self.tracker_summary)
+
+        if self.eisenhower_summary:
+            lines.append("\n## Task Board (Eisenhower)")
+            lines.append(self.eisenhower_summary)
+
         return "\n".join(lines)
 
 
@@ -116,6 +128,8 @@ def gather_morning(cfg: Config) -> BriefingData:
         open_todos=_get_open_todos(cfg.todoctl_config),
         recent_errors=_get_recent_errors(cfg),
         session_stats=_get_session_stats(cfg),
+        tracker_summary=_get_tracker_summary(),
+        eisenhower_summary=_get_eisenhower_summary(),
     )
     return data
 
@@ -137,6 +151,8 @@ def gather_nightly(cfg: Config) -> BriefingData:
         open_todos=_get_open_todos(cfg.todoctl_config),
         recent_errors=_get_recent_errors(cfg),
         session_stats=_get_session_stats(cfg),
+        tracker_summary=_get_tracker_summary(),
+        eisenhower_summary=_get_eisenhower_summary(),
     )
     return data
 
@@ -179,18 +195,68 @@ def _get_open_todos(todoctl_config_path: Path) -> list[dict]:
             if kind != "task":
                 continue
             if data.get("status", "open") == "open":
+                quadrant = data.get("quadrant", data.get("priority", "q3"))
+                if isinstance(quadrant, int):
+                    quadrant = f"q{min(max(quadrant, 1), 4)}"
                 todos.append({
                     "title": data.get("title", f.stem),
-                    "priority": data.get("priority", 3),
+                    "quadrant": quadrant,
                     "tags": data.get("tags", []),
                     "created": data.get("created", ""),
                 })
         except Exception:
             pass
 
-    # Sort by priority (lower = higher priority)
-    todos.sort(key=lambda t: t.get("priority", 3))
+    # Sort by quadrant (q1 first)
+    todos.sort(key=lambda t: t.get("quadrant", "q3"))
     return todos
+
+
+def _get_tracker_summary() -> str:
+    """Collect trackctl summaries via dashctl --text."""
+    try:
+        result = subprocess.run(
+            ["dashctl", "--text"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+    return ""
+
+
+def _get_eisenhower_summary() -> str:
+    """Compact Eisenhower matrix summary for briefing."""
+    try:
+        from halos.nightctl.item import load_all_items
+        from halos.nightctl.config import load_config
+        cfg = load_config()
+        items = load_all_items(cfg.items_dir)
+
+        active = [i for i in items if i.status in (
+            "open", "planning", "plan-review", "in-progress",
+            "review", "testing", "blocked",
+        )]
+
+        q_labels = {"q1": "DO FIRST", "q2": "SCHEDULE", "q3": "DELEGATE", "q4": "ELIMINATE"}
+        lines = []
+        for q in ("q1", "q2", "q3", "q4"):
+            group = [i for i in active if i.quadrant == q]
+            if not group:
+                continue
+            lines.append(f"  {q.upper()} · {q_labels[q]} ({len(group)})")
+            for item in group[:5]:
+                marker = "*" if item.status == "in-progress" else " "
+                lines.append(f"    [{marker}] {item.title[:60]}")
+            if len(group) > 5:
+                lines.append(f"        ... +{len(group) - 5} more")
+
+        done_count = len([i for i in items if i.status == "done"])
+        lines.append(f"  Total: {len(active)} active, {done_count} done")
+        return "\n".join(lines)
+    except Exception:
+        return ""
 
 
 def _get_recent_errors(cfg: Config) -> list[str]:

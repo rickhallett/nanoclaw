@@ -1,0 +1,79 @@
+2026-03-01 Countdown
+    expenses:food                           $42.50
+    assets:bank:anz:checking
+
+2026-03-02 BP 2GO
+    expenses:transport                      $65.00
+    assets:bank:anz:checking
+
+2026-03-03 Vodafone NZ
+    expenses:phone                          $55.00
+    assets:bank:anz:checking
+
+2026-03-04 Employer Ltd
+    assets:bank:anz:checking                $5,000.00
+    income:salary
+
+2026-03-05 Spotify
+    expenses:entertainment                  $16.99
+    assets:bank:anz:checking
+
+2026-03-06 New World
+    expenses:food                           $78.30
+    assets:bank:anz:checking
+
+2026-03-07 Z Energy
+    expenses:transport                      $72.00
+    assets:bank:anz:checking
+
+2026-03-08 Uber
+    expenses:transport                      $22.40
+    assets:bank:anz:checking
+
+2026-03-09 Paknsave
+    expenses:food                           $95.20
+    assets:bank:anz:checking
+
+2026-03-10 Netflix
+    expenses:entertainment                  $19.99
+    assets:bank:anz:checking
+
+2026-03-11 Countdown
+    expenses:food                           $38.75
+    assets:bank:anz:checking
+
+2026-03-12 Electric Company
+    expenses:utilities                      $120.00
+    assets:bank:anz:checking
+
+2026-03-13 Paknsave
+    expenses:food                           $62.10
+    assets:bank:anz:checking
+
+2026-03-14 Uber
+    expenses:transport                      $18.50
+    assets:bank:anz:checking
+
+2026-03-15 Employer Ltd
+    assets:bank:anz:checking                $5,000.00
+    income:salary
+
+2026-03-16 Countdown
+    expenses:food                           $55.40
+    assets:bank:anz:checking
+
+2026-03-17 Water Board
+    expenses:utilities                      $85.00
+    assets:bank:anz:checking
+
+2026-03-18 New World
+    expenses:food                           $91.25
+    assets:bank:anz:checking
+
+2026-03-19 BP 2GO
+    expenses:transport                      $58.00
+    assets:bank:anz:checking
+
+2026-03-20 Spark NZ
+    expenses:phone                          $49.00
+    assets:bank:anz:checking

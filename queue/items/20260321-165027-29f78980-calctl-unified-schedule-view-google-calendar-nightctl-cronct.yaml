@@ -1,0 +1,27 @@
+id: 20260321-165027-29f78980
+title: "calctl: unified schedule view \u2014 Google Calendar + nightctl + cronctl\
+  \ merged timeline"
+kind: task
+status: open
+quadrant: q2
+tags:
+- calctl
+- aggregation
+- taxonomy-gap
+entities: []
+context: 'Spec: docs/d2/spec-calctl.md. Read-only aggregation of three existing time-aware
+  data sources. Briefing and dashctl integration. ~15 agent-min.'
+due: null
+blocked_by: null
+command: null
+schedule: null
+window: null
+depends_on: []
+retries: 2
+retries_remaining: 2
+timeout_secs: 300
+plan: null
+plan_ref: null
+created: '2026-03-21T16:50:27Z'
+modified: '2026-03-21T16:50:27Z'
+created_by: human

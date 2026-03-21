@@ -1,3 +1,10 @@
+---
+title: "006 — Channel System"
+category: guide
+status: active
+created: 2026-03-20
+---
+
 # 006 — Channel System
 
 *2026-03-20 — How messages enter and leave the system*

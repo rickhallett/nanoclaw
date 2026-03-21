@@ -1,3 +1,10 @@
+---
+title: "NanoClaw Skills Architecture"
+category: archive
+status: superseded
+created: 2026-03-15
+---
+
 # NanoClaw Skills Architecture
 
 ## What Skills Are For

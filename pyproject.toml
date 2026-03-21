@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",
     "requests>=2.32.5",
+    "rich>=14.3.3",
 ]
 
 [project.optional-dependencies]
@@ -26,6 +27,13 @@ reportctl = "halos.reportctl.cli:main"
 agentctl = "halos.agentctl.cli:main"
 hal-briefing = "halos.briefings.cli:main"
 halctl = "halos.halctl.cli:main"
+trackctl = "halos.trackctl.cli:main"
+dashctl = "halos.dashctl.cli:main"
+mailctl = "halos.mailctl.cli:main"
+calctl = "halos.calctl.cli:main"
+statusctl = "halos.statusctl.cli:main"
+backupctl = "halos.backupctl.cli:main"
+ledgerctl = "halos.ledgerctl.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

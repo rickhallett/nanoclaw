@@ -2,7 +2,6 @@ id: 20260317-134708-bc9044d0
 title: Fix IDLE_TIMEOUT == CONTAINER_TIMEOUT race condition
 kind: task
 status: cancelled
-priority: 2
 tags:
 - nanoclaw
 - architecture
@@ -23,3 +22,4 @@ plan_ref: null
 created: '2026-03-17T13:47:08Z'
 modified: '2026-03-19T18:54:40Z'
 created_by: human
+quadrant: q2
