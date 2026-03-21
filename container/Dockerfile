@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y \
     libxshmfence1 \
     curl \
     git \
+    jq \
+    sqlite3 \
     python3 \
     python3-yaml \
     unzip \
@@ -77,7 +79,7 @@ RUN printf '#!/bin/bash\nset -e\ncd /app && npx tsc --outDir /tmp/dist 2>&1 >&2\
 COPY pyproject.toml /opt/halos/
 COPY halos/ /opt/halos/halos/
 RUN cd /opt/halos && uv venv /opt/halos/.venv && uv pip install --python /opt/halos/.venv/bin/python -e . && \
-    for cmd in memctl nightctl cronctl logctl reportctl agentctl halctl trackctl dashctl todoctl hal-briefing mailctl; do \
+    for cmd in memctl nightctl cronctl logctl reportctl agentctl halctl trackctl dashctl todoctl hal-briefing mailctl calctl statusctl backupctl ledgerctl; do \
       [ -f /opt/halos/.venv/bin/$cmd ] && ln -s /opt/halos/.venv/bin/$cmd /usr/local/bin/$cmd || true; \
     done
 
