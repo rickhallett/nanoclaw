@@ -243,6 +243,18 @@ function buildVolumeMounts(
     });
   }
 
+  // Himalaya mail config (mailctl engine) — main group only
+  if (isMain) {
+    const himalayaDir = path.join(homeDir, '.config', 'himalaya');
+    if (fs.existsSync(himalayaDir)) {
+      mounts.push({
+        hostPath: himalayaDir,
+        containerPath: '/home/node/.config/himalaya',
+        readonly: true,
+      });
+    }
+  }
+
   // Per-group IPC namespace: each group gets its own IPC directory
   // This prevents cross-group privilege escalation via IPC
   const groupIpcDir = resolveGroupIpcPath(group.folder);
@@ -345,6 +357,15 @@ function buildContainerArgs(
   const googleEnv = readEnvFile(googleKeys);
   for (const [key, val] of Object.entries(googleEnv)) {
     args.push('-e', `${key}=${val}`);
+  }
+
+  // Himalaya mail credentials (mailctl engine) — main group only
+  if (isMain) {
+    const mailKeys = ['HIMALAYA_GMAIL_PASSWORD'];
+    const mailEnv = readEnvFile(mailKeys);
+    for (const [key, val] of Object.entries(mailEnv)) {
+      if (val) args.push('-e', `${key}=${val}`);
+    }
   }
 
   // Runtime-specific args for host gateway resolution

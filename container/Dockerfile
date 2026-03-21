@@ -41,7 +41,10 @@ RUN apt-get update && apt-get install -y \
     # Install Vercel CLI
     && npm install -g vercel \
     # Install Neon CLI
-    && npm install -g neonctl
+    && npm install -g neonctl \
+    # Install himalaya CLI (mailctl engine)
+    && curl -sL https://github.com/pimalaya/himalaya/releases/latest/download/himalaya.x86_64-linux.tgz \
+       | tar xz -C /usr/local/bin/
 ENV PATH="/root/.local/bin:$PATH"
 
 # Set Chromium path for agent-browser
@@ -82,6 +85,9 @@ RUN cd /opt/halos && uv venv /opt/halos/.venv && uv pip install --python /opt/ha
     for cmd in memctl nightctl cronctl logctl reportctl agentctl halctl trackctl dashctl todoctl hal-briefing mailctl calctl statusctl backupctl ledgerctl; do \
       [ -f /opt/halos/.venv/bin/$cmd ] && ln -s /opt/halos/.venv/bin/$cmd /usr/local/bin/$cmd || true; \
     done
+
+# Install container-specific himalaya config (uses env vars instead of secret-tool)
+COPY container/himalaya-config.toml /home/node/.config/himalaya/config.toml
 
 # Set ownership to node user (non-root) for writable directories
 RUN chown -R node:node /workspace && chmod 777 /home/node
