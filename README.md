@@ -87,7 +87,7 @@ nightctl add --title "Fix race condition" --quadrant q1
 nightctl graph                              # Eisenhower matrix view
 calctl today                                # everything happening today
 calctl conflicts                            # overlapping commitments
-calctl free --duration 60m                  # find open slots
+calctl free --duration 60                   # find open 60-min slots
 ```
 
 ### Personal Metrics
@@ -116,8 +116,8 @@ ledgerctl balance                           # P&L by account
 ```bash
 memctl new --title "..." --type decision --tags "arch,security" --body "..."
 memctl search --tags arch --type decision
-memctl graph --clusters                     # knowledge cluster detection
-memctl graph --central --top 5              # knowledge hub identification
+memctl graph                                # interactive knowledge graph (HTML)
+memctl graph --format dot -o graph.svg      # export as SVG via Graphviz
 memctl stats                                # corpus health
 ```
 

@@ -5,14 +5,14 @@
 
 | Title | File | Category | Status | Created |
 |-------|------|----------|--------|---------|
-| Analysis: Automated Documentation Maintenance Agent Workflow | analysis-doc-maintenance-agent-workflows.md | analysis | active | 2026-03-15 |
+| Analysis: Automated Documentation Maintenance Agent Workflows | analysis-doc-maintenance-agent-workflows.md | analysis | active | 2026-03-15 |
 | Analysis: Ben Usage Metrics | analysis-ben-usage-metrics.md | analysis | active | 2026-03-21 |
 | Analysis: Google Calendar + Drive Integration for NanoClaw | analysis-google-workspace-integration.md | analysis | active | 2026-03-21 |
 | Behavioural Pattern Tracking: Schema & Lookup Design | analysis-behavioural-pattern-tracking.md | analysis | active | 2026-03-21 |
 | CLI/TUI Email Clients for Arch Linux with Gmail | analysis-cli-email-clients.md | analysis | active | 2026-03-21 |
 | Competitive Landscape: LLM Agent Operational Telemetry | analysis-agent-telemetry-landscape.md | analysis | active | 2026-03-17 |
 | Documentation Organisation Audit | analysis-docs-organisation-audit.md | analysis | active | 2026-03-15 |
-| Halos × Agent-Native Software Taxonomy: Gap Analysis & Expan | analysis-halos-agent-native-taxonomy-mapping.md | analysis | active | 2026-03-21 |
+| Halos × Agent-Native Software Taxonomy: Gap Analysis & Expansion Roadmap | analysis-halos-agent-native-taxonomy-mapping.md | analysis | active | 2026-03-21 |
 | Research: AI Tools Specialist Role Archetype | research-ai-tools-specialist-roles.md | analysis | active | 2026-03-17 |
 | The Halos Ecosystem | halos-ecosystem-digest.md | analysis | active | 2026-03-21 |
 | halos Architecture Review — 2026-03-16 | halos-architecture-review.md | analysis | active | 2026-03-16 |
@@ -43,7 +43,7 @@
 | NanoClaw Requirements | REQUIREMENTS.md | spec | active | 2026-01-31 |
 | NanoClaw Specification | SPEC.md | spec | active | 2026-01-31 |
 | NanoClaw/halos Portfolio Showcase — Specification | spec-portfolio-showcase.md | spec | active | 2026-03-17 |
-| Plan: Parameterised Personality Configuration for microHAL F | personality-config-plan.md | spec | active | 2026-03-17 |
+| Plan: Parameterised Personality Configuration for microHAL Fleet | personality-config-plan.md | spec | active | 2026-03-17 |
 | Skills as Branches | skills-as-branches.md | spec | active | 2026-03-10 |
 | backupctl — Structured Backup Policy | spec-backupctl.md | spec | active | 2026-03-21 |
 | calctl — Unified Schedule View | spec-calctl.md | spec | active | 2026-03-21 |
