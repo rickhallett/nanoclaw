@@ -468,9 +468,13 @@ async function startMessageLoop(): Promise<void> {
               { chatJid, count: messagesToSend.length },
               'Piped messages to active container',
             );
-            lastAgentTimestamp[chatJid] =
-              messagesToSend[messagesToSend.length - 1].timestamp;
-            saveState();
+            // RESP.IPC.01: Do NOT advance lastAgentTimestamp here. The IPC
+            // file has been written but the container hasn't consumed it yet.
+            // If the process crashes before the container drains the file,
+            // restart recovery (recoverPendingMessages) will re-fetch these
+            // messages from SQLite because the cursor was never advanced.
+            // The cursor advances naturally when processGroupMessages runs
+            // for this group's next container invocation.
             // Show typing indicator while the container processes the piped message
             channel
               .setTyping?.(chatJid, true)

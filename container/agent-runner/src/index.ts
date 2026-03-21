@@ -376,6 +376,24 @@ async function runQuery(
   const MAX_TURNS_WITHOUT_RESULT = 150;
   const RATE_LIMIT_EARLY_EXIT_WINDOW = 10;
 
+  // RESP.BOUNDARY.01: Wall-clock timeout for a single query. If the SDK
+  // hangs (stalled upstream, broken connection), this fires before the outer
+  // container timeout and produces a diagnosable error instead of silence.
+  // 10 minutes is generous for legitimate long-running queries; the credential
+  // proxy has its own 5-minute upstream timeout for individual API calls.
+  const QUERY_TIMEOUT_MS = 10 * 60 * 1000;
+  let queryTimedOut = false;
+  let lastActivityMs = Date.now();
+  const queryTimeoutCheck = setInterval(() => {
+    if (Date.now() - lastActivityMs > QUERY_TIMEOUT_MS) {
+      log(`QUERY TIMEOUT: no SDK activity for ${QUERY_TIMEOUT_MS / 1000}s, ending stream`);
+      queryTimedOut = true;
+      stream.end();
+      ipcPolling = false;
+      clearInterval(queryTimeoutCheck);
+    }
+  }, 5000);
+
   // Load global CLAUDE.md as additional system context (shared across all groups)
   const globalClaudeMdPath = '/workspace/global/CLAUDE.md';
   let globalClaudeMd: string | undefined;
@@ -445,6 +463,8 @@ async function runQuery(
     }
   })) {
     messageCount++;
+    // RESP.BOUNDARY.01: Reset activity timer on every SDK message
+    lastActivityMs = Date.now();
     const msgType = message.type === 'system' ? `system/${(message as { subtype?: string }).subtype}` : message.type;
     log(`[msg #${messageCount}] type=${msgType}`);
 
@@ -525,6 +545,20 @@ async function runQuery(
   }
 
   ipcPolling = false;
+  clearInterval(queryTimeoutCheck);
+
+  // RESP.BOUNDARY.01: If the query ended due to our timeout, report it
+  if (queryTimedOut) {
+    log(`Query timed out after ${QUERY_TIMEOUT_MS / 1000}s of inactivity`);
+    writeOutput({
+      status: 'error',
+      result: null,
+      newSessionId,
+      error: `Query timeout: no SDK activity for ${QUERY_TIMEOUT_MS / 1000}s. Upstream may be stalled.`,
+    });
+    return { newSessionId, lastAssistantUuid, closedDuringQuery: true };
+  }
+
   log(`Query done. Messages: ${messageCount}, results: ${resultCount}, lastAssistantUuid: ${lastAssistantUuid || 'none'}, closedDuringQuery: ${closedDuringQuery}`);
   return { newSessionId, lastAssistantUuid, closedDuringQuery };
 }

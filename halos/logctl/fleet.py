@@ -168,40 +168,70 @@ def read_fleet_conversations(
                 pass
 
         # Pair user messages with agent responses.
-        # pm2 timestamps are HH:MM:SS.mmm (no date). To compare with ISO
-        # timestamps, we need to infer the date. Use the pm2 log file's
-        # modification date as a hint, and assume timestamps within the
-        # same log are from today (or yesterday if time > now).
-        from datetime import datetime, timezone
+        # pm2 timestamps are HH:MM:SS.mmm (no date). To infer dates we:
+        #   1. Anchor the LAST entry's date to the log file's mtime
+        #   2. Walk backwards through timestamps; when time jumps forward
+        #      by >6h it means we crossed midnight, so decrement the date.
+        # This correctly handles logs spanning multiple days.
+        from datetime import datetime, timedelta, timezone
 
         now = datetime.now(timezone.utc)
-        today = now.strftime("%Y-%m-%dT")
 
-        # OBS.LOG.01: Use the pm2 log file's mtime to infer the date for
-        # HH:MM:SS timestamps instead of blindly assuming today. This prevents
-        # responses from previous days being paired to the wrong user messages.
-        log_date = now.strftime("%Y-%m-%dT")
+        # OBS.LOG.01: Infer per-entry dates by anchoring to mtime and
+        # detecting midnight rollover, instead of assigning a single date
+        # to all entries.
+        anchor_date = now.date()
         if pm2.exists():
             try:
                 mtime = datetime.fromtimestamp(pm2.stat().st_mtime, tz=timezone.utc)
-                log_date = mtime.strftime("%Y-%m-%dT")
+                anchor_date = mtime.date()
             except Exception:
                 pass
 
-        def _pm2_to_iso(hms: str) -> str:
-            """Convert HH:MM:SS.mmm to ISO timestamp using log file date."""
-            return f"{log_date}{hms}Z"
+        def _assign_dates(
+            timestamps: list[str], anchor: "datetime.date"  # noqa: F821
+        ) -> list[str]:
+            """Assign ISO dates to HH:MM:SS.mmm timestamps via rollover detection.
+
+            Walk backwards from the last entry (anchored to `anchor` date).
+            When the time jumps forward by >6h compared to the next entry,
+            a midnight boundary was crossed, so decrement the date.
+            """
+            if not timestamps:
+                return []
+            from datetime import date as _date  # noqa: F811
+            current_date = anchor
+            dates: list[str] = [current_date.isoformat() + "T"] * len(timestamps)
+            dates[-1] = current_date.isoformat() + "T"
+            for i in range(len(timestamps) - 2, -1, -1):
+                # Compare HH portion: if this entry's time is much later
+                # than the next entry's time, we crossed midnight between them
+                try:
+                    h_cur = int(timestamps[i][:2])
+                    h_next = int(timestamps[i + 1][:2])
+                    if h_cur - h_next > 6:
+                        current_date -= timedelta(days=1)
+                except (ValueError, IndexError):
+                    pass
+                dates[i] = current_date.isoformat() + "T"
+            return dates
+
+        # Assign dates to agent response timestamps
+        agent_hms = [ts for ts, _ in agent_responses]
+        agent_dates = _assign_dates(agent_hms, anchor_date)
 
         def _normalise(ts: str) -> str:
             """Normalise any timestamp to comparable ISO-ish string."""
             if "T" in ts:
                 return ts[:23]  # 2026-03-18T11:30:53.000
-            return f"{log_date}{ts[:12]}"
+            # Fallback for bare HH:MM:SS — shouldn't happen after date assignment
+            return f"{anchor_date.isoformat()}T{ts[:12]}"
 
         # Build ordered list of agent responses with full timestamps
         agent_iso: list[tuple[str, str]] = []
-        for agent_ts, agent_text in agent_responses:
-            agent_iso.append((_pm2_to_iso(agent_ts), agent_text))
+        for i, (agent_ts, agent_text) in enumerate(agent_responses):
+            full_ts = f"{agent_dates[i]}{agent_ts}Z"
+            agent_iso.append((full_ts, agent_text))
 
         # OBS.LOG.01: For each agent response, find the last user message
         # before it. Allow multiple agent responses per user message by
