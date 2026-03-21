@@ -1,10 +1,6 @@
-<p align="center">
-  <img src="assets/nanoclaw-logo.png" alt="NanoClaw" width="400">
-</p>
+# Halo
 
-<p align="center">
-  A personal operating system layer, built for agents.
-</p>
+A personal operating system layer, built for agents.
 
 ---
 
