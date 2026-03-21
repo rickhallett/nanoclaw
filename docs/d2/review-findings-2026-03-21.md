@@ -7,252 +7,150 @@ created: 2026-03-21
 
 # Adversarial Review Findings
 
-**Reviewer:** adversarial-reviewer agent
-**Scope:** commits 35a79ee..6d787b1 (~17,000 lines across calctl, statusctl, backupctl, ledgerctl, dashctl, mailctl)
-**Tests:** 281 passed, 0 failed (71% line coverage across reviewed modules)
-
 ## Summary
-- Total findings: 14
-- Critical: 1
-- High: 5
-- Medium: 5
-- Low: 3
+- Total findings: 8
+- Critical: 0
+- High: 4
+- Medium: 3
+- Low: 1
 
----
+Structural checks completed:
+- `uv run python -m pytest tests/calctl/ tests/statusctl/ tests/backupctl/ tests/ledgerctl/ tests/dashctl/ -v --tb=short` → 281 passed
+- Import check for `halos.calctl`, `halos.statusctl`, `halos.backupctl`, `halos.ledgerctl`, `halos.dashctl`, `halos.mailctl` → passed
+- CLI entry points for `calctl`, `statusctl`, `backupctl`, `ledgerctl`, `dashctl`, `mailctl` → runnable
 
 ## Critical Findings
 
-### C-1. ledgerctl journal.py: error handler crashes on double-close
-
-**File:** `halos/ledgerctl/journal.py:228`
-
-**What:** The except block in `append_entries()` uses `os.get_inheritable(fd)` to decide whether to close the file descriptor. After the try block calls `os.close(fd)` at line 225, `fd` is invalid. Calling `os.get_inheritable()` on a closed fd raises `OSError: [Errno 9] Bad file descriptor`, which replaces the original exception. The original error is swallowed.
-
-```python
-# Line 228: THIS CRASHES if fd was already closed at line 225
-os.close(fd) if not os.get_inheritable(fd) else None
-```
-
-Confirmed by test: `os.get_inheritable(fd)` raises `OSError` on a closed fd.
-
-**Impact:** If any error occurs after `os.close(fd)` but before `os.rename()` (e.g., permission error on rename), the error handler itself raises `OSError`, masking the real error. The temp file is not cleaned up because `os.unlink` (line 230) is never reached. Repeated failures accumulate orphan `.ledger_*.tmp` files.
-
-**Fix:** Replace lines 227-231 with the standard pattern used in 18 other locations in this codebase:
-```python
-except Exception:
-    try:
-        os.close(fd)
-    except OSError:
-        pass
-    if os.path.exists(tmp_path):
-        os.unlink(tmp_path)
-    raise
-```
-
----
+None.
 
 ## High Findings
 
-### H-1. ledgerctl uses os.rename instead of os.replace (non-atomic on cross-filesystem, not idempotent on Windows)
+### 1. `calctl` drops nightctl items that use `deadline`, despite the spec and review guide requiring them
+- Severity: High
+- Files: `halos/calctl/sources.py:102-108`
+- Problem: `NightctlSource.fetch()` only reads `data.get("due")`. The review guide explicitly asks for `due`/`deadline`, and the original spec also calls out deadline-style task data. Any item that only has `deadline` is silently omitted from `today`, `week`, `conflicts`, and briefing summaries.
+- Evidence: local repro with a YAML item containing only `deadline: 2026-03-21` returned `events 0`.
+- Impact: user-visible data loss in the core schedule view; deadlines can disappear entirely.
+- Test gap: the test suite only covers `due`, not `deadline` or `scheduled`.
 
-**File:** `halos/ledgerctl/journal.py:226`, `halos/ledgerctl/rules.py:68`
+### 2. `calctl.merge_events()` never deduplicates, so duplicate source data is surfaced as separate events
+- Severity: High
+- Files: `halos/calctl/engine.py:11-20`
+- Problem: `merge_events()` concatenates all source results and sorts them. There is no deduplication pass, even though the review guide explicitly requires dedupe across sources.
+- Evidence: local repro with two sources returning the same `CalendarEvent` produced two output rows.
+- Impact: duplicate events inflate counts, create misleading summaries, and can generate false conflicts/free-slot calculations.
+- Test gap: `tests/calctl/test_engine.py` validates merge + sort but not duplicate suppression.
 
-**What:** `os.rename()` is used for atomic writes. Every other halos module (18 call sites) uses `os.replace()`. `os.rename()` fails with `EXDEV` if source and destination are on different filesystems. On Windows (unlikely but), it fails if the destination exists. `os.replace()` handles both cases correctly and is the project's established convention.
+### 3. `statusctl` treats “docker not installed” as a hard failure, which forces the overall grade to `DOWN`
+- Severity: High
+- Files: `halos/statusctl/checks.py:79-85`, `halos/statusctl/engine.py:14`, `halos/statusctl/engine.py:44-49`
+- Problem: `_check_docker()` returns `status="fail"` when `docker` is missing. Because `docker` is listed in `_CRITICAL_CHECKS`, a host without Docker is graded `DOWN`.
+- Why this is wrong: both the spec and review guide require graceful degradation for “tool not installed” cases.
+- Evidence: patched repro returned `CheckResult(name='docker', status='fail', message='Docker not reachable', ...)`.
+- Impact: false-red health status on machines that simply do not have Docker installed, including supported degraded environments.
 
-**Impact:** Journal writes fail if `/tmp` and the store directory are on different filesystems (e.g., containerised environments, bind mounts). Since this is the accounting data path, the failure is silent — users may believe entries were saved when they weren't (the exception propagates but the intent was atomicity).
-
-**Fix:** Change `os.rename` to `os.replace` in both files.
-
-### H-2. mailctl cmd_triage: inconsistent unread detection vs cmd_inbox (will miss unread messages)
-
-**File:** `halos/mailctl/cli.py:131` vs `halos/mailctl/cli.py:70`
-
-**What:** `cmd_inbox` filters unread messages using `"Seen" not in m.get("flags", [])` (checking list membership). `cmd_triage` filters using `not m.get("flags", {}).get("seen", False)` (checking dict key with lowercase). These are mutually exclusive data shape assumptions — if himalaya returns flags as a list (the cmd_inbox assumption), then cmd_triage's `.get("seen")` always returns `None`/`False`, meaning ALL messages look unread. If himalaya returns flags as a dict, cmd_inbox breaks instead.
-
-**Impact:** Triage will either process all messages (including already-read ones) or miss all unread messages, depending on himalaya's actual output format. Either way, one of the two code paths is wrong.
-
-**Fix:** Determine himalaya's actual flag format and standardise both paths. Based on the briefing module (line 24) also using `"Seen" not in m.get("flags", [])`, the list form is likely correct. Change line 131 to match.
-
-### H-3. mailctl has zero test coverage
-
-**File:** `halos/mailctl/` (entire module)
-
-**What:** No test directory exists at `tests/mailctl/`. The review guide explicitly flags this as a gap. The module contains subprocess calls to himalaya, SQLite operations, triage logic, and an email send function — all untested.
-
-**Impact:** Any regression in the triage rules, store layer, or CLI dispatch goes undetected. The flag inconsistency in H-2 would have been caught by even basic unit tests.
-
-**Fix:** Create `tests/mailctl/` with tests for at minimum: `triage.py` (rule evaluation), `store.py` (CRUD operations), and `cli.py` (dispatch routing). The himalaya engine can be tested with subprocess mocking.
-
-### H-4. backupctl _list_tar_snapshots: filename parsing breaks for hyphenated target names
-
-**File:** `halos/backupctl/engine.py:328`
-
-**What:** `stem.split("-", 2)` splits the filename `backup-{target}-{timestamp}` into at most 3 parts. If the target name contains hyphens (e.g., `my-target`), the split yields `["backup", "my", "target-20260321-100000"]`, misidentifying the target as `"my"` and the timestamp as `"target-20260321-100000"`.
-
-The default targets (`store`, `memory`, `queue`, `config`) don't contain hyphens, so this works today. But the config file supports arbitrary target names, and nothing validates against hyphens.
-
-**Impact:** Listing or restoring backups for hyphenated targets returns wrong metadata. `get_last_backup_age()` fails to parse the timestamp, returning `None` (no backups found) even when backups exist. The briefing then reports "no backups found" — masking successful backup operations.
-
-**Fix:** Use a more robust filename format. Either: (a) replace hyphens in target names with underscores before writing, or (b) use a different separator (e.g., `backup__{target}__{timestamp}.tar.gz`), or (c) validate target names to reject hyphens in `config.py`.
-
-### H-5. ledgerctl search and rules accept user-supplied regex with no timeout or complexity limit (ReDoS)
-
-**File:** `halos/ledgerctl/reports.py:270`, `halos/ledgerctl/rules.py:109`
-
-**What:** Both `reports.search()` and `rules.categorise()` pass user-supplied regex patterns directly to `re.search()`. The CLI validates that the pattern compiles (`cli.py:303`) but does not limit its complexity. A pathological pattern like `(a+)+$` against a long string will hang the process.
-
-For the CLI this is a minor concern (user is attacking themselves). But if these functions are called programmatically from briefing or import flows with data-derived patterns, the risk increases.
-
-**Impact:** A catastrophic backtracking regex in the rules file will hang every CSV import and every briefing summary that touches categorisation.
-
-**Fix:** Wrap `re.search()` calls with a timeout (Python 3.11+ supports `re.search(..., timeout=)` parameter, or use `signal.alarm` on Unix). At minimum, add a max pattern length check.
-
----
+### 4. `mailctl` shipped without any dedicated test suite
+- Severity: High
+- Files: `halos/mailctl/`
+- Problem: the guide explicitly flags `mailctl` as lacking dedicated tests. The module wraps live mail operations (`read`, `search`, `send`, `move`, `flag`) and persists audit data, but there is no `tests/mailctl/` coverage at all.
+- Impact: regressions in mailbox actions, triage behavior, and subprocess error handling can reach production without automated detection.
+- Residual risk: this is the highest testing gap in the reviewed change set because the module operates on external state.
 
 ## Medium Findings
 
-### M-1. dashctl html_export: no atomic write — partial HTML files on crash
+### 5. `statusctl` counts all exited containers as “exited-error”, including clean exit `0` containers and old exits
+- Severity: Medium
+- Files: `halos/statusctl/checks.py:110-118`
+- Problem: `_check_containers()` runs `docker ps -a --filter status=exited` and counts every returned line as an error. It does not filter non-zero exit codes, and it does not enforce the “recent exits” behavior described in the spec/review guide.
+- Evidence: patched repro with two `Exited (0)` containers reported `exited_error=2`.
+- Impact: noisy and misleading health reports; normal one-shot jobs can be misreported as failures.
 
-**File:** `halos/dashctl/html_export.py:62`
+### 6. `backupctl verify --target` is exposed in the CLI but ignored by the implementation
+- Severity: Medium
+- Files: `halos/backupctl/cli.py:41-43`, `halos/backupctl/cli.py:152-159`, `halos/backupctl/engine.py:344-351`
+- Problem: the CLI accepts `backupctl verify --target TARGET`, but `cmd_verify()` never passes the target through, and `verify_repository()` has no target parameter.
+- Impact: operator intent is ignored; a targeted verification command always verifies the entire repository instead.
+- Risk: this is a correctness/API contract bug rather than a crash.
 
-**What:** `path.write_text(html)` writes directly to the target path. If the process is interrupted mid-write (Ctrl-C, OOM kill, disk full), the output file contains a truncated, invalid HTML document. All other file-writing halos modules use tmp+rename for atomicity.
-
-**Impact:** A cron-triggered dashboard export that fails mid-write leaves a broken HTML file. The next successful run overwrites it, but in the meantime any monitoring that reads the HTML sees garbage.
-
-**Fix:** Use the standard tmp+os.replace pattern.
-
-### M-2. backupctl: default password "nanoclaw-local-backup" hardcoded in source
-
-**File:** `halos/backupctl/engine.py:36`
-
-**What:** When no password file or `RESTIC_PASSWORD` env var is set, the engine falls back to the hardcoded string `"nanoclaw-local-backup"`. This is documented as being for "local-only repos" but is visible in the source code.
-
-**Impact:** Low for local-only deployments. If the backup repository is ever moved to remote storage (S3, SFTP), the password is already known. Not a credential leak per se (it's not a secret), but it's the wrong pattern — default passwords tend to persist.
-
-**Fix:** Either require explicit password configuration (fail loudly if neither password_file nor RESTIC_PASSWORD is set), or generate a random password on first `init` and store it in a dotfile.
-
-### M-3. statusctl cmd_metrics mutates dict during iteration (cosmetic corruption)
-
-**File:** `halos/statusctl/cli.py:155-156`
-
-**What:** In the non-JSON branch of `cmd_metrics`, `data.pop("status")` and `data.pop("message")` mutate the dict while it's being iterated. Python allows this because iteration is over `metrics.items()` (the outer dict), not over `data` itself. However, this means the `--json` and non-JSON branches display different data structures (JSON includes status/message, text does not). If a caller invokes `cmd_metrics` twice in the same process, the second call would crash because `status` and `message` have already been popped.
-
-**Impact:** Minor — CLI commands run once per process invocation. But it breaks the principle that `--json` and text output show the same data.
-
-**Fix:** Don't mutate `data`. Read `status` and `message` with `.get()` instead of `.pop()`.
-
-### M-4. calctl CronctlSource: max_daily_runs filter uses per-query count, not per-day count
-
-**File:** `halos/calctl/sources.py:194`
-
-**What:** `if self._max_daily_runs and len(runs) > self._max_daily_runs` filters based on the total number of runs in the entire query window, not per-day. A `calctl week` query (7-day window) would produce 7x more runs than `calctl today` for the same cron job. A cron job running every 2 hours (`0 */2 * * *`) produces 12 runs/day, which passes the filter for `today` but gets filtered out for `week` (84 runs).
-
-**Impact:** The same cron job appears in `calctl today` but disappears from `calctl week`. Inconsistent behaviour that will confuse users.
-
-**Fix:** Compute runs per day and filter based on max runs per day, or document that the filter applies to the total query window.
-
-### M-5. backupctl _safe_copy_sqlite: no timeout, no WAL handling
-
-**File:** `halos/backupctl/engine.py:84-97`
-
-**What:** `sqlite3.connect()` and `src_conn.backup(dst_conn)` have no timeout. If the source database is locked by a long-running write transaction, `backup()` will block indefinitely. Additionally, if the source database uses WAL mode, the backup may not capture WAL-pending transactions (though sqlite3.backup() generally handles this correctly for same-machine copies).
-
-**Impact:** A backup triggered while nightctl or trackctl is writing to their SQLite databases could hang the backup process indefinitely, blocking subsequent backups in the chain.
-
-**Fix:** Set `timeout=30` on `sqlite3.connect()` for the source connection, and wrap the backup call in a `try` with a process-level timeout.
-
----
+### 7. The new runtime dependencies described by the specs are not declared in `pyproject.toml`
+- Severity: Medium
+- Files: `pyproject.toml:10-19`
+- Problem: `pyproject.toml` only declares `pyyaml`, `requests`, and `rich`. The specs/review guide call out `google-auth`, `google-api-python-client`, and `psutil` as required for the new modules’ intended behavior.
+- Impact:
+  - `calctl` cannot use direct Google Calendar access outside environments that already happen to provide those libs.
+  - `statusctl` has no `psutil` path for cross-platform metrics, so macOS falls back to partial `/proc` warnings instead of the promised portability.
+- Note: the code does degrade in some cases, but that does not satisfy the guide’s “dependencies are declared” requirement.
 
 ## Low Findings
 
-### L-1. calctl cli.py: `main()` exits with 0 when no subcommand given (should be 1 or show help+error)
-
-**File:** `halos/calctl/cli.py:247`
-
-**What:** `sys.exit(0)` when no command is provided. Convention in other halos modules (ledgerctl, etc.) varies, but a successful exit code for "did nothing" is misleading in automation contexts.
-
-**Impact:** A script checking `calctl` exit code will believe it succeeded when no operation was performed.
-
-**Fix:** Exit with 1 or 2 (usage error) when no subcommand is given, matching POSIX convention.
-
-### L-2. mailctl engine.py: search() splits query on whitespace, breaking quoted IMAP searches
-
-**File:** `halos/mailctl/engine.py:91`
-
-**What:** `*query.split()` splits the search query on whitespace before passing as separate arguments to himalaya. IMAP search queries can contain quoted strings (e.g., `FROM "John Doe"`), which this splitting breaks into `["FROM", "\"John", "Doe\""]`.
-
-**Impact:** Multi-word search queries will produce unexpected results or errors from himalaya.
-
-**Fix:** Pass `query` as a single argument rather than splitting it: `["envelope", "list", "--folder", folder, query]`. Or use `shlex.split()` to respect quoting.
-
-### L-3. ledgerctl posting regex doesn't handle all currency formats
-
-**File:** `halos/ledgerctl/journal.py:153-154`
-
-**What:** The regex `([A-Z]{2,3}|\$|€|£)` only handles 2-3 letter currency codes and three specific symbols. Currency codes like `NZ$` (as used in ANZ NZ context) are not matched. The regex also requires `{2,}` minimum spaces between account and amount, which may not match all valid hledger formats.
-
-**Impact:** Journal entries with `NZ$` or other multi-char symbols will fail to parse, losing the currency on round-trip.
-
-**Fix:** Expand the currency regex to handle common compound symbols: `([A-Z]{2,3}\$?|\$|€|£|¥)`.
-
----
+### 8. `ledgerctl` atomic writers use `os.rename()` instead of the project-required `os.replace()`
+- Severity: Low
+- Files: `halos/ledgerctl/journal.py:219-230`, `halos/ledgerctl/rules.py:62-74`
+- Problem: the review guide requires temp-file then `os.replace()` for file writes. These writers use `os.rename()` instead.
+- Impact: on Linux this will usually work, but it weakens the intended portability/overwrite guarantee and diverges from the project’s stated atomic-write rule.
+- Scope: this is a standards/compliance issue more than an observed Linux data-loss bug.
 
 ## Test Coverage Report
 
-```
-281 passed, 0 failed, 71% aggregate line coverage
+Command run:
 
-Module                              Stmts   Miss   Cover
----------------------------------------------------------
-halos/calctl/engine.py                65      0    100%
-halos/calctl/briefing.py              28      0    100%
-halos/calctl/sources.py              248     71     71%
-halos/calctl/cli.py                  150     69     54%   <-- CLI untested
-halos/statusctl/engine.py             38      0    100%
-halos/statusctl/briefing.py           12      0    100%
-halos/statusctl/checks.py            181     11     94%
-halos/statusctl/cli.py                97     20     79%
-halos/backupctl/config.py             66      2     97%
-halos/backupctl/engine.py            238     72     70%
-halos/backupctl/cli.py               103     18     83%
-halos/backupctl/briefing.py           36     11     69%
-halos/ledgerctl/journal.py           136     21     85%
-halos/ledgerctl/importer.py           60      9     85%
-halos/ledgerctl/reports.py           155     32     79%
-halos/ledgerctl/rules.py              59     15     75%
-halos/ledgerctl/cli.py               175     58     67%
-halos/dashctl/html_export.py          15      0    100%
-halos/dashctl/panels.py              124    124      0%  <-- zero coverage
-halos/dashctl/cli.py                  83     83      0%  <-- zero coverage
-halos/mailctl/ (entire module)         -      -      0%  <-- NO TESTS EXIST
+```bash
+uv run python -m pytest tests/calctl/ tests/statusctl/ tests/backupctl/ tests/ledgerctl/ tests/dashctl/ --cov=halos.calctl --cov=halos.statusctl --cov=halos.backupctl --cov=halos.ledgerctl --cov=halos.dashctl --cov-report=term-missing
 ```
 
-**Key gaps:**
-- mailctl: entire module untested (H-3)
-- dashctl/panels.py: 0% coverage (the core rendering logic)
-- dashctl/cli.py: 0% coverage (mode dispatch)
-- calctl/cli.py: 54% (most subcommands untested)
-- backupctl/engine.py: restic and restore paths untested (mocking needed)
+Result:
 
----
+```text
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.3-final-0 ________________
+
+Name                                Stmts   Miss  Cover   Missing
+-----------------------------------------------------------------
+halos/backupctl/__init__.py             0      0   100%
+halos/backupctl/briefing.py            36     11    69%   14-18, 33-36, 50, 56-57
+halos/backupctl/cli.py                103     18    83%   60-68, 86, 92, 154-159, 164-184, 195
+halos/backupctl/config.py              66      2    97%   47, 128
+halos/backupctl/engine.py             238     72    70%   24, 33, 42-70, 128, 156, 175, 186-217, 254-260, 276, 294, 308-309, 368-369, 402-404, 407, 439, 447-470, 486-496, 518-524, 543, 548, 555-558
+halos/calctl/__init__.py                0      0   100%
+halos/calctl/briefing.py               28      0   100%
+halos/calctl/cli.py                   150     69    54%   31, 36-58, 62, 75-85, 102-106, 110-121, 133-138, 159-163, 180-188, 242-259, 263
+halos/calctl/engine.py                 65      0   100%
+halos/calctl/sources.py               248     71    71%   55, 82-87, 99-100, 109, 158-163, 168, 175-176, 183, 190-191, 241-242, 244-249, 253-301, 305-319, 329, 337-338, 373-377, 380-381, 408-411, 434, 462-464
+halos/dashctl/__init__.py               0      0   100%
+halos/dashctl/cli.py                   83     83     0%   11-134
+halos/dashctl/html_export.py           15      0   100%
+halos/dashctl/panels.py               124    124     0%   7-189
+halos/ledgerctl/__init__.py             0      0   100%
+halos/ledgerctl/banks/__init__.py      15      1    93%   33
+halos/ledgerctl/banks/anz.py            3      0   100%
+halos/ledgerctl/banks/wise.py           3      0   100%
+halos/ledgerctl/briefing.py            31      3    90%   29-30, 60
+halos/ledgerctl/cli.py                175     58    67%   100-101, 116-117, 127-129, 136, 142, 155, 182-201, 210, 216-221, 226-231, 239, 242-243, 254-268, 273-278, 284-285, 304-306, 316, 320
+halos/ledgerctl/importer.py            60      9    85%   65, 83, 88-92, 98-102, 107
+halos/ledgerctl/journal.py            136     21    85%   63-67, 109, 119, 128, 149, 163, 171-175, 214, 227-231, 245
+halos/ledgerctl/reports.py            155     32    79%   22, 32-42, 51, 55, 58, 85-88, 122-125, 136, 145, 178-181, 194, 209, 249-252
+halos/ledgerctl/rules.py               59     15    75%   25-29, 69-76, 102, 107
+halos/statusctl/__init__.py             0      0   100%
+halos/statusctl/__main__.py             2      2     0%   2-4
+halos/statusctl/briefing.py            12      0   100%
+halos/statusctl/checks.py             181     11    94%   33, 184-187, 250-252, 290-291, 296, 352
+halos/statusctl/cli.py                 97     20    79%   19-48, 164-166, 179
+halos/statusctl/engine.py              38      0   100%
+-----------------------------------------------------------------
+TOTAL                                2123    622    71%
+======================== 281 passed, 1 warning in 3.27s ========================
+```
+
+Additional coverage observations:
+- `dashctl/cli.py` and `dashctl/panels.py` show 0% under the selected `dashctl` tests, even though the HTML path is exercised. The TUI/default rendering path is still effectively unvalidated here.
+- `calctl/cli.py` remains only 54% covered, which aligns with the missing edge-case coverage around range parsing and output branches.
+- `mailctl` has no dedicated coverage at all.
 
 ## Recommendations
 
-**Priority 1 (fix before next deploy):**
-1. **C-1:** Fix the crash-in-error-handler in journal.py (data loss path)
-2. **H-1:** Replace `os.rename` with `os.replace` in ledgerctl (2 lines)
-3. **H-2:** Fix the inconsistent flag checking in mailctl triage
-
-**Priority 2 (this week):**
-4. **H-3:** Create basic test suite for mailctl
-5. **H-4:** Fix tar filename parsing for hyphenated target names
-6. **H-5:** Add regex timeout or complexity limit to ledgerctl
-
-**Priority 3 (backlog):**
-7. **M-1 through M-5:** Address medium findings
-8. Add tests for dashctl/panels.py and dashctl/cli.py
-9. Expand calctl CLI test coverage
-
----
-
-*Report generated 2026-03-21 by adversarial-reviewer agent.*
+1. Fix `calctl` data correctness first: support `deadline`/`scheduled` ingestion and add real deduplication in `merge_events()`.
+2. Fix `statusctl` grading semantics next: missing optional tools should degrade gracefully, and container exit accounting must distinguish clean exits from failures.
+3. Close the biggest test gap by adding a dedicated `tests/mailctl/` suite for subprocess failures, deterministic triage, and audit logging.
+4. Align packaging with the shipped features by declaring the new dependencies in `pyproject.toml`, or explicitly downgrade the feature claims/docs.
+5. Clean up API/contract mismatches such as `backupctl verify --target`.
+6. Standardise atomic writes on `os.replace()` everywhere the review guide requires it.
