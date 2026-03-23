@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jobctl"
+version = "0.1.0"
+description = "Job hunting CLI for the halos ecosystem"
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.0",
+    "rich>=14.0",
+    "anthropic>=0.84.0",
+]
+
+[project.scripts]
+jobctl = "jobctl.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["jobctl"]
