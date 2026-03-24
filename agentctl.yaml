@@ -1,5 +1,0 @@
-sessions_dir: ./data/agent-sessions
-log_dirs:
-  - ./groups/*/logs/
-spin_threshold_secs: 600
-error_streak_threshold: 3

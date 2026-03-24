@@ -1,5 +1,0 @@
-cron_dir: ./cron
-jobs_dir: ./cron/jobs
-output_file: ./cron/crontab.generated
-log_dir: ./logs/cron
-install_method: user-crontab

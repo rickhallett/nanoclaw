@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 .npm-cache/
+
 # Build output
 dist/
 
@@ -9,37 +10,63 @@ __pycache__/
 *.pyc
 .venv/
 
-# Local data & auth
-store/
-data/
-logs/
+# ── Personal data (never publish) ───────────────────
+# Memory, notes, reflections, session dumps
+memory/*
+!memory/.gitkeep
 
-# Groups - only track base structure and specific CLAUDE.md files
+# Group chat data, conversation logs, container logs
 groups/*
-!groups/main/
-!groups/global/
-groups/main/*
-groups/global/*
-!groups/main/CLAUDE.md
-!groups/global/CLAUDE.md
+!groups/.gitkeep
 
-# Secrets
-*.keys.json
+# SQLite databases, application state
+store/*
+!store/.gitkeep
+
+# Runtime data, agent sessions, IPC
+data/*
+!data/.gitkeep
+
+# Structured logs
+logs/*
+!logs/.gitkeep
+
+# Work queue items and plans
+queue/*
+!queue/.gitkeep
+
+# Backlog items
+backlog/*
+!backlog/.gitkeep
+
+# Generated crontab (job definitions in cron/jobs/ are fine)
+cron/crontab.generated
+
+# ── Secrets ─────────────────────────────────────────
 .env
+*.keys.json
+credentials-prime.json
 
-# Temp files
+# ── Config that's personal ──────────────────────────
+# These YAML configs contain personal schedules, accounts, paths
+# See config-examples/ for templates
+nightctl.yaml
+cronctl.yaml
+memctl.yaml
+logctl.yaml
+briefings.yaml
+reportctl.yaml
+todoctl.yaml
+agentctl.yaml
+
+# ── Fleet (contains bot tokens, user data) ──────────
+gateway/halfleet/
+
+# ── Temp / OS / IDE ────────────────────────────────
 .tmp-*
-
-# OS
 .DS_Store
-
-# IDE
 .idea/
 .vscode/
-
-# Skills system (local per-installation state)
 .nanoclaw/
-
-agents-sdk-docs
-credentials-prime.json
 .mcp.json
+agents-sdk-docs

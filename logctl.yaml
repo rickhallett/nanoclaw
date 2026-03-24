@@ -1,8 +1,0 @@
-log_dir: ./logs
-sources:
-  halo: ./logs/halo.log
-  halo_error: ./logs/halo.error.log
-  halos: ./logs/halos.log
-  supervisor: ./logs/supervisor.log
-format: pino
-tail_lines: 50
