@@ -36,8 +36,9 @@ A single Node.js process that:
 ┌──────────────────────────────────────────────────┐
 │ container-runner                                  │
 │  Docker container per invocation                  │
-│  Mounted: group folder, halos tools, credentials  │
+│  Mounted: group folder, halos CLIs, credentials   │
 │  Claude Agent SDK conversation                    │
+│  ⚠ No macOS access — steer/drive not available    │
 └──────────────────────────────────────────────────┘
 ```
 

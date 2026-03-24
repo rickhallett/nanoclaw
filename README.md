@@ -29,13 +29,14 @@ The architectural thesis: if 75% of software is GUI chrome over simple data oper
 │                     gateway/ (TypeScript)                        │
 │   Channel routing · Container orchestration · Credential proxy  │
 │   Group isolation · Session management · Fleet provisioning     │
+│   Containers get: halos CLIs, Claude agent, sandboxed filesystem│
 ├─────────────────────────────────────────────────────────────────┤
-│                     agent/ (Swift + Python)                      │
+│                     agent/ (Swift + Python) ⚠ macOS host only   │
 │   steer: GUI automation (screenshot, OCR, click, type, hotkey)  │
 │   drive: terminal control (tmux sessions, parallel execution)   │
-│   listen: job server (HTTP → agent worker) · direct: CLI client │
+│   listen: job server (HTTP → agent on host) · direct: CLI client│
 ├─────────────────────────────────────────────────────────────────┤
-│                     halos/ (Python)                              │
+│                     halos/ (Python) — available everywhere       │
 │   nightctl · calctl · trackctl · ledgerctl · mailctl · memctl   │
 │   cronctl · halctl · dashctl · statusctl · logctl · reportctl   │
 │   briefings · agentctl · backupctl · blogctl · carnivorectl     │
@@ -94,13 +95,13 @@ Python · 17 CLI tools · [README →](halos/README.md)
 
 Swift + Python · [README →](agent/README.md)
 
-Gives AI agents full control of macOS — clicking buttons, reading screens via OCR, typing into apps, and orchestrating terminals via tmux.
+Gives AI agents full control of macOS — clicking buttons, reading screens via OCR, typing into apps, and orchestrating terminals via tmux. **Requires direct macOS host access** — these tools run on the Mac Mini via the Listen job server, not inside gateway containers.
 
 | Tool | Language | Purpose |
 |------|----------|---------|
 | steer | Swift | 14 GUI commands (see, click, type, hotkey, OCR, scroll, drag, find...) |
 | drive | Python | 6 tmux commands (session, run, send, logs, poll, fanout) |
-| listen | Python | FastAPI job server — accepts prompts, spawns Claude agents |
+| listen | Python | FastAPI job server — accepts prompts, spawns Claude agents on the host |
 | direct | Python | CLI client for listen |
 
 ## How Modules Compose
@@ -119,15 +120,28 @@ cronctl (6:00 trigger)
     → deliver (Telegram)  → message to Operator
 ```
 
-**Agent computer-use pipeline:**
+**Telegram → containerised agent:**
 ```
 Telegram message → gateway routes → container spawns Claude agent
   → agent reads CLAUDE.md (knows about halos tools)
-  → agent runs: steer see --app Safari (screenshot)
-  → agent runs: steer ocr --app Safari (read text)
   → agent runs: nightctl add --title "Found bug in header"
+  → agent runs: memctl search --tags arch
   → agent responds via Telegram
 ```
+
+**Mac Mini computer-use (via Listen server, not containers):**
+```
+POST /job "Open Safari and screenshot HN"
+  → Listen spawns Claude agent on the Mac Mini
+  → agent runs: steer see --app Safari (screenshot — requires macOS)
+  → agent runs: steer ocr --app Safari (read text — requires macOS)
+  → agent runs: drive run --session dev "npm test" (tmux — requires host)
+  → job result returned via GET /job/{id}
+```
+
+Note: steer and drive require direct macOS access (Accessibility, Screen
+Recording, tmux). They are not available inside gateway containers — only
+on the Mac Mini host via the Listen job server.
 
 ## Data Architecture
 
