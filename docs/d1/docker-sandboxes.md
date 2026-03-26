@@ -84,7 +84,7 @@ Halo must live inside the workspace directory — Docker-in-Docker can only bind
 ```bash
 # Clone to home first (virtiofs can corrupt git pack files during clone)
 cd ~
-git clone https://github.com/qwibitai/halo.git
+git clone https://github.com/rickhallett/halo.git
 
 # Replace with YOUR workspace path (the host path you passed to `docker sandbox create`)
 WORKSPACE=/Users/you/halo-workspace
@@ -354,7 +354,7 @@ docker sandbox network proxy <sandbox-name> \
 ### Git clone fails with "inflate: data stream error"
 Clone to a non-workspace path first, then move:
 ```bash
-cd ~ && git clone https://github.com/qwibitai/halo.git && mv halo /path/to/workspace/halo
+cd ~ && git clone https://github.com/rickhallett/halo.git && mv halo /path/to/workspace/halo
 ```
 
 ### WhatsApp QR code doesn't display

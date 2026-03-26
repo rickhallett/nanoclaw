@@ -24,38 +24,9 @@ AskUserQuestion: Should incoming emails be able to trigger the agent?
 
 ## Phase 2: Apply Code Changes
 
-### Ensure channel remote
+Gmail channel code is bundled in `src/channels/gmail.ts`. If Phase 1 confirmed it exists, skip this phase.
 
-```bash
-git remote -v
-```
-
-If `gmail` is missing, add it:
-
-```bash
-git remote add gmail https://github.com/qwibitai/halo-gmail.git
-```
-
-### Merge the skill branch
-
-```bash
-git fetch gmail main
-git merge gmail/main || {
-  git checkout --theirs package-lock.json
-  git add package-lock.json
-  git merge --continue
-}
-```
-
-This merges in:
-- `src/channels/gmail.ts` (GmailChannel class with self-registration via `registerChannel`)
-- `src/channels/gmail.test.ts` (unit tests)
-- `import './gmail.js'` appended to the channel barrel file `src/channels/index.ts`
-- Gmail credentials mount (`~/.gmail-mcp`) in `src/container-runner.ts`
-- Gmail MCP server (`@gongrzhe/server-gmail-autoauth-mcp`) and `mcp__gmail__*` allowed tool in `container/agent-runner/src/index.ts`
-- `googleapis` npm dependency in `package.json`
-
-If the merge reports conflicts, resolve them by reading the conflicted files and understanding the intent of both sides.
+If `src/channels/gmail.ts` is missing, the code must be added manually — check the repo history or restore from a backup.
 
 ### Add email handling instructions (Channel mode only)
 

@@ -25,7 +25,7 @@ git remote -v
 If `whatsapp` is missing, add it:
 
 ```bash
-git remote add whatsapp https://github.com/qwibitai/halo-whatsapp.git
+# WhatsApp channel code is not bundled. Ensure src/channels/whatsapp.ts exists before proceeding.
 ```
 
 ### Merge the skill branch

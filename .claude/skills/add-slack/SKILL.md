@@ -19,37 +19,16 @@ Check if `src/channels/slack.ts` exists. If it does, skip to Phase 3 (Setup). Th
 
 ## Phase 2: Apply Code Changes
 
-### Ensure channel remote
+### Install channel code
 
-```bash
-git remote -v
-```
-
-If `slack` is missing, add it:
-
-```bash
-git remote add slack https://github.com/qwibitai/halo-slack.git
-```
-
-### Merge the skill branch
-
-```bash
-git fetch slack main
-git merge slack/main || {
-  git checkout --theirs package-lock.json
-  git add package-lock.json
-  git merge --continue
-}
-```
-
-This merges in:
+Slack channel code is not bundled in this repo. The files required are:
 - `src/channels/slack.ts` (SlackChannel class with self-registration via `registerChannel`)
-- `src/channels/slack.test.ts` (46 unit tests)
+- `src/channels/slack.test.ts` (unit tests)
 - `import './slack.js'` appended to the channel barrel file `src/channels/index.ts`
 - `@slack/bolt` npm dependency in `package.json`
 - `SLACK_BOT_TOKEN` and `SLACK_APP_TOKEN` in `.env.example`
 
-If the merge reports conflicts, resolve them by reading the conflicted files and understanding the intent of both sides.
+These files must be added manually before proceeding. Ask the user where the Slack channel source is located.
 
 ### Validate code changes
 

@@ -32,7 +32,7 @@ git remote -v
 If `discord` is missing, add it:
 
 ```bash
-git remote add discord https://github.com/qwibitai/halo-discord.git
+# Discord channel code is not bundled. Add src/channels/discord.ts manually.
 ```
 
 ### Merge the skill branch

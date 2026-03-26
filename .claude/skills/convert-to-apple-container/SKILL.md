@@ -58,7 +58,6 @@ git remote -v
 If `upstream` is missing, add it:
 
 ```bash
-git remote add upstream https://github.com/qwibitai/halo.git
 ```
 
 ### Merge the skill branch

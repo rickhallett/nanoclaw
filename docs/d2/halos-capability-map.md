@@ -217,7 +217,7 @@ Storage: `watches/` directory. Each watch is a YAML file. Check results stored a
 
 **What it looks like:**
 ```
-syncctl add --name github-issues --source github:qwibitai/thepit --target todoctl --interval 1h
+syncctl add --name github-issues --source github:rickhallett/thepit --target todoctl --interval 1h
 syncctl run --name github-issues
 syncctl list
 syncctl status --name github-issues

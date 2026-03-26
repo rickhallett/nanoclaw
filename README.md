@@ -176,6 +176,3 @@ Storage principle: SQLite for queryable data. YAML for human-readable config. Ma
 
 MIT
 
-## Provenance
-
-Forked from [qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw). Diverged significantly — the monorepo structure, fleet management, halos toolchain, agent computer-use integration, and full ecosystem are original work.

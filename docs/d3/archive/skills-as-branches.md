@@ -1,7 +1,7 @@
 ---
 title: "Skills as Branches"
 category: spec
-status: active
+status: archived
 created: 2026-03-10
 ---
 

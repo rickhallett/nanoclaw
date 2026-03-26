@@ -28,7 +28,7 @@ git fetch upstream skill/compact
 git merge upstream/skill/compact
 ```
 
-> **Note:** `upstream` is the remote pointing to `qwibitai/halo`. If using a different remote name, substitute accordingly.
+> **Note:** `upstream` must be configured as a remote pointing to your source repo. If using a different remote name, substitute accordingly.
 
 This adds:
 - `src/session-commands.ts` (extract and authorize session commands)

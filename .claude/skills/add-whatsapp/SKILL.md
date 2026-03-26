@@ -46,32 +46,11 @@ AskUserQuestion: What is your phone number? (Include country code without +, e.g
 
 Check if `src/channels/whatsapp.ts` already exists. If it does, skip to Phase 3 (Authentication).
 
-### Ensure channel remote
+### Install channel code
 
-```bash
-git remote -v
-```
-
-If `whatsapp` is missing, add it:
-
-```bash
-git remote add whatsapp https://github.com/qwibitai/halo-whatsapp.git
-```
-
-### Merge the skill branch
-
-```bash
-git fetch whatsapp main
-git merge whatsapp/main || {
-  git checkout --theirs package-lock.json
-  git add package-lock.json
-  git merge --continue
-}
-```
-
-This merges in:
+WhatsApp channel code is not bundled in this repo. The files required are:
 - `src/channels/whatsapp.ts` (WhatsAppChannel class with self-registration via `registerChannel`)
-- `src/channels/whatsapp.test.ts` (41 unit tests)
+- `src/channels/whatsapp.test.ts` (unit tests)
 - `src/whatsapp-auth.ts` (standalone WhatsApp authentication script)
 - `setup/whatsapp-auth.ts` (WhatsApp auth setup step)
 - `import './whatsapp.js'` appended to the channel barrel file `src/channels/index.ts`
@@ -79,7 +58,7 @@ This merges in:
 - `@whiskeysockets/baileys`, `qrcode`, `qrcode-terminal` npm dependencies in `package.json`
 - `ASSISTANT_HAS_OWN_NUMBER` in `.env.example`
 
-If the merge reports conflicts, resolve them by reading the conflicted files and understanding the intent of both sides.
+These files must be added manually before proceeding. Ask the user where the WhatsApp channel source is located.
 
 ### Validate code changes
 
