@@ -8,7 +8,8 @@ from halos.calctl.sources import CalendarEvent, Source
 
 
 def _utc(hour: int, minute: int = 0) -> datetime:
-    return datetime(2026, 3, 21, hour, minute, tzinfo=timezone.utc)
+    today = datetime.now(timezone.utc)
+    return today.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
 
 class StubSource(Source):

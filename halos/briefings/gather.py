@@ -268,8 +268,10 @@ def _get_recent_errors(cfg: Config) -> list[str]:
             cwd=str(cfg.project_root),
         )
         if result.returncode == 0 and result.stdout.strip():
-            lines = result.stdout.strip().splitlines()
-            return [line.strip() for line in lines if line.strip()][:20]
+            lines = [line.strip() for line in result.stdout.strip().splitlines() if line.strip()]
+            if lines == ["No errors in the last 24 hours."]:
+                return []
+            return lines[:20]
     except (subprocess.TimeoutExpired, FileNotFoundError):
         pass
     return []

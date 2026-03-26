@@ -10,6 +10,7 @@ Your best work happens while you sleep.
 import hashlib
 import os
 import re
+import tempfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -340,15 +341,25 @@ class Item:
         if not self.file_path:
             raise RuntimeError("No file path set — Item was constructed without a path")
 
-        tmp = self.file_path.with_suffix(".yaml.tmp")
+        tmp_path: Path | None = None
         try:
-            tmp.write_text(self.to_yaml())
-            os.replace(str(tmp), str(self.file_path))
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=self.file_path.parent,
+                prefix=f"{self.file_path.stem}-",
+                suffix=".tmp",
+                delete=False,
+            ) as tmp_file:
+                tmp_file.write(self.to_yaml())
+                tmp_path = Path(tmp_file.name)
+            os.replace(str(tmp_path), str(self.file_path))
         except OSError as e:
-            try:
-                tmp.unlink(missing_ok=True)
-            except OSError:
-                pass
+            if tmp_path is not None:
+                try:
+                    tmp_path.unlink(missing_ok=True)
+                except OSError:
+                    pass
             raise SaveError(f"Failed to save {self.file_path.name}: {e}") from e
 
     def file_hash(self) -> str:

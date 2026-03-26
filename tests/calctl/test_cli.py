@@ -12,8 +12,11 @@ from halos.calctl.cli import build_parser, cmd_today, cmd_conflicts, cmd_free, c
 from halos.calctl.sources import CalendarEvent, Source
 
 
-def _utc(hour: int, minute: int = 0, day: int = 21) -> datetime:
-    return datetime(2026, 3, day, hour, minute, tzinfo=timezone.utc)
+def _utc(hour: int, minute: int = 0, day: int | None = None) -> datetime:
+    base = datetime.now(timezone.utc)
+    if day is not None:
+        base = base.replace(day=day)
+    return base.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
 
 def _ev(title, start_h, end_h=None, source="test"):

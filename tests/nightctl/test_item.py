@@ -1,7 +1,9 @@
 """Tests for nightctl unified Item model."""
 
-import pytest
+import threading
 from pathlib import Path
+
+import pytest
 
 from halos.nightctl.item import (
     Item,
@@ -296,6 +298,31 @@ class TestLifecycle:
 # ---------------------------------------------------------------------------
 
 class TestPersistence:
+    def test_concurrent_save_uses_thread_safe_temp_files(self, tmp_path):
+        items_dir = tmp_path / "items"
+        item = Item.create(items_dir, title="Concurrent save", kind="task")
+        barrier = threading.Barrier(5)
+        errors = []
+
+        def worker(priority):
+            try:
+                barrier.wait()
+                item.data["priority"] = priority
+                item.save()
+            except Exception as exc:  # pragma: no cover - captured for assertion
+                errors.append(exc)
+
+        threads = [threading.Thread(target=worker, args=(p,)) for p in range(1, 6)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert errors == []
+        reloaded = Item.from_file(item.file_path)
+        assert reloaded.priority in range(1, 6)
+        assert list(items_dir.glob("*.tmp")) == []
+
     def test_save_and_reload(self, tmp_path):
         item = Item.create(tmp_path, title="Persist me", kind="task")
         item.transition("in-progress")

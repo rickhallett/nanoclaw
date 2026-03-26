@@ -945,7 +945,7 @@ class TestAC24Migration:
 class TestAC25TodoctlRemoved:
     def test_ac_25_no_todoctl_in_pyproject(self):
         """AC25: pyproject.toml does not contain a todoctl console_script entry."""
-        pyproject = Path("/home/mrkai/code/halo/pyproject.toml")
+        pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
         content = pyproject.read_text()
         # Check that there's no "todoctl" entry in the scripts section
         assert "todoctl" not in content

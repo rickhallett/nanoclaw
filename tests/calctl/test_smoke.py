@@ -3,6 +3,7 @@
 import json
 import subprocess
 import sys
+import warnings
 from pathlib import Path
 
 import pytest
@@ -74,6 +75,11 @@ class TestSmoke:
 
         src = GoogleCalendarSource()
         start, end = day_bounds()
-        # Should return empty list, not crash
-        events = src.fetch(start, end)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="Google Calendar credentials not found.*",
+            )
+            # Should return empty list, not crash
+            events = src.fetch(start, end)
         assert isinstance(events, list)
