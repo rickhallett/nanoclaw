@@ -136,6 +136,7 @@ All agent tooling lives in the `halos/` Python package with console_scripts entr
 | dashctl   | `dashctl`      | TUI dashboard — RPG character sheet for personal metrics + Eisenhower view |
 | halctl    | `halctl`       | Session lifecycle + health checks                                          |
 | mailctl   | `mailctl`      | Gmail operations via himalaya: inbox, search, triage, filters, briefing summary |
+| watchctl  | `watchctl`     | YouTube channel monitor — RSS feed → transcript → LLM-as-judge eval → Obsidian notes |
 
 ### trackctl API
 
@@ -197,6 +198,24 @@ dashctl --text         # plain-text for agent/briefing consumption
 ```
 
 **Programmatic access:** `halos.dashctl.panels.full_dashboard()` returns a list of Rich renderables.
+
+### watchctl API
+
+YouTube channel monitor with LLM-as-judge triage. Watches channels via RSS, fetches transcripts, evaluates against a YAML rubric, writes Obsidian notes.
+
+```bash
+watchctl scan                          # full pipeline: fetch → evaluate → write → Telegram digest
+watchctl scan --dry-run                # show new videos without evaluating
+watchctl scan --channel "Theo"         # single channel only
+watchctl channels                      # list configured channels
+watchctl list [--days N] [--json]      # list recent evaluations
+watchctl stats                         # cost tracking, score distributions
+```
+
+**Config:** `watchctl.yaml` (channels, model, vault path) + `rubrics/watchctl-triage.yaml` (criteria, weights, verdict thresholds).
+**Output:** Obsidian notes in `~/Documents/vault/main/code/youtube-monitor/` with dataview-compatible frontmatter.
+**LLM:** Groq (llama-3.3-70b) via GROQ_API_KEY, falls back to Anthropic API or Claude CLI.
+**Transcripts:** `youtube-transcript-api` with cookie auth (`cookies.txt` at project root via `yt-dlp --cookies-from-browser chrome`).
 
 ### mailctl API
 
@@ -333,15 +352,15 @@ created: YYYY-MM-DD
 
 ## Scope Estimation
 
-All scope estimates must be expressed as **agent-minutes × human-minutes**, not wall-clock time or "effort."
+Scope estimates must separate **agent work** from **human work** — never express them as a single wall-clock figure.
 
 Why:
 
 - LLM reasoning priors about task duration are calibrated to human software development speeds. Those priors are outdated in an agent-assisted context.
-- Read/write operations are asymmetric across the HCI interface: agents read fast and write fast; humans read slower but judge better. Estimates that ignore this produce bad plans.
-- This is a critical-path constraint. The number of downstream decisions affected by scope estimation is quadratic in complexity — a wrong estimate at the top cascades through scheduling, parallelism, review allocation, and commit cadence.
+- Read/write operations are asymmetric: agents read fast and write fast; humans read slower but judge better. Estimates that ignore this produce bad plans.
+- A wrong estimate at the top cascades through scheduling, parallelism, review allocation, and commit cadence.
 
-Do not say "this will take 2-3 hours." Say "~15 agent-minutes of generation + ~30 human-minutes of review and decision-making." The distinction changes how we plan.
+Express scope as: generation volume (agent work) × review and decision load (human work). The distinction changes how we plan.
 
 ## AI Engineering Governance
 
