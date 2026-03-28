@@ -106,3 +106,7 @@ After writing your summary, clean up everything you created during the job:
 - **Leave the desktop as you found it** — minimize or close windows you opened
 
 Do NOT kill your own job session (`job-{{JOB_ID}}`) — the worker process handles that.
+
+### 4. Exit
+
+After cleanup is complete, type `/exit` to end your session. This is critical — the job system detects completion via a sentinel that only fires after you exit. If you don't exit, the job hangs as "running" forever.

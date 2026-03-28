@@ -164,6 +164,7 @@ def main():
     # Build the claude command
     if mode == "interactive":
         # Interactive mode: visible in tmux, agent runs with full TUI
+        # Agent must /exit when done — sentinel fires after claude process exits
         claude_cmd = (
             f"claude --dangerously-skip-permissions"
             f' --append-system-prompt "$(cat {sys_prompt_tmp})"'
