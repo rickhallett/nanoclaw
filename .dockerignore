@@ -1,0 +1,36 @@
+# Git
+.git
+.gitmodules
+
+# Python
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+.mypy_cache
+
+# Node
+node_modules
+
+# Halo runtime state (never bake into image)
+store/
+memory/
+data/
+
+# Docs and config not needed in image
+docs/
+.claude/
+.pi/
+.github/
+*.md
+!docker/defaults/*.md
+
+# IDE
+.vscode/
+.idea/
+
+# Tests (not needed in production image)
+tests/
+
+# Vendor submodule has its own ignores — don't double-exclude
+!vendor/

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: halo-gateway
+  labels:
+    app.kubernetes.io/name: halo-gateway
+    app.kubernetes.io/part-of: halo
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # Single replica + PVC = no rolling update possible
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: halo-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: halo-gateway
+      annotations:
+        # Force pod restart when ConfigMap/Secret content changes.
+        # Client overlay must set this to a hash of config content.
+        checksum/config: "MUST_BE_SET_BY_OVERLAY"
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: gateway
+          # Base uses a placeholder. Client overlays MUST patch to a pinned
+          # version tag (e.g. ghcr.io/rickhallett/halo:v1.0.0).
+          image: ghcr.io/rickhallett/halo:MUST_BE_PATCHED_BY_OVERLAY
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: config
+              mountPath: /opt/data/config.yaml
+              subPath: config.yaml
+            - name: prompt
+              mountPath: /opt/data/system-prompt.md
+              subPath: system-prompt.md
+            - name: soul
+              mountPath: /opt/data/SOUL.md
+              subPath: SOUL.md
+            - name: secrets
+              mountPath: /opt/data/.env
+              subPath: .env
+              readOnly: true
+            - name: module-config
+              mountPath: /opt/data/memctl.yaml
+              subPath: memctl.yaml
+            - name: module-config
+              mountPath: /opt/data/watchctl.yaml
+              subPath: watchctl.yaml
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          startupProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - "import os; exit(0 if os.path.exists('/opt/data/heartbeat') else 1)"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30  # 5 min max startup time
+          livenessProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - "import os,time; f='/opt/data/heartbeat'; exit(0 if os.path.exists(f) and time.time()-os.path.getmtime(f)<120 else 1)"
+            periodSeconds: 60
+          readinessProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - "import os,time; f='/opt/data/heartbeat'; exit(0 if os.path.exists(f) and time.time()-os.path.getmtime(f)<120 else 1)"
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: halo-data
+        - name: config
+          configMap:
+            name: halo-config
+        - name: prompt
+          configMap:
+            name: halo-prompt
+        - name: soul
+          configMap:
+            name: halo-soul
+        - name: secrets
+          secret:
+            secretName: halo-secrets
+            defaultMode: 0400  # Owner-read only
+        - name: module-config
+          configMap:
+            name: halo-module-config
+            optional: true  # Not all clients use all modules

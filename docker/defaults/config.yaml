@@ -1,0 +1,34 @@
+# Halo default gateway configuration.
+# In K8s, this is overridden by ConfigMap mount at $HERMES_HOME/config.yaml.
+# For local Docker dev, this file is copied to the data volume on first run.
+
+provider: anthropic
+model: claude-sonnet-4-20250514
+
+gateway:
+  platform: telegram
+  session_reset_idle_minutes: 120
+  session_reset_daily: "03:00"
+
+agent:
+  # System prompt loaded from system-prompt.md by entrypoint (if present)
+  # system_prompt: "override here if not using file"
+  max_turns: 50
+
+# Enabled halos modules (all available; activate per-client)
+halos:
+  enabled_modules:
+    - memctl
+    - nightctl
+    - trackctl
+    - briefings
+    - journalctl
+
+# trackctl domains to activate (must exist in image)
+trackctl:
+  enabled_domains: []
+
+# Briefing schedule (empty = disabled)
+briefings:
+  morning: null
+  nightly: null
