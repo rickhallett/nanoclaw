@@ -27,12 +27,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_SKIP_DIRS: vendor
         with:
           scan-type: fs
           scan-ref: .
           exit-code: 1
           severity: CRITICAL,HIGH
-          skip-dirs: vendor/  # Vendored upstream deps — CVEs tracked separately
 
       - uses: docker/build-push-action@v5
         with:
