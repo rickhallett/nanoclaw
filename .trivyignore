@@ -1,6 +1,14 @@
-# Vendored upstream (hermes-agent) — CVEs tracked separately
+# Vendored upstream (hermes-agent) npm deps
 CVE-2026-29087
 CVE-2026-30827
 CVE-2026-29045
 CVE-2026-4926
 CVE-2026-4800
+
+# Debian 13 base image — no fixes available, OS-level packages
+CVE-2026-33937  # handlebars (debian pkg, not our dep)
+CVE-2026-34873  # libmbedcrypto16
+CVE-2026-34875  # libmbedcrypto16
+CVE-2026-0968   # libssh-4
+CVE-2026-33228  # node-flatted (debian pkg)
+CVE-2026-1525   # node-undici (debian pkg)
