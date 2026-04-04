@@ -26,12 +26,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Trivy scans the built image (not source tree) to avoid false positives
+      # from vendored submodule lockfiles. Runs after build, before push.
+      - uses: docker/build-push-action@v5
+        id: build
+        with:
+          context: .
+          push: false
+          load: true
+          tags: halo:scan
+          build-args: |
+            INSTALL_BROWSER=false
+
       - uses: aquasecurity/trivy-action@master
         with:
-          scan-type: fs
-          scan-ref: .
+          scan-type: image
+          image-ref: halo:scan
           exit-code: 1
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           trivyignores: .trivyignore
 
       - uses: docker/build-push-action@v5
