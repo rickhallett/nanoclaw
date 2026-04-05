@@ -1,0 +1,29 @@
+name: Build Halos Image
+on:
+  push:
+    paths:
+      - 'halos/**'
+      - 'pyproject.toml'
+      - 'Dockerfile.halos'
+    branches: ['feat/containerisation', 'main']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: lhr.vultrcr.com
+          username: ${{ secrets.VULTR_CR_USER }}
+          password: ${{ secrets.VULTR_CR_PASS }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.halos
+          push: true
+          tags: |
+            lhr.vultrcr.com/jeany/halo-halos:latest

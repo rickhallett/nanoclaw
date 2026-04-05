@@ -33,6 +33,14 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: halos-sync
+          image: lhr.vultrcr.com/jeany/halo-halos:latest
+          imagePullPolicy: Always
+          command: ["cp", "-r", "/halos/halos/.", "/target/"]
+          volumeMounts:
+            - name: halos-overlay
+              mountPath: /target
       containers:
         - name: gateway
           image: lhr.vultrcr.com/jeany/halo:fleet-latest
@@ -53,6 +61,8 @@ spec:
               value: "Europe/London"
             - name: PATH
               value: "/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            - name: PYTHONPATH
+              value: "/opt/halos-overlay"
             - name: NATS_URL
               value: "nats://nats.halo-fleet.svc.cluster.local:4222"
             - name: NATS_USER
@@ -83,6 +93,9 @@ spec:
             - name: advisor-secrets
               mountPath: /opt/data/.env
               subPath: .env
+              readOnly: true
+            - name: halos-overlay
+              mountPath: /opt/halos-overlay/halos
               readOnly: true
             - name: data
               mountPath: /opt/data/store
@@ -117,6 +130,9 @@ spec:
           secret:
             secretName: advisor-machiavelli-secrets
             defaultMode: 0400
+        - name: halos-overlay
+          emptyDir:
+            sizeLimit: 10Mi
         - name: data
           emptyDir:
             sizeLimit: 500Mi

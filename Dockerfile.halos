@@ -1,0 +1,11 @@
+# Halos-only image — Python source files, no runtime.
+# Used as an init container to overlay halos into advisor pods.
+#
+# Build:  docker build -f Dockerfile.halos -t halo-halos:latest .
+# Size:   ~5MB (Alpine + Python files only)
+
+FROM alpine:3.21
+COPY halos/ /halos/halos/
+COPY pyproject.toml /halos/
+# Init container copies files then exits
+CMD ["cp", "-r", "/halos/halos/.", "/target/"]
