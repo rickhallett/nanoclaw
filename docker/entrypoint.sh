@@ -98,6 +98,15 @@ cd "$HERMES_HOME"
 # A true deadlock detector requires an in-process health endpoint.
 # Acceptable for Phase 1 — revisit with an HTTP health check sidecar if needed.
 
+# --- Event consumer (NATS → local projection) ---
+# Runs alongside Hermes if NATS_PASS is set. Maintains SQLite projections
+# that halos CLI tools read. Crashes are non-fatal to the main process.
+if [ -n "${NATS_PASS:-}" ]; then
+    python3 -m halos.eventsource.run_consumer &
+    CONSUMER_PID=$!
+    echo "Started event consumer (PID $CONSUMER_PID)" >&2
+fi
+
 hermes "$@" &
 HERMES_PID=$!
 
@@ -120,5 +129,11 @@ EXIT_CODE=$?
 # Kill heartbeat loop (it may already be gone)
 kill "$HEARTBEAT_PID" 2>/dev/null || true
 wait "$HEARTBEAT_PID" 2>/dev/null || true
+
+# Kill event consumer if running
+if [ -n "${CONSUMER_PID:-}" ]; then
+    kill "$CONSUMER_PID" 2>/dev/null || true
+    wait "$CONSUMER_PID" 2>/dev/null || true
+fi
 
 exit "$EXIT_CODE"

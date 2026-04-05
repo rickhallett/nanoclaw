@@ -52,13 +52,22 @@ spec:
               value: "Europe/London"
             - name: PATH
               value: "/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            - name: NATS_URL
+              value: "nats://nats.halo-fleet.svc.cluster.local:4222"
+            - name: NATS_USER
+              value: "advisor"
+            - name: NATS_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nats-auth
+                  key: ADVISOR_PASS
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 50m
+              memory: 192Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 384Mi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
