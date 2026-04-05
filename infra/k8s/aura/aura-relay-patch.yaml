@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: halo-gateway
+  namespace: halo-aura
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+        - name: vultr-cr
+      containers:
+        - name: gateway
+          args:
+            - gateway
+          image: ghcr.io/rickhallett/halo:v0.1.0
+        - name: aura-relay
+          image: lhr.vultrcr.com/jeany/halo:fleet-latest
+          imagePullPolicy: Always
+          command: ["python3", "-m", "halos.eventsource.aura_relay"]
+          env:
+            - name: SESSIONS_DIR
+              value: "/opt/data/sessions"
+            - name: NATS_URL
+              value: "nats://nats.halo-fleet.svc.cluster.local:4222"
+            - name: NATS_USER
+              value: "hq"
+            - name: NATS_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nats-auth
+                  key: HQ_PASS
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+              readOnly: true
