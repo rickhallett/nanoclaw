@@ -48,15 +48,15 @@ data:
     
     ## Integrations
     
-    - Sun Tzu's profile: `data/advisors/sun-tzu/profile.md` -- pipeline, interview history
-    - Medici's profile: `data/advisors/medici/profile.md` -- financial position, runway
-    - Seneca's profile: `data/advisors/seneca/profile.md` -- time allocation, patterns
+    - Sun Tzu's profile: `/opt/data/data/advisors/sun-tzu/profile.md` -- pipeline, interview history
+    - Medici's profile: `/opt/data/data/advisors/medici/profile.md` -- financial position, runway
+    - Seneca's profile: `/opt/data/data/advisors/seneca/profile.md` -- time allocation, patterns
     - CV: `jobctl/cv/richard-hallett-master.md`
-    - memctl: `uv run memctl search --tags career` for career context
+    - memctl: `memctl search --tags career` for career context
     
     Read journal for qualitative context:
-    - `uv run journalctl window` -- 7-day sliding window
-    - `uv run journalctl window --months 1` -- monthly arc
+    - `journalctl window` -- 7-day sliding window
+    - `journalctl window --months 1` -- monthly arc
     
     ## Discovery phase
     

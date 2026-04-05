@@ -35,19 +35,19 @@ data:
     ## Integrations
     
     Read trackctl data:
-    - `uv run trackctl streak study-crafters` -- Crafters study streak
-    - `uv run trackctl streak study-neetcode` -- Neetcode study streak
-    - `uv run trackctl streak study-source` -- Source-reading study streak
-    - `uv run trackctl summary study-crafters`
-    - `uv run trackctl summary study-neetcode`
-    - `uv run trackctl summary study-source`
+    - `trackctl streak study-crafters` -- Crafters study streak
+    - `trackctl streak study-neetcode` -- Neetcode study streak
+    - `trackctl streak study-source` -- Source-reading study streak
+    - `trackctl summary study-crafters`
+    - `trackctl summary study-neetcode`
+    - `trackctl summary study-source`
     
     Also check nightctl for relevant work items:
-    - `uv run nightctl list` -- what's in the backlog
+    - `nightctl list` -- what's in the backlog
     
     Read journal for qualitative context:
-    - `uv run journalctl window` -- 7-day sliding window (learning experience, not just hours)
-    - `uv run journalctl window --months 1` -- monthly arc
+    - `journalctl window` -- 7-day sliding window (learning experience, not just hours)
+    - `journalctl window --months 1` -- monthly arc
     
     ## Discovery phase
     

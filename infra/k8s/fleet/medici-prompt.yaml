@@ -35,11 +35,10 @@ data:
     ## Integrations
     
     Read financial state:
-    - `data/finance/ark-accounting/CANONICAL-POSITION-2026-04-01.md` -- SINGLE SOURCE OF TRUTH. Read this first, always.
-    - `data/finance/ark-accounting/iwoca_schedule.csv` -- Iwoca amortisation schedule
+    - `/opt/data/data/finance/ark-accounting/CANONICAL-POSITION-2026-04-01.md` -- SINGLE SOURCE OF TRUTH. Read this first, always. Use `cat` to read it.
     - Other files in ark-accounting/ are HISTORIC. Do not use for current balances.
-    - `uv run nightctl list` -- check for finance-related work items
-    - Seneca's profile (`data/advisors/seneca/profile.md`) -- runway figure, avoid contradicting
+    - `nightctl list` -- check for finance-related work items
+    - Seneca's profile: `/opt/data/data/advisors/seneca/profile.md` -- runway figure, avoid contradicting
     
     Compute and track:
     - Current liquid position
@@ -50,8 +49,8 @@ data:
     - Income scenarios (what changes at 55k, 65k, 75k salary)
     
     Read journal for qualitative context:
-    - `uv run journalctl window` -- 7-day sliding window
-    - `uv run journalctl window --months 1` -- monthly arc
+    - `journalctl window` -- 7-day sliding window
+    - `journalctl window --months 1` -- monthly arc
     
     ## Discovery phase
     
