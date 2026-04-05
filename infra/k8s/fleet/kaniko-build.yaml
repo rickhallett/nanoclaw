@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: build-halo-fleet
+  namespace: halo-fleet
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      containers:
+        - name: kaniko
+          image: gcr.io/kaniko-project/executor:latest
+          args:
+            - "--dockerfile=Dockerfile"
+            - "--context=git://github.com/rickhallett/halo.git#refs/heads/feat/containerisation"
+            - "--destination=lhr.vultrcr.com/jeany/halo:v0.2.0-fleet"
+            - "--git-recursive-submodules"
+            - "--cache=true"
+            - "--cache-repo=lhr.vultrcr.com/jeany/halo-cache"
+            - "--snapshot-mode=redo"
+            - "--push-retry=3"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 3Gi
+          volumeMounts:
+            - name: docker-config
+              mountPath: /kaniko/.docker/
+      restartPolicy: Never
+      volumes:
+        - name: docker-config
+          secret:
+            secretName: registry-creds
+            items:
+              - key: config.json
+                path: config.json

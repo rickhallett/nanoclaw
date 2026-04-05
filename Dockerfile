@@ -34,7 +34,7 @@ RUN npm install --prefer-offline --no-audit
 COPY halos/ /opt/halos/halos/
 COPY pyproject.toml /opt/halos/
 WORKDIR /opt/halos
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir ".[eventsource]"
 
 # Playwright (optional — disabled by default, saves ~1GB)
 ARG INSTALL_BROWSER=false
