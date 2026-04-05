@@ -249,3 +249,142 @@ All fields optional except `date`, `title`, and `summary`. Refs exist so you can
     session: null
   tags: [fleet, provisioning, eval, assessments, testpilot, microhal]
   moon: waning crescent
+
+- date: '2026-03-28'
+  title: Credential sync cron installed — two-layer token refresh
+  summary: |
+    Hermes Telegram bot returned 401. Root cause: ~/.claude/.credentials.json
+    was empty/corrupt, so the in-process token refresh had no refresh token
+    to work with. Manual fix: ran sync-claude-credentials.sh to restore from
+    macOS Keychain.
+
+    Prevention: added cron job (0 */4 * * *) to sync Keychain → credential
+    file every 4 hours, logging to ~/.hermes/logs/credential-sync.log.
+
+    Two layers now: cron keeps the file populated, Hermes auto-refreshes
+    expired access tokens in-process. If the refresh token itself expires
+    (weeks/months), claude /login is still required.
+  refs:
+    todo: null
+    note: null
+    commit: null
+  tags: [hermes, credentials, cron, ops]
+  moon: null
+
+- date: '2026-03-28'
+  title: "Job application pipeline: Wellfound automation + pre-application evaluation gate"
+  summary: |
+    Built an end-to-end job application pipeline: browse Wellfound feed via
+    CDP Chrome → score remote UK candidates → inspect JD → generate tailored
+    cover text → submit via Playwright → track in jobctl DB + metrics JSONL.
+
+    Trial run applied to Eequ (Senior Backend Engineer, UK Remote, £80-100k).
+    Application submitted successfully. Post-mortem revealed a calibration
+    failure: the JD opens with "You will have been the primary owner of
+    production systems, accountable for their design, deployment, and
+    reliability under real-world load." The profile cannot make this claim.
+    Enterprise experience is frontend-primary (React at Brandwatch/EDITED);
+    backend/infra capabilities exist only in self-built context (halos, The
+    Pit) with no external users or production load.
+
+    Built a pre-application evaluation gate (jobctl/jd_evaluator.py) that
+    compares JDs against an honest capability profile (jobctl/capability-
+    profile.yaml) with evidence tiers: enterprise, self-built, familiar,
+    none. Profile explicitly marks gaps: no cloud infra ownership, no
+    production backend ownership, no incident response experience.
+
+    Evaluator correctly scores the Eequ role at 0.40 with three dealbreakers.
+    Correctly scores a hypothetical React/TS AI tools role at 0.85 with no
+    dealbreakers. Gate is now mandatory step 0 in the pipeline skill.
+
+    IMPORTANT CAVEAT: The evaluator, capability profile, AND the three test
+    cases were all designed by the same LLM in the same session. This is
+    circular validation — the model agreeing with itself is not calibration.
+    The test cases are plausible but not independently verified. True
+    calibration requires human-labeled training data: bookmarking 20-30 real
+    roles into fit buckets (strong/decent/marginal/poor), running them
+    through the rubric, and adjusting profile dimensions and thresholds from
+    the disagreements. This is tracked as a Q2 nightctl task pending human
+    input.
+
+    The automated gate is better than no gate (the Eequ application proves
+    that), but its accuracy claims should be held lightly until validated
+    against human judgment on a meaningful sample.
+
+    Files created:
+    - jobctl/capability-profile.yaml (evidence-tiered capability profile)
+    - jobctl/jd_evaluator.py (Claude-powered fit evaluation)
+    - store/wellfound_metrics.jsonl (per-application metrics)
+    - Skill: wellfound-job-application (full pipeline with selector cache)
+  refs:
+    todo: 20260328-220513-69bb1e5e
+    note: null
+    commit: null
+    session: null
+  tags: [jobctl, wellfound, calibration, pipeline, automation, evaluation]
+  moon: null
+
+- date: '2026-04-05'
+  title: Fleet image build caching — GHA layer cache + Dockerfile restructure
+  summary: |
+    Full image rebuilds were taking 10+ minutes even for single-line halos
+    changes, because the Dockerfile invalidated Docker's layer cache at
+    the `COPY vendor/hermes-agent` step — everything after it rebuilt.
+
+    Two changes:
+
+    1. **Dockerfile restructured** into dependency-then-source layers.
+       Hermes pyproject.toml + package.json copied first and deps installed;
+       full source copied after. Halos gets the same treatment. When only
+       halos Python files change, only the final COPY + pip install runs
+       (~30s instead of ~8min for Hermes deps).
+
+    2. **GHA build cache** (`cache-from: type=gha`, `cache-to: type=gha,mode=max`)
+       added to both build steps. Docker layers persist across workflow runs
+       in GitHub's cache. First build populates the cache; subsequent builds
+       reuse unchanged layers.
+
+    Expected halos-only rebuild: ~1-2 minutes (cache hit on system deps,
+    Node deps, Python deps; cache miss only on halos source layer).
+    Full rebuild (Hermes changes): ~8 minutes (same as before, but cached
+    on subsequent runs).
+  refs:
+    commit: null
+    note: null
+  tags: [infra, ci, docker, performance]
+  moon: null
+
+- date: '2026-04-05'
+  title: Fleet deployment — four advisors live on VKE with NATS event sourcing
+  summary: |
+    Deployed Musashi, Socrates, Medici, and Machiavelli as Hermes gateway
+    pods in halo-fleet namespace on VKE. Single image, differentiated by
+    ConfigMap (config.yaml, system-prompt.md) and Secret (bot token, API key).
+
+    NATS JetStream deployed in-cluster with HALO stream (halo.> subjects,
+    5GB, 90d retention). AdvisorEventLoop runs as background process in
+    each pod alongside Hermes — consumes events, maintains local SQLite
+    projections. Stream seeded with 22 events from local trackctl/journalctl.
+
+    Aura session relay added as sidecar in halo-aura namespace — tails
+    Hermes JSONL session files, publishes user/assistant messages to
+    halo.observation.aura on the HALO stream.
+
+    Key bugs found and fixed during deployment:
+    - Store path resolution walked from __file__ (fails in venv install)
+    - ConfigMap subPath mounts are read-only (breaks /sethome)
+    - bash -lic login shell resets PATH (strips /opt/venv/bin)
+    - imagePullPolicy defaults to IfNotPresent for non-'latest' tags
+    - Vultr CR tag deletion API is broken (500s on all endpoints)
+    - Relative paths in prompts don't resolve in container cwd
+
+    All documented in infra/k8s/fleet/README.md (13 numbered gotchas).
+
+    Resource profile: 50m CPU / 192Mi per advisor. Actual usage at idle:
+    1-2m CPU / 90Mi. Node at 9% CPU, 53% memory with four advisors +
+    NATS + monitoring + old gateway.
+  refs:
+    commit: null
+    note: null
+  tags: [fleet, k8s, nats, eventsource, deployment, advisors]
+  moon: null

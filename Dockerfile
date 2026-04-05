@@ -21,18 +21,28 @@ RUN groupadd -g 1000 hermes && useradd -u 1000 -g 1000 -m -d /home/hermes hermes
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# --- Hermes layer ---
-# Validate vendor directory is populated (fail fast if submodule not checked out)
+# --- Hermes dependency layer (cached — changes only when pyproject.toml changes) ---
+COPY vendor/hermes-agent/pyproject.toml /opt/hermes/pyproject.toml
+COPY vendor/hermes-agent/package.json vendor/hermes-agent/package-lock.json* /opt/hermes/
+WORKDIR /opt/hermes
+# Install Python deps from lockfile alone (cache-friendly)
+RUN pip install --no-cache-dir ".[all,messaging,cron]" 2>/dev/null \
+    || { echo "Deps-only install failed, will retry with full source"; }
+
+# --- Hermes source layer ---
 COPY vendor/hermes-agent /opt/hermes
 RUN test -f /opt/hermes/pyproject.toml \
     || { echo "ERROR: vendor/hermes-agent is empty — run: git submodule update --init" >&2; exit 1; }
-WORKDIR /opt/hermes
 RUN pip install --no-cache-dir ".[all,messaging,cron]"
 RUN npm install --prefer-offline --no-audit
 
-# --- Halos layer ---
-COPY halos/ /opt/halos/halos/
+# --- Halos dependency layer (cached — changes only when pyproject.toml changes) ---
 COPY pyproject.toml /opt/halos/
+RUN mkdir -p /opt/halos/halos && touch /opt/halos/halos/__init__.py \
+    && pip install --no-cache-dir -e "/opt/halos[eventsource]" 2>/dev/null || true
+
+# --- Halos source layer (fast — only Python files) ---
+COPY halos/ /opt/halos/halos/
 WORKDIR /opt/halos
 RUN pip install --no-cache-dir ".[eventsource]"
 

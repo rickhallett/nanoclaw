@@ -24,6 +24,7 @@ from halos.eventsource.consumer import AdvisorEventLoop
 from halos.eventsource.handlers.track import TrackProjectionHandler
 from halos.eventsource.handlers.journal import JournalProjectionHandler
 from halos.eventsource.handlers.night import NightProjectionHandler
+from halos.eventsource.handlers.observation import ObservationProjectionHandler
 
 
 def _resolve_store_dir() -> Path:
@@ -62,6 +63,7 @@ def main():
             TrackProjectionHandler(),
             JournalProjectionHandler(),
             NightProjectionHandler(),
+            ObservationProjectionHandler(),
         ],
         subscriptions=["halo.>"],
     )
