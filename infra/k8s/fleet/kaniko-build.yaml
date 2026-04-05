@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: build-halo-fleet
-  namespace: halo-fleet
+  namespace: halo-build
 spec:
   backoffLimit: 1
   ttlSecondsAfterFinished: 600
@@ -13,9 +13,9 @@ spec:
           image: gcr.io/kaniko-project/executor:latest
           args:
             - "--dockerfile=Dockerfile"
-            - "--context=git://github.com/rickhallett/halo.git#refs/heads/feat/containerisation"
+            - "--context=git://github.com/rickhallett/halo.git"
             - "--destination=lhr.vultrcr.com/jeany/halo:v0.2.0-fleet"
-            - "--git-recursive-submodules"
+            - "--git=branch=feat/containerisation,recurse-submodules=true"
             - "--cache=true"
             - "--cache-repo=lhr.vultrcr.com/jeany/halo-cache"
             - "--snapshot-mode=redo"
