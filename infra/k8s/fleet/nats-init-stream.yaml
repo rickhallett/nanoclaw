@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nats-init-stream
+  namespace: halo-fleet
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nats-cli
+          image: natsio/nats-box:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              export NATS_URL="nats://hq:${HQ_PASS}@nats.halo-fleet:4222"
+
+              # Wait for NATS to accept connections.
+              until nats pub halo.test.ping "ok" 2>/dev/null; do
+                echo "Waiting for NATS..."
+                sleep 2
+              done
+              echo "NATS is up."
+
+              # Create stream via raw JetStream API.
+              echo "Creating HALO stream..."
+              RESULT=$(nats req '$JS.API.STREAM.CREATE.HALO' '{
+                "name": "HALO",
+                "subjects": ["halo.>"],
+                "retention": "limits",
+                "storage": "file",
+                "max_bytes": 5368709120,
+                "max_age": 7776000000000000,
+                "max_msg_size": 1048576,
+                "max_consumers": -1,
+                "max_msgs": -1,
+                "num_replicas": 1,
+                "discard": "old",
+                "duplicate_window": 120000000000
+              }' 2>&1) || true
+              echo "$RESULT"
+
+              # Verify stream exists.
+              echo "Checking stream info..."
+              nats req '$JS.API.STREAM.INFO.HALO' '' 2>&1 | head -20
+              echo "Done."
+          env:
+            - name: HQ_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nats-auth
+                  key: HQ_PASS
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      restartPolicy: OnFailure

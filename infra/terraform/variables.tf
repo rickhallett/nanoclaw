@@ -19,7 +19,7 @@ variable "k8s_version" {
 variable "node_plan" {
   description = "Vultr plan for worker nodes"
   type        = string
-  default     = "vc2-4c-8gb"  # 4 vCPU, 8GB RAM, ~$48/mo
+  default     = "vc2-2c-4gb"  # 2 vCPU, 4GB RAM, ~$24/mo  (resize requires new node pool)
 }
 
 variable "node_count" {

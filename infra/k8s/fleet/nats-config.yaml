@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nats-config
+  namespace: halo-fleet
+data:
+  nats.conf: |
+    listen: 0.0.0.0:4222
+    http: 0.0.0.0:8222
+
+    jetstream {
+      store_dir: /data/jetstream
+      max_mem: 128M
+      max_file: 10G
+    }
+
+    authorization {
+      users = [
+        {user: "hq",      password: $HQ_PASS,      permissions: {publish: ">", subscribe: ">"}}
+        {user: "advisor",  password: $ADVISOR_PASS,  permissions: {publish: ">", subscribe: ">"}}
+      ]
+    }
