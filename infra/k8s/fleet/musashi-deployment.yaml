@@ -36,12 +36,20 @@ spec:
       containers:
         - name: gateway
           image: lhr.vultrcr.com/jeany/halo:fleet-latest
-          args: ["gateway"]
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              # Copy prompt from defaults if not present (ConfigMap is read-only)
+              [ ! -f "$HERMES_HOME/system-prompt.md" ] && \
+                cp /opt/defaults/system-prompt.md "$HERMES_HOME/system-prompt.md" 2>/dev/null || true
+              exec /opt/entrypoint.sh gateway
           env:
             - name: ADVISOR_NAME
               value: "musashi"
             - name: TZ
               value: "Europe/London"
+            - name: PATH
+              value: "/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
           resources:
             requests:
               cpu: 100m
@@ -55,10 +63,10 @@ spec:
               drop: ["ALL"]
           volumeMounts:
             - name: advisor-config
-              mountPath: /opt/data/config.yaml
+              mountPath: /opt/defaults/config.yaml
               subPath: config.yaml
             - name: advisor-prompt
-              mountPath: /opt/data/system-prompt.md
+              mountPath: /opt/defaults/system-prompt.md
               subPath: system-prompt.md
             - name: advisor-secrets
               mountPath: /opt/data/.env
