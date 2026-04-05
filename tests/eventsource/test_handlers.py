@@ -118,10 +118,26 @@ class TestTrackHandler:
         }, seq=2), CONSUMER)
 
         row = track_engine.db.execute(
-            "SELECT * FROM track_entries WHERE id = 21"
+            "SELECT * FROM track_entries WHERE domain = 'movement' AND id = 21"
         ).fetchone()
         assert row["duration_mins"] == 60
         assert row["notes"] == "keep this"
+
+    def test_same_entry_id_across_domains_do_not_collide(self, track_engine):
+        track_engine.apply(_evt("track.movement.logged", {
+            "domain": "movement", "duration_mins": 30, "entry_id": 1,
+        }, seq=1), CONSUMER)
+        track_engine.apply(_evt("track.zazen.logged", {
+            "domain": "zazen", "duration_mins": 20, "entry_id": 1,
+        }, seq=2), CONSUMER)
+
+        rows = track_engine.db.execute(
+            "SELECT domain, id, duration_mins FROM track_entries WHERE id = 1 ORDER BY domain"
+        ).fetchall()
+        assert [(r["domain"], r["id"], r["duration_mins"]) for r in rows] == [
+            ("movement", 1, 30),
+            ("zazen", 1, 20),
+        ]
 
 
 # ── Night handler ──────────────────────────────────────────────
@@ -261,15 +277,17 @@ class TestJournalHandler:
         assert row["mood"] is None
         assert row["raw_text"] == ""
 
-    def test_duplicate_entry_ignored(self, journal_engine):
+    def test_duplicate_entry_ignored_by_engine(self, journal_engine):
         e = _evt("journal.entry.added", {
             "entry_id": 3, "raw_text": "first",
         })
-        journal_engine.apply(e, CONSUMER)
+        assert journal_engine.apply(e, CONSUMER) is True
+        assert journal_engine.apply(e, CONSUMER) is False
 
-        # Same event replayed — idempotent at both engine and handler level
-        journal_engine.projection = None  # force handler-level check
-        # Actually, engine-level idempotency handles this (tested in test_projection.py)
+        count = journal_engine.db.execute(
+            "SELECT COUNT(*) as c FROM journal_entries WHERE entry_id = 3"
+        ).fetchone()
+        assert count["c"] == 1
 
 
 # ── Combined handlers ─────────────────────────────────────────

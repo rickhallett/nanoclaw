@@ -32,12 +32,13 @@ class TrackProjectionHandler(ProjectionHandler):
     def init_schema(self, db: sqlite3.Connection) -> None:
         db.execute("""
             CREATE TABLE IF NOT EXISTS track_entries (
-                id INTEGER PRIMARY KEY,
+                id INTEGER NOT NULL,
                 domain TEXT NOT NULL,
                 timestamp TEXT NOT NULL,
                 duration_mins INTEGER NOT NULL DEFAULT 0,
                 notes TEXT NOT NULL DEFAULT '',
                 source_event_id TEXT NOT NULL,
+                PRIMARY KEY(domain, id),
                 UNIQUE(source_event_id)
             )
         """)

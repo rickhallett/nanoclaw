@@ -68,40 +68,44 @@ class ProjectionEngine:
         return row["stream_seq"] if row else 0
 
     def apply(self, event: Event, consumer: str) -> bool:
-        """Apply a single event to the projection. Returns True if processed."""
-        # Idempotency check
-        existing = self.db.execute(
-            "SELECT 1 FROM _processed_events WHERE event_id = ?",
-            (event.id,),
-        ).fetchone()
-        if existing:
-            return False
+        """Apply a single event to the projection. Returns True if processed.
 
-        # Dispatch to handlers
-        handlers = self._handler_map.get(event.type, [])
-        for handler in handlers:
-            handler.apply(event, self.db)
+        All writes are wrapped in one transaction. If a handler raises,
+        the transaction is rolled back and the event is not marked processed.
+        """
+        with self.db:
+            # Idempotency check
+            existing = self.db.execute(
+                "SELECT 1 FROM _processed_events WHERE event_id = ?",
+                (event.id,),
+            ).fetchone()
+            if existing:
+                return False
 
-        # Record processing
-        now = datetime.now(timezone.utc).isoformat()
-        self.db.execute(
-            "INSERT INTO _processed_events (event_id, processed_at) VALUES (?, ?)",
-            (event.id, now),
-        )
+            # Dispatch to handlers
+            handlers = self._handler_map.get(event.type, [])
+            for handler in handlers:
+                handler.apply(event, self.db)
 
-        # Update checkpoint
-        self.db.execute(
-            """
-            INSERT INTO _checkpoint (consumer, stream_seq, updated_at)
-            VALUES (?, ?, ?)
-            ON CONFLICT(consumer) DO UPDATE SET
-                stream_seq = excluded.stream_seq,
-                updated_at = excluded.updated_at
-        """,
-            (consumer, event.stream_seq, now),
-        )
+            # Record processing
+            now = datetime.now(timezone.utc).isoformat()
+            self.db.execute(
+                "INSERT INTO _processed_events (event_id, processed_at) VALUES (?, ?)",
+                (event.id, now),
+            )
 
-        self.db.commit()
+            # Update checkpoint
+            self.db.execute(
+                """
+                INSERT INTO _checkpoint (consumer, stream_seq, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(consumer) DO UPDATE SET
+                    stream_seq = excluded.stream_seq,
+                    updated_at = excluded.updated_at
+            """,
+                (consumer, event.stream_seq, now),
+            )
+
         return True
 
     def rebuild(self) -> None:

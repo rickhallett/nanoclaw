@@ -33,6 +33,33 @@ class CounterHandler(ProjectionHandler):
         )
 
 
+class FlakyHandler(ProjectionHandler):
+    """Writes once, then raises to test transaction rollback."""
+
+    tables = ["flaky"]
+
+    def handles(self) -> list[str]:
+        return ["test.flaky"]
+
+    def init_schema(self, db: sqlite3.Connection) -> None:
+        db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS flaky (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id TEXT NOT NULL,
+                value INTEGER NOT NULL
+            )
+            """
+        )
+
+    def apply(self, event: Event, db: sqlite3.Connection) -> None:
+        db.execute(
+            "INSERT INTO flaky (event_id, value) VALUES (?, ?)",
+            (event.id, event.payload["value"]),
+        )
+        raise RuntimeError("boom")
+
+
 @pytest.fixture
 def engine(tmp_path: Path) -> ProjectionEngine:
     e = ProjectionEngine(tmp_path / "test.db", [CounterHandler()])
@@ -132,3 +159,30 @@ class TestProjectionEngine:
         row = engine2.db.execute("SELECT value FROM counter").fetchone()
         assert row["value"] == 99
         engine2.close()
+
+    def test_handler_error_rolls_back_and_keeps_event_unprocessed(self, tmp_path: Path):
+        engine = ProjectionEngine(tmp_path / "flaky.db", [FlakyHandler()])
+        engine.open()
+
+        event = Event.create(
+            type="test.flaky",
+            source="test",
+            payload={"value": 7},
+        ).with_seq(11)
+
+        with pytest.raises(RuntimeError, match="boom"):
+            engine.apply(event, "consumer")
+
+        # Handler write rolled back
+        count = engine.db.execute("SELECT COUNT(*) as c FROM flaky").fetchone()
+        assert count["c"] == 0
+
+        # Event was not marked as processed and checkpoint not advanced
+        seen = engine.db.execute(
+            "SELECT COUNT(*) as c FROM _processed_events WHERE event_id = ?",
+            (event.id,),
+        ).fetchone()
+        assert seen["c"] == 0
+        assert engine.last_checkpoint("consumer") == 0
+
+        engine.close()
