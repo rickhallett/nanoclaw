@@ -83,6 +83,9 @@ spec:
             - name: data
               mountPath: /opt/data/logs
               subPath: logs
+            - name: profiles
+              mountPath: /opt/data/data/advisors
+              readOnly: true
           startupProbe:
             exec:
               command: ["python3", "-c", "import os; exit(0 if os.path.exists('/opt/data/heartbeat') else 1)"]
@@ -107,3 +110,13 @@ spec:
         - name: data
           emptyDir:
             sizeLimit: 500Mi
+        - name: profiles
+          configMap:
+            name: advisor-profiles
+            items:
+              - key: seneca-profile.md
+                path: seneca/profile.md
+              - key: sun-tzu-profile.md
+                path: sun-tzu/profile.md
+              - key: medici-profile.md
+                path: medici/profile.md

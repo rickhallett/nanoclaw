@@ -83,6 +83,13 @@ spec:
             - name: data
               mountPath: /opt/data/logs
               subPath: logs
+            - name: finance
+              mountPath: /opt/data/data/finance/ark-accounting/CANONICAL-POSITION-2026-04-01.md
+              subPath: CANONICAL-POSITION-2026-04-01.md
+              readOnly: true
+            - name: profiles
+              mountPath: /opt/data/data/advisors/seneca
+              readOnly: true
           startupProbe:
             exec:
               command: ["python3", "-c", "import os; exit(0 if os.path.exists('/opt/data/heartbeat') else 1)"]
@@ -107,3 +114,12 @@ spec:
         - name: data
           emptyDir:
             sizeLimit: 500Mi
+        - name: finance
+          configMap:
+            name: finance-canonical
+        - name: profiles
+          configMap:
+            name: advisor-profiles
+            items:
+              - key: seneca-profile.md
+                path: profile.md
