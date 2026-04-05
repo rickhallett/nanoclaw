@@ -1,11 +1,5 @@
 name: Build Halos Image
 on:
-  push:
-    paths:
-      - 'halos/**'
-      - 'pyproject.toml'
-      - 'Dockerfile.halos'
-    branches: ['feat/containerisation', 'main']
   workflow_dispatch:
 
 jobs:
