@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: advisor-musashi
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-musashi
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+    halo/advisor: musashi
+    halo/domain: body
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: advisor-musashi
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: advisor-musashi
+        app.kubernetes.io/component: advisor
+        halo/advisor: musashi
+    spec:
+      imagePullSecrets:
+        - name: vultr-cr
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway
+          image: lhr.vultrcr.com/jeany/halo:fleet-latest
+          args: ["gateway"]
+          env:
+            - name: ADVISOR_NAME
+              value: "musashi"
+            - name: TZ
+              value: "Europe/London"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: advisor-config
+              mountPath: /opt/data/config.yaml
+              subPath: config.yaml
+            - name: advisor-prompt
+              mountPath: /opt/data/system-prompt.md
+              subPath: system-prompt.md
+            - name: advisor-secrets
+              mountPath: /opt/data/.env
+              subPath: .env
+              readOnly: true
+            - name: data
+              mountPath: /opt/data/store
+              subPath: store
+            - name: data
+              mountPath: /opt/data/sessions
+              subPath: sessions
+            - name: data
+              mountPath: /opt/data/logs
+              subPath: logs
+          startupProbe:
+            exec:
+              command: ["python3", "-c", "import os; exit(0 if os.path.exists('/opt/data/heartbeat') else 1)"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command: ["python3", "-c", "import os,time; f='/opt/data/heartbeat'; exit(0 if os.path.exists(f) and time.time()-os.path.getmtime(f)<120 else 1)"]
+            periodSeconds: 60
+      volumes:
+        - name: advisor-config
+          configMap:
+            name: advisor-musashi-config
+        - name: advisor-prompt
+          configMap:
+            name: advisor-musashi-prompt
+        - name: advisor-secrets
+          secret:
+            secretName: advisor-musashi-secrets
+            defaultMode: 0400
+        - name: data
+          emptyDir:
+            sizeLimit: 500Mi

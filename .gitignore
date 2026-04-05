@@ -76,3 +76,5 @@ infra/terraform/backend.hcl
 infra/terraform/.terraform/
 infra/terraform/*.tfstate*
 infra/terraform/terraform.tfvars
+infra/k8s/fleet/nats-secrets.yaml
+infra/k8s/fleet/musashi-secrets.yaml

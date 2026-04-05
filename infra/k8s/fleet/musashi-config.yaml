@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: advisor-musashi-config
+  namespace: halo-fleet
+data:
+  config.yaml: |
+    provider: anthropic
+    model: claude-sonnet-4-20250514
+
+    gateway:
+      platform: telegram
+      session_reset_idle_minutes: 120
+      session_reset_daily: "03:00"
+
+    agent:
+      max_turns: 50
+
+    halos:
+      enabled_modules:
+        - trackctl
+        - journalctl
+        - nightctl
+        - memctl
+
+    trackctl:
+      enabled_domains:
+        - movement
+        - zazen
+
+    briefings:
+      morning: null
+      nightly: null
