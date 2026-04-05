@@ -86,7 +86,25 @@ args:
 
 **Fix:** GitHub Actions builds and pushes from GitHub's network. CI workflow: `.github/workflows/build-image.yml`. Push to Vultr CR (`lhr.vultrcr.com/jeany/halo`) — same datacenter as VKE, instant pull.
 
-### 10. Pod security standards block Kaniko
+### 10. imagePullPolicy defaults to IfNotPresent
+
+**Problem:** Tag `fleet-latest` doesn't trigger automatic image pulls. Kubernetes only defaults to `Always` for the exact tag `latest`, not tags containing "latest".
+
+**Fix:** Explicit `imagePullPolicy: Always` on every advisor container.
+
+### 11. Vultr CR tag/repo deletion API is broken (as of 2026-04-05)
+
+**Problem:** `DELETE /registry/{id}/repository/{name}/tag/{tag}` returns 500 (`deleteRepositoryTag is not resolvable`). Repository deletion also 500s. CLI wraps the same broken endpoint.
+
+**Fix:** No fix. Upgrade the registry plan if you hit the storage limit. Business plan is $5/mo for 20GB.
+
+### 12. Vultr CR free tier is 10GB — halo image is ~1.5GB
+
+**Problem:** Each image push adds ~1.5GB. With 5 old tags, the 10GB free tier fills up. Since deletion is broken, old tags accumulate.
+
+**Fix:** Upgraded to Business plan (20GB). Single-tag strategy (`fleet-latest` only) to minimise accumulation.
+
+### 13. Pod security standards block Kaniko
 
 **Problem:** Kaniko needs root to build images. The `restricted` pod security standard blocks it.
 
