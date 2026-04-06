@@ -29,6 +29,7 @@ EXPECTED_ADVISORS = [
     "machiavelli",
     "medici",
     "bankei",
+    "hightower",
 ]
 
 EXPECTED_INFRA_PODS = [
