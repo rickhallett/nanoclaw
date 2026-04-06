@@ -48,6 +48,7 @@ data/advisors/
   machiavelli/  persona.md + profile.md
   medici/       persona.md + profile.md
   bankei/       persona.md + profile.md
+  hightower/    persona.md + profile.md
   plutarch/     persona.md (no profile -- reads all others)
   seneca/       [archived — replaced by Draper, data migrated]
   socrates/     [archived — replaced by Karpathy, data migrated]

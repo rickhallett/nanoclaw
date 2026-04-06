@@ -241,6 +241,8 @@ Historical-figure advisors with persistent personas under `data/advisors/`. Summ
 | IV | Gibson | Futures (market terrain, technology trajectory) | 20:30 daily |
 | V | Machiavelli | Power, perception, leverage | 20:15 daily |
 | VI | Medici | Money (debt, burn, runway, time economics) | 19:45 daily |
+| VII | Bankei | Rest (rhythm, the cost of never stopping) | unscheduled |
+| VIII | Hightower | Heavy Iron (K8s ops, cluster debugging, CKA) | on demand |
 
 ### Data & Memory
 
