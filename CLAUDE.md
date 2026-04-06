@@ -49,6 +49,7 @@ Persistent across all sessions. Apply without restatement.
 - **No interactive git** - never use commands that open an editor or require interactive input (`git rebase -i`, `git commit` without `-m`). Use `GIT_EDITOR=true` to bypass when needed.
 - **ROI gate** - before review rounds or multi-agent dispatch, weigh marginal value vs cost of proceeding. Reviewing reviews of tests is the stop signal.
 - **uv** - Python uses uv exclusively in this repo. No pip, no exceptions. (Local policy.)
+- **Infra pre-read** - before any work touching `infra/`, k8s manifests, cluster operations, or deployment: read `docs/d2/k8s-fleet-lessons-learned.md` first. Non-negotiable. The lessons are paid for in blood and wasted debug cycles.
 
 ## System Topology
 
