@@ -57,8 +57,16 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    'slow: marks tests as slow (deselect with -m "not slow")',
     "smoke: marks lightweight smoke tests",
+    "fleet: requires live k8s cluster",
+    "tier1: plumbing smoke (fast, post-deploy)",
+    "tier2: NATS event flow verification",
+    "tier3: chaos engineering (destructive)",
+    "chaos: alias for tier3",
+    "tier4: mock pipeline (cost-free integration)",
+    "tier5: live Telegram liveness",
+    "telegram: alias for tier5",
 ]
 
 [tool.uv.workspace]
