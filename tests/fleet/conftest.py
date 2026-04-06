@@ -65,6 +65,25 @@ def _kubectl_exec(pod: str, command: str, namespace: str = FLEET_NS, container: 
     return result.stdout.strip()
 
 
+def _kubectl_exec_python(pod: str, script: str, namespace: str = FLEET_NS, container: str | None = None) -> str:
+    """Write a Python script to the pod's /tmp, execute it, return stdout.
+
+    Avoids shell quoting hell with inline python3 -c.
+    """
+    import base64
+    encoded = base64.b64encode(script.encode()).decode()
+    # Write base64 to file, decode, execute
+    wrapper = f'echo {encoded} | base64 -d > /tmp/_fleet_test.py && python3 /tmp/_fleet_test.py'
+    cmd = ["kubectl", "exec", pod, "-n", namespace]
+    if container:
+        cmd.extend(["-c", container])
+    cmd.extend(["--", "bash", "-c", wrapper])
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    if result.returncode != 0:
+        raise RuntimeError(f"exec_python in {pod} failed: {result.stderr}")
+    return result.stdout.strip()
+
+
 def _cluster_available() -> bool:
     """Check if kubectl can reach the cluster."""
     try:
@@ -100,6 +119,12 @@ def kubectl_json():
 def kubectl_exec():
     """Returns the _kubectl_exec helper function."""
     return _kubectl_exec
+
+
+@pytest.fixture(scope="session")
+def kubectl_exec_python():
+    """Returns the _kubectl_exec_python helper (for multi-line scripts)."""
+    return _kubectl_exec_python
 
 
 @pytest.fixture(scope="session")

@@ -50,6 +50,7 @@ Proves data moves through the system. Requires NATS. ~2min.
 | `test_cross_advisor_visibility` | Event from Musashi's consumer visible in Draper's projection | Cross-pod data flow broken |
 | `test_amnesia_recovery` | Wipe an advisor's projection.db → consumer replays from seq 0 → projection rebuilt perfectly | CQRS rebuild broken (system not immortal) |
 | `test_duplicate_event_idempotency` | Publish same event ID twice → projection has exactly one entry | Idempotency guard broken |
+| `test_poison_pill_event` | Publish severely malformed JSON to `halo.test.corrupt` → consumer logs error, does NOT crash, processes next valid event | Sidecar enters CrashLoopBackOff, halting all projection — the fastest way to kill the entire fleet |
 
 ### Tier 3: Chaos Engineering (Dodging Bullets)
 
