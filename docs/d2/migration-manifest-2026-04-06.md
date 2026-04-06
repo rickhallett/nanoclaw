@@ -1,7 +1,7 @@
 ---
 title: "Migration Manifest — Path Dependency Map"
 category: reference
-status: active
+status: archived
 created: 2026-04-06
 ---
 

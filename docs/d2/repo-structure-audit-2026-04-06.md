@@ -1,7 +1,7 @@
 ---
 title: "Repo Structure Audit"
 category: analysis
-status: active
+status: archived
 created: 2026-04-06
 ---
 
