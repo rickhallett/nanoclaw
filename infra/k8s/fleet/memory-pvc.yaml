@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: halo-memory
-  namespace: halo-fleet
+  namespace: halo-infra
 spec:
   accessModes:
     - ReadWriteOnce  # NFS server pod is the only direct consumer

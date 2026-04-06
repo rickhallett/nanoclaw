@@ -106,7 +106,10 @@ spec:
       volumes:
         - name: memory-nfs
           nfs:
-            server: nfs-server.halo-fleet.svc.cluster.local
+            # ClusterIP of nfs-server service in halo-infra
+            # kubelet mounts from host network — can't resolve .svc.cluster.local
+            # Update this if the NFS service is recreated
+            server: 10.100.54.223
             path: /
         - name: memctl-config
           configMap:
