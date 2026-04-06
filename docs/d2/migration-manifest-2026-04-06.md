@@ -13,6 +13,42 @@ History rewriting tool: **BFG Repo-Cleaner only**. `git-filter-repo` is banned.
 
 ---
 
+## 0. Execution Log
+
+| Phase | Commit | What happened |
+|-------|--------|---------------|
+| Option A sweep | `ada9e67` | Gitignore hardened, tracked debris removed (boot-review, nanoclaw.db), CI nanoclaw ghost fixed, CLAUDE.md gateway contradiction resolved |
+| Heritage deletion | `c70c8ca` | `gateway/` (97 files), `agent/steer/` (28 files), `agent/drive/` (18 files) removed. −24,590 LOC. Makefile, README, CLAUDE.md, CI updated. |
+| Argo auto-sync | disabled | `kubectl patch application halo-fleet -n argocd --type=merge -p '{"spec":{"syncPolicy":null}}'` — confirmed empty syncPolicy |
+| Pre-cleanup rollback | `1755ba1` | Full rollback point (before any cleanup) |
+
+### Directories removed in heritage deletion
+
+| Directory | Files | LOC | Why |
+|-----------|-------|-----|-----|
+| `gateway/` | 97 | ~10,600 | Nanoclaw-era Node.js gateway. Superseded by Hermes + K8s fleet. |
+| `agent/steer/` | 28 | ~2,800 | Swift OCR browser automation. Superseded by CDP. |
+| `agent/drive/` | 18 | ~1,200 | tmux process orchestrator. Superseded by `agent/listen`. |
+| `.github/workflows/bump-version.yml` | 1 | 42 | Gateway-era package.json bumper. Dead without gateway. |
+
+### References cleaned
+
+| File | What changed |
+|------|-------------|
+| `CLAUDE.md` | Removed gateway file map, HAL-prime from topology, updated to 2-surface model |
+| `README.md` | Updated architecture (K8s fleet replaces gateway), repo structure, requirements |
+| `Makefile` | Removed `gateway-*` targets and `test-todoctl` |
+| `update-tokens.yml` | Retargeted from `src/**/*.ts` to `halos/**/*.py` + `infra/**` |
+
+### Still outstanding (wave 2 candidates)
+
+- 22 `.claude/skills/` files reference `src/` paths — upstream Halo skills, now dormant
+- `groups/telegram_main/CLAUDE.md` references container mounts rooted in gateway architecture
+- `groups/global/CLAUDE.md` references gateway mount paths
+- BFG scrub assessment: check `gateway/` git history for any committed secrets before the gitignore era
+
+---
+
 ## 1. Critical Path: Argo CD Sync
 
 The single most dangerous path reference in the repo.

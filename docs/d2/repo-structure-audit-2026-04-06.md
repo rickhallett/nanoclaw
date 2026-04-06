@@ -11,6 +11,12 @@ created: 2026-04-06
 
 The Halo repo has evolved from housing personal infrastructure tooling to describing a full K8s fleet with NATS JetStream event sourcing, six roundtable advisor pods, Argo CD, observability stack, and chaos engineering. This audit maps what's here, what's stale, what's dangerous, and what to do about it.
 
+## 0. Execution Status
+
+Option A + heritage deletion executed in commits `ada9e67` and `c70c8ca`. 144 files removed, −24,590 LOC. `gateway/`, `agent/steer/`, `agent/drive/` burned. Argo auto-sync disabled. See [migration-manifest-2026-04-06.md](migration-manifest-2026-04-06.md) section 0 for full log.
+
+---
+
 ## 1. Vital Statistics
 
 | Metric | Count |
