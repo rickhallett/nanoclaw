@@ -1,0 +1,9 @@
+id: mail-triage
+title: Daily Inbox Triage
+schedule: 0 5 * * *
+command: uv run mailctl triage --execute
+enabled: true
+tags:
+  - mail
+  - daily
+created: "2026-04-06T12:55:00Z"

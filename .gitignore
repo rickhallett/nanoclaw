@@ -59,8 +59,21 @@ reportctl.yaml
 todoctl.yaml
 agentctl.yaml
 
-# ── Fleet (contains bot tokens, user data) ──────────
-gateway/halfleet/
+# ── Ephemeral / runtime ─────────────────────────────
+agent/logs/
+infra/gemini-bridge/bridge.log
+
+# ── Personal / PII (keep local, never commit) ───────
+jobctl/cv/
+docs/d2/briefings/
+docs/d2/notes/
+docs/d2/roundtable/
+
+# ── Multi-agent config (local per-platform) ─────────
+.pi/
+
+# ── jobctl (to migrate away from repo later) ────────
+jobctl/
 
 # ── Build artifacts (nested) ───────────────────────
 **/.build/

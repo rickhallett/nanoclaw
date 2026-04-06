@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>memctl graph</title>
+    <style>
+        * { margin: 0; box-sizing: border-box; }
+        body { font-family: system-ui; background: #111; color: #ccc; }
+        #viz { width: 100vw; height: 100vh; }
+        #panel { position: fixed; top: 10px; left: 10px; z-index: 10;
+                 background: #1e1e1e; padding: 14px; border-radius: 8px;
+                 width: 220px; border: 1px solid #333; }
+        #panel b { font-size: 14px; }
+        select, button { background: #2a2a2a; color: #ccc; border: 1px solid #444;
+                        padding: 6px 8px; border-radius: 4px; margin-top: 6px;
+                        width: 100%; cursor: pointer; font-size: 12px; }
+        button:hover { background: #383838; }
+        .desc { color: #777; font-size: 11px; margin-top: 6px; line-height: 1.4; }
+        .legend { margin-top: 10px; font-size: 10px; line-height: 1.8; }
+        .dot { display: inline-block; width: 8px; height: 8px;
+               border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+        #detail { position: fixed; bottom: 10px; left: 10px; z-index: 10;
+                  background: #1e1e1e; padding: 12px; border-radius: 8px;
+                  max-width: 400px; font-size: 12px; border: 1px solid #333;
+                  display: none; max-height: 200px; overflow-y: auto; }
+        #detail h3 { font-size: 13px; margin-bottom: 4px; color: #fff; }
+        #detail .type { color: #888; font-size: 11px; }
+        #detail .body { color: #aaa; margin-top: 6px; line-height: 1.4; white-space: pre-wrap; }
+        #count { color: #555; font-size: 10px; margin-top: 6px; }
+    </style>
+</head>
+<body>
+    <div id="panel">
+        <b>memctl</b>
+        <select id="view" onchange="updateDesc()">
+            <option value="backbone">Backbone</option>
+            <option value="decisions">Decisions</option>
+            <option value="thePit">the-pit</option>
+            <option value="nanoclaw">nanoclaw</option>
+            <option value="career">Career</option>
+            <option value="governance">Governance</option>
+            <option value="entities">Entities</option>
+        </select>
+        <div class="desc" id="desc"></div>
+        <button onclick="render()">Render</button>
+        <div id="count"></div>
+        <div class="legend">
+            <span class="dot" style="background:#e74c3c"></span>decision
+            <span class="dot" style="background:#3498db;margin-left:4px"></span>fact
+            <span class="dot" style="background:#2ecc71;margin-left:4px"></span>ref<br>
+            <span class="dot" style="background:#f39c12"></span>project
+            <span class="dot" style="background:#9b59b6;margin-left:4px"></span>person
+            <span class="dot" style="background:#e67e22;margin-left:4px"></span>entity
+        </div>
+    </div>
+    <div id="detail">
+        <h3 id="d-title"></h3>
+        <div class="type" id="d-type"></div>
+        <div class="body" id="d-body"></div>
+    </div>
+    <div id="viz"></div>
+
+    <script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+    <script>
+    const NEO4J = { url: "bolt://localhost:7687", user: "neo4j", pass: "memctl123" };
+    const COLORS = {
+        decision: "#e74c3c", fact: "#3498db", reference: "#2ecc71",
+        project: "#f39c12", person: "#9b59b6", event: "#1abc9c",
+        "session-log": "#666",
+    };
+
+    const VIEWS = {
+        backbone: {
+            q: `MATCH (a:Note)-[r:LINKS_TO]->(b:Note) RETURN a, r, b`,
+            desc: "Note-to-note backlinks. The skeleton.",
+        },
+        decisions: {
+            q: `MATCH (d:Note {type: "decision"})-[r:LINKS_TO]->(t:Note) RETURN d, r, t`,
+            desc: "Decisions and what they link to.",
+        },
+        thePit: {
+            q: `MATCH (n:Note)-[:MENTIONS]->(:Entity {name: "the-pit"})
+                OPTIONAL MATCH (n)-[r:LINKS_TO]->(m:Note)
+                RETURN n, r, m`,
+            desc: "Notes mentioning the-pit, plus their outbound links.",
+        },
+        nanoclaw: {
+            q: `MATCH (n:Note)-[:MENTIONS]->(:Entity {name: "nanoclaw"})
+                OPTIONAL MATCH (n)-[r:LINKS_TO]->(m:Note)
+                RETURN n, r, m`,
+            desc: "Nanoclaw cluster + outbound links.",
+        },
+        career: {
+            q: `MATCH (n:Note)-[:TAGGED_WITH]->(t:Tag)
+                WHERE t.name IN ["career","identity","job-search","strategy"]
+                OPTIONAL MATCH (n)-[r:LINKS_TO]->(m:Note)
+                RETURN n, r, m`,
+            desc: "Career/identity/strategy cluster.",
+        },
+        governance: {
+            q: `MATCH (n:Note)-[:TAGGED_WITH]->(t:Tag)
+                WHERE t.name IN ["governance","standing-order","verification","decision"]
+                OPTIONAL MATCH (n)-[r:LINKS_TO]->(m:Note)
+                RETURN n, r, m`,
+            desc: "Governance and verification spine.",
+        },
+        entities: {
+            q: `MATCH (n:Note)-[:MENTIONS]->(e:Entity)
+                WHERE e.name <> "kai"
+                RETURN n, e`,
+            desc: "Entity map (kai excluded).",
+        },
+    };
+
+    function updateDesc() {
+        const v = document.getElementById("view").value;
+        document.getElementById("desc").textContent = VIEWS[v].desc;
+    }
+    updateDesc();
+
+    function truncate(s, n) {
+        if (!s) return "?";
+        return s.length > n ? s.slice(0, n) + "..." : s;
+    }
+
+    let network = null;
+
+    async function fetchGraph(cypher) {
+        const resp = await fetch("http://localhost:7474/db/neo4j/tx/commit", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Basic " + btoa(NEO4J.user + ":" + NEO4J.pass),
+            },
+            body: JSON.stringify({
+                statements: [{ statement: cypher, resultDataContents: ["graph"] }],
+            }),
+        });
+        const json = await resp.json();
+        if (json.errors && json.errors.length) {
+            console.error(json.errors);
+            return { nodes: [], rels: [] };
+        }
+        const nodeMap = new Map();
+        const rels = [];
+        for (const result of json.results) {
+            for (const row of result.data) {
+                for (const node of row.graph.nodes) {
+                    nodeMap.set(node.id, node);
+                }
+                for (const rel of row.graph.relationships) {
+                    rels.push(rel);
+                }
+            }
+        }
+        return { nodes: [...nodeMap.values()], rels };
+    }
+
+    async function render() {
+        const v = document.getElementById("view").value;
+        const cypher = VIEWS[v].q;
+        const { nodes: rawNodes, rels } = await fetchGraph(cypher);
+
+        const nodes = rawNodes.map(n => {
+            const labels = n.labels;
+            const p = n.properties;
+            const isNote = labels.includes("Note");
+            const isEntity = labels.includes("Entity");
+            const isTag = labels.includes("Tag");
+            const type = p.type || "";
+            const color = isEntity ? "#e67e22" : isTag ? "#555" : (COLORS[type] || "#666");
+            const label = isNote ? truncate(p.title, 30) : (p.name || "?");
+            const size = isEntity ? 20 : isTag ? 12 : 14;
+            const shape = isEntity ? "diamond" : isTag ? "triangle" : "dot";
+
+            return {
+                id: n.id,
+                label,
+                color: { background: color, border: color, highlight: { background: "#fff", border: color } },
+                size,
+                shape,
+                font: { color: "#ccc", size: 10, face: "system-ui" },
+                _raw: p,
+                _labels: labels,
+            };
+        });
+
+        const seenEdges = new Set();
+        const edges = rels.filter(r => {
+            const key = r.startNode + "-" + r.endNode + "-" + r.type;
+            if (seenEdges.has(key)) return false;
+            seenEdges.add(key);
+            return true;
+        }).map(r => ({
+            from: r.startNode,
+            to: r.endNode,
+            color: { color: r.type === "LINKS_TO" ? "#e74c3c" : r.type === "MENTIONS" ? "#e67e22" : "#444",
+                     opacity: 0.6 },
+            width: r.type === "LINKS_TO" ? 2 : 1,
+            arrows: { to: { enabled: true, scaleFactor: 0.4 } },
+            smooth: { type: "continuous" },
+        }));
+
+        document.getElementById("count").textContent = `${nodes.length} nodes, ${edges.length} edges`;
+
+        const container = document.getElementById("viz");
+        const data = {
+            nodes: new vis.DataSet(nodes),
+            edges: new vis.DataSet(edges),
+        };
+        const options = {
+            physics: {
+                solver: "forceAtlas2Based",
+                forceAtlas2Based: {
+                    gravitationalConstant: -120,
+                    centralGravity: 0.008,
+                    springLength: 120,
+                    springConstant: 0.02,
+                    damping: 0.4,
+                    avoidOverlap: 0.8,
+                },
+                stabilization: { iterations: 300 },
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 100,
+                zoomView: true,
+                dragView: true,
+            },
+            layout: { improvedLayout: true },
+        };
+
+        if (network) network.destroy();
+        network = new vis.Network(container, data, options);
+
+        network.on("click", params => {
+            const detail = document.getElementById("detail");
+            if (params.nodes.length === 0) { detail.style.display = "none"; return; }
+            const node = data.nodes.get(params.nodes[0]);
+            if (!node) return;
+            const p = node._raw;
+            document.getElementById("d-title").textContent = p.title || p.name || "?";
+            document.getElementById("d-type").textContent =
+                node._labels.join(", ") + (p.type ? " / " + p.type : "") +
+                (p.confidence ? " / " + p.confidence : "");
+            document.getElementById("d-body").textContent = truncate(p.body, 300) || "";
+            detail.style.display = "block";
+        });
+    }
+
+    render();
+    </script>
+</body>
+</html>
