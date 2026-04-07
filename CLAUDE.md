@@ -346,3 +346,300 @@ npm run build            # Compile TypeScript
 cd agent && just listen  # Start job server on :7600
 cd agent && just send "prompt"  # Queue a job
 ```
+
+<!-- GSD:project-start source:PROJECT.md -->
+## Project
+
+**Halo for Aura (Client 001)**
+
+A bespoke Halo deployment for Aura Enache — Daoist practitioner, UHT UK certified instructor (Master Chia's complete system), teaching Qi Gong, Somatic Breathwork, Chi Nei Tsang, and feminine energy cultivation. Two AI agents (Content Alchemist and Dao Assistant) running in a dedicated K8s namespace (`halo-aura`), delivered via Telegram, with LLM eval infrastructure to ensure agent quality from day one.
+
+**Core Value:** The Content Alchemist turns Aura's 80-90min Zoom practice recordings into Instagram-ready content that sounds exactly like her — soft, educational, meditative, with a touch of wit. If this doesn't work, nothing else matters.
+
+### Constraints
+
+- **Infrastructure**: Separate K8s namespace on Vultr VKE — no multi-tenant, no shared resources with main Halo fleet
+- **Interface**: Telegram via Hermes gateway — no web UI, no WhatsApp
+- **Voice fidelity**: LLM output must pass eval against Aura's actual communication patterns — no generic wellness slop
+- **Budget**: Pilot economics — compute cost transparency, no margin during pilot
+- **Terminology**: Custom dictionary required before any content generation — UHT terms must transcribe correctly
+- **Pace**: Organic growth, no rush, no big automation — matches Aura's philosophy
+- **Scope boundary**: Plan concretely through workflow specification and solution space exploration. Planning beyond that is premature until integration decisions are made and eval baseline is established.
+<!-- GSD:project-end -->
+
+<!-- GSD:stack-start source:codebase/STACK.md -->
+## Technology Stack
+
+## Languages
+- Python 3.11+ - All halos tooling (`halos/`), fleet containers, cron jobs, briefings, CLI tools
+- Bash - Container entrypoint (`docker/entrypoint.sh`), cron scripts, justfiles
+- JavaScript/Node.js - Hermes agent gateway (`vendor/hermes-agent/gateway/`), npm-based tooling in container
+- YAML - K8s manifests (`infra/k8s/fleet/`), module configs (`*.yaml` at project root)
+## Runtime
+- Python >=3.11 (specified in `pyproject.toml`; system Python on macOS is 3.9.6 — use uv-managed venv)
+- Node.js v24.14.1 (Hermes gateway runtime in container)
+- Debian 13.4 (container base image in `Dockerfile`)
+- uv 0.10.12 - Python dependency management (exclusive; pip is banned by standing orders)
+- npm 11.11.0 - Node.js deps for Hermes gateway (container only)
+- Lockfile: `uv.lock` present at root; `agent/listen/uv.lock` for agent spawner
+- hatchling - Python build backend (`pyproject.toml` `[build-system]`)
+- setuptools - Hermes agent build backend (`vendor/hermes-agent/pyproject.toml`)
+## Frameworks
+- Hermes Agent 0.7.0 (`vendor/hermes-agent/`) - Upstream AI agent framework (Nous Research fork), git submodule. Provides Telegram bot, gateway, skills, cron infrastructure
+- halos 0.1.0 (`halos/`) - Custom Python package of 20+ CLI tools (memctl, nightctl, trackctl, etc.)
+- pytest >=9.0.2 - Test runner (`pyproject.toml` dev dependency)
+- pytest-cov >=5.0 - Coverage (optional dev dep)
+- Test tiers: smoke, fleet, tier1-tier5, chaos, telegram markers (`pyproject.toml [tool.pytest.ini_options]`)
+- Docker - Container builds (`Dockerfile`)
+- just - Task runner (`agent/justfile`)
+- Argo CD - GitOps deployment (`infra/k8s/fleet/argocd-app.yaml`)
+- Kaniko - In-cluster container builds (`infra/k8s/fleet/kaniko-build.yaml`)
+## Key Dependencies
+- `anthropic>=0.84.0` - LLM API client for briefings, evaluations, journal windows
+- `httpx>=0.27.0` - HTTP client for Telegram Bot API, Anthropic API, Groq API
+- `onepassword-sdk>=0.4.0` - 1Password secret management (`halos/secretctl/`)
+- `rich>=14.3.3` - Terminal UI rendering (dashctl, CLI output)
+- `pyyaml>=6.0` - Config file parsing (all `*.yaml` configs)
+- `jinja2>=3.0` - Template rendering
+- `feedparser>=6.0` - RSS feed parsing (watchctl YouTube monitor)
+- `youtube-transcript-api>=1.2.4` - YouTube transcript extraction (watchctl)
+- `playwright>=1.58.0` - Browser automation (optional, disabled by default in container)
+- `requests>=2.32.5` - HTTP client (legacy usage in watchctl transcript, halctl supervisor)
+- `anthropic>=0.39.0,<1` - LLM provider
+- `openai>=2.21.0,<3` - LLM provider (OpenAI-compatible)
+- `python-telegram-bot>=22.6,<23` - Telegram messaging (via `[messaging]` extra)
+- `pydantic>=2.12.5,<3` - Data validation
+- `tenacity>=9.1.4,<10` - Retry logic
+- `exa-py>=2.9.0,<3` - Web search tool
+- `firecrawl-py>=4.16.0,<5` - Web scraping tool
+- `fal-client>=0.13.1,<1` - Image generation
+- `edge-tts>=7.2.7,<8` - Text-to-speech
+- `croniter>=6.0.0,<7` - Cron schedule parsing (via `[cron]` extra)
+- `nats-py>=2.9.0` - NATS JetStream client (`[eventsource]` extra)
+- `python-ulid>=3.0.0` - ULID generation for events (`[eventsource]` extra)
+- `networkx>=3.0` / `pyvis>=0.3.2` - Graph visualization (`[graph]` extra)
+- `ripgrep` - Installed in container for skill search
+- `ffmpeg` - Installed in container for media processing
+## Configuration
+- `memctl.yaml` - Memory governance rules
+- `nightctl.yaml` - Work item management config
+- `briefings.yaml` - Daily briefing config (model, chat_id, db_path, IPC settings)
+- `watchctl.yaml` - YouTube channel monitor (channels list, LLM config, Obsidian vault path)
+- `cronctl.yaml` - Cron job definitions
+- `logctl.yaml` - Log reader config
+- `agentctl.yaml` - Agent session tracking
+- `reportctl.yaml` - Periodic digest config
+- `todoctl.yaml` - Legacy todo config
+- `.env` - Primary secrets file (exists, never read by tooling analysis)
+- `.env.example` - Template: `TELEGRAM_BOT_TOKEN=`
+- `.env.halo-dev` - Dev environment config (exists)
+- `docker/entrypoint.sh` - Generates `.env` from environment vars, bootstraps directories, WAL mode, skill sync, heartbeat wrapper, NATS consumer
+- `docker/defaults/` - Default config.yaml and SOUL.md for fresh containers
+- ConfigMaps: per-advisor `config.yaml` and `system-prompt.md` (`infra/k8s/fleet/*-config.yaml`, `*-prompt.yaml`)
+- Secrets: per-advisor `.env` files (`infra/k8s/fleet/*-secrets.yaml`), NATS auth (`nats-secrets.yaml`)
+## Data Storage
+- `store/messages.db` - Messages, sessions, onboarding, assessments, groups
+- `store/mail.db` - Gmail filters, mailctl audit log
+- `store/journal.db` - Qualitative journal entries
+- `store/watch.db` - YouTube monitor state
+- `store/blogctl.db` - Blog content management
+- `store/jobs.db` - Background jobs
+- `store/nanoclaw.db` - Legacy (nanoclaw era)
+- `store/track_*.db` - Per-domain metrics (movement, zazen, study-source, study-neetcode, study-crafters, project)
+- `store/journal-cache/` - LLM-synthesised window cache (content-hash keyed)
+## Platform Requirements
+- macOS (Darwin, Apple Silicon)
+- Python 3.11+ via uv-managed venv
+- uv for all Python dependency management
+- just for agent task running
+- himalaya CLI for email operations (external binary, configured at `~/.config/himalaya/config.toml`)
+- 1Password SDK for secret management (requires biometric auth via desktop app)
+- Vultr Kubernetes Engine (VKE)
+- Vultr Container Registry (`lhr.vultrcr.com/jeany/`)
+- Two container images: `halo:fleet-latest` (full Hermes + halos), `halo-halos:latest` (halos overlay only)
+- Vultr Block Storage HDD (PVCs for NATS data: 40Gi)
+- NFS server pod for shared advisor state (`infra/k8s/fleet/nfs-server.yaml`)
+- Argo CD for GitOps sync from `infra/k8s/fleet/`
+- Namespace: `halo-fleet`
+## uv Workspace
+- `data/finance/ark-accounting` - Finance/accounting subproject
+<!-- GSD:stack-end -->
+
+<!-- GSD:conventions-start source:CONVENTIONS.md -->
+## Conventions
+
+## Naming Patterns
+- Use `snake_case.py` for all Python source files
+- Module directories are `lowercase` single words or compound words: `memctl`, `nightctl`, `trackctl`, `backupctl`
+- Each module has a standard file set: `cli.py`, `config.py`, `engine.py` (or domain-specific names like `store.py`, `item.py`, `note.py`)
+- Test files follow `test_<module_or_feature>.py` pattern
+- Use `snake_case` for all functions and methods
+- Private/internal functions prefixed with underscore: `_connect()`, `_find_repo_root()`, `_make_config()`
+- CLI entry points are always `main()` in `cli.py`
+- Factory/builder functions use descriptive verbs: `add_entry()`, `load_config()`, `create()`, `parse()`
+- Use `snake_case` for all variables
+- Constants use `UPPER_SNAKE_CASE`: `VALID_KINDS`, `TERMINAL_STATUSES`, `FLEET_NS`
+- Type aliases and sentinel values use `UPPER_SNAKE_CASE`
+- Use `PascalCase` for all classes: `Item`, `Note`, `BackupConfig`, `CheckResult`
+- Exception classes end with `Error`: `ValidationError`, `TransitionError`, `SaveError`, `ContainerError`, `PlanValidationError`
+- Dataclass names describe the data they hold: `RetentionPolicy`, `BackupTarget`, `Event`
+## Data Modelling
+## Code Style
+- No automated formatter configured (no black, ruff format, or autopep8)
+- Follow consistent 4-space indentation
+- Line length appears to be ~100-120 characters (no enforced limit)
+- Use double quotes for strings consistently
+- No linter configured. `Makefile` has placeholder: `lint: @echo "lint: no linter configured"`
+- No type checker configured. `Makefile` has placeholder: `typecheck: @echo "typecheck: no type checker configured"`
+- No pre-commit hooks (`.pre-commit-config.yaml` does not exist)
+## Import Organization
+- None. All imports use the `halos.` package prefix or relative dots.
+## Error Handling
+- Define module-specific exceptions inheriting from `Exception` directly
+- Include structured data on exception objects for programmatic access:
+## Logging
+## Comments
+## Function Design
+- Return `dict` for data objects from storage layers (SQLite rows)
+- Return dataclass instances for domain models
+- Return `list[str]` for validation errors
+- CLI `main()` functions return `int` exit codes (0 for success, 1 for error)
+## Module Design
+## Configuration Pattern
+## Serialisation
+## Type Annotations
+<!-- GSD:conventions-end -->
+
+<!-- GSD:architecture-start source:ARCHITECTURE.md -->
+## Architecture
+
+## Pattern Overview
+- **Monorepo with heterogeneous surfaces:** Three runtime contexts (K8s fleet, local agent spawner, cron jobs) share one repository and one Python tooling layer
+- **Event sourcing via NATS JetStream:** Advisors publish events to a `HALO` stream; each advisor maintains a local SQLite projection rebuilt from the stream
+- **Upstream wrapping, not forking:** The Hermes Telegram bot (`vendor/hermes-agent`) is consumed as a git submodule. All customisation is via config injection, entrypoint hooks, and PYTHONPATH overlays — never source patches
+- **CLI-first tooling:** Every halos module is a standalone CLI (console_scripts) and also importable as a Python library. The `hal` command (`halos/hal.py`) is a unified dispatcher
+## Layers
+- Purpose: Provides conversational AI interfaces via Telegram
+- Location: `vendor/hermes-agent` (git submodule), `docker/entrypoint.sh`, `Dockerfile`
+- Contains: Upstream Hermes bot runtime, entrypoint hooks for prompt injection, NATS hook registration, heartbeat wrapper, WAL enforcement
+- Depends on: halos tooling (overlaid via init container), NATS JetStream, Anthropic API
+- Used by: End users via Telegram
+- Purpose: Local HTTP server that accepts prompts and spawns Claude Code instances in background processes
+- Location: `agent/listen/main.py` (FastAPI server on :7600), `agent/direct/main.py` (CLI client)
+- Contains: Job lifecycle management (create, list, stop, archive), worker process spawning, session telemetry
+- Depends on: Claude Code CLI, tmux (for interactive mode)
+- Used by: Developer (locally) via `just` commands or HTTP
+- Purpose: Shared operational CLI tools used by all surfaces — memory, work tracking, briefings, metrics, mail, secrets
+- Location: `halos/` package (20+ modules)
+- Contains: Each module follows cli.py + engine/store pattern with YAML/SQLite persistence
+- Depends on: `halos/common/` (logging, path resolution), SQLite databases in `store/`, YAML configs at repo root
+- Used by: All surfaces (Hermes via PYTHONPATH overlay, cron via `uv run`, developer directly)
+- Purpose: Asynchronous event bus connecting advisors and projecting shared state
+- Location: `halos/eventsource/` (core, consumer, projection, handlers)
+- Contains: Event envelope (`core.py`), NATS consumer lifecycle (`consumer.py`), SQLite projection engine (`projection.py`), domain handlers (`handlers/`)
+- Depends on: NATS JetStream (cluster-internal), SQLite
+- Used by: Fleet advisors (each runs a consumer sidecar process via `entrypoint.sh`)
+- Purpose: K8s manifests for the advisor fleet, managed by Argo CD
+- Location: `infra/k8s/fleet/` (deployments, configs, secrets, NATS, PVCs), `infra/k8s/fleet/cronjobs/` (scheduled advisor jobs)
+- Contains: Per-advisor Deployment + ConfigMap + Secret + prompt YAML, NATS StatefulSet, NFS server for shared memory, Argo CD app definition
+- Depends on: Vultr Container Registry (`lhr.vultrcr.com/jeany/halo`), Argo CD
+- Used by: K8s cluster (Argo CD sync)
+- Purpose: Persistent structured memory, work items, personal metrics, journals
+- Location: `memory/` (memctl-managed notes + INDEX.md), `store/` (SQLite databases), `backlog/items/` (YAML work items)
+- Contains: Markdown notes with YAML frontmatter (memory), domain-specific SQLite DBs (tracking, jobs, journal, mail, blog), YAML backlog items
+- Depends on: memctl for governance, nightctl for work tracking
+- Used by: All halos modules, briefings gather layer
+- Purpose: YAML config files that control module behaviour
+- Location: Repo root — `memctl.yaml`, `nightctl.yaml`, `cronctl.yaml`, `briefings.yaml`, `watchctl.yaml`, `agentctl.yaml`, `logctl.yaml`, `reportctl.yaml`
+- Contains: Module-specific settings (paths, schedules, thresholds)
+- Depends on: Nothing
+- Used by: Each respective halos module's `config.py`
+## Data Flow
+- Each halos module owns its own SQLite database in `store/` (e.g., `store/track_zazen.db`, `store/journal.db`, `store/jobs.db`)
+- Memory notes are filesystem-based (markdown in `memory/notes/`)
+- Fleet state is projected from the NATS event stream into per-advisor SQLite DBs
+- Agent jobs are YAML files in `agent/listen/jobs/`
+## Key Abstractions
+- Purpose: Immutable event record with ULID-based ID, type, version, source, timestamp, correlation_id, and payload
+- Pattern: Event sourcing with idempotent projection replay
+- Subject convention: `halo.{event.type}` (e.g., `halo.track.zazen.logged`, `halo.advisor.inbound.received`)
+- Purpose: Abstract base for event handlers that update a local SQLite read model
+- Examples: `halos/eventsource/handlers/track.py`, `halos/eventsource/handlers/night.py`, `halos/eventsource/handlers/journal.py`, `halos/eventsource/handlers/observation.py`
+- Pattern: Each handler declares `handles() -> list[str]` and `apply(event, db)`. Schema init via `init_schema(db)`.
+- Purpose: Disposable SQLite read model. Delete it, replay from stream, get same state. Stream is truth.
+- Pattern: Checkpoint-based consumption with idempotency via `_processed_events` table
+- Purpose: Historical-figure AI advisor with persistent persona, profile, and prototype schedule
+- Examples: `data/advisors/musashi/persona.md`, `data/advisors/draper/profile.md`
+- Pattern: Persona markdown injected as system prompt via K8s ConfigMap → entrypoint `HERMES_EPHEMERAL_SYSTEM_PROMPT`
+- Purpose: Self-contained CLI tool with importable Python API
+- Examples: `halos/trackctl/` (cli.py, engine.py, store.py, registry.py, domains/), `halos/nightctl/` (cli.py, item.py, executor.py, config.py)
+- Pattern: argparse or click CLI → engine/store logic → SQLite or filesystem persistence → structured JSON logging via `hlog()`
+- Purpose: Single `hal` command that dispatches to any halos module or agent tool
+- Pattern: Module registry dict mapping aliases to console_script commands, with `os.execvp` dispatch
+## Entry Points
+- Location: `halos/hal.py`
+- Triggers: User runs `hal <module> [args]`
+- Responsibilities: Dispatch to any halos module or agent tool via alias lookup and `os.execvp`
+- Location: `docker/entrypoint.sh`
+- Triggers: Container start (K8s pod creation or `docker run`)
+- Responsibilities: Directory bootstrap, config injection, system prompt loading, NATS hook installation, touchbase cron setup, WAL enforcement, skill sync, heartbeat wrapper, event consumer sidecar launch, Hermes process start
+- Location: `agent/listen/main.py`
+- Triggers: `just listen` from `agent/` directory
+- Responsibilities: FastAPI HTTP server on :7600 for job CRUD — create, get, list, stop, clear
+- Location: `halos/briefings/cli.py`
+- Triggers: Cron via `hal-briefing morning` or `hal-briefing nightly`
+- Responsibilities: Orchestrate gather → synthesise → deliver pipeline
+- Location: `halos/eventsource/run_consumer.py`
+- Triggers: `entrypoint.sh` launches as background process when `NATS_PASS` is set
+- Responsibilities: Connect to NATS JetStream, replay from checkpoint, maintain local SQLite projection
+## Error Handling
+- NATS hooks wrap all operations in `try/except Exception: return` — gateway processing is never blocked by event publishing failures
+- Event consumer acks poison messages after reporting errors via `system.error` events — prevents infinite redelivery
+- Briefing synthesis has 3-tier auth fallback (CLI → OAuth refresh → API key → raw data) — degrades gracefully
+- Container entrypoint uses `|| echo "WARNING: ..."` for non-critical failures (WAL enforcement, skill sync) — pod starts regardless
+- Heartbeat wrapper detects Hermes death but not asyncio deadlocks (documented limitation, TD-3 tracks HTTP health sidecar)
+## Cross-Cutting Concerns
+- Structured JSON logging via `halos/common/log.py: hlog(source, level, event, data)`
+- All halos modules emit structured events (e.g., `hlog("cronctl", "info", "job_created", {...})`)
+- Fleet log aggregation via `halos/logctl/fleet.py`
+- Env var `HALOS_LOG_FILE` controls output destination (file or stderr)
+- `halos/common/paths.py` provides `store_dir()` and `repo_root()` 
+- Priority chain: env var (`HALO_STORE_DIR`) → `HERMES_HOME/store` → `cwd/store`
+- Ensures halos modules work in both local dev (cwd = repo root) and container (cwd = `HERMES_HOME`) contexts
+- Each module has a `config.py` that loads from a YAML file at repo root (e.g., `memctl.yaml`, `nightctl.yaml`)
+- Config file paths are overridable via env vars (e.g., `MEMCTL_CONFIG`)
+- Fleet advisors: Anthropic API key via K8s Secret, Telegram bot token via K8s Secret
+- Briefings: 3-tier fallback (Claude CLI OAuth → token refresh → `ANTHROPIC_API_KEY`)
+- Secrets: 1Password SDK via `halos/secretctl/` (daemon mode for caching)
+- NATS: username/password auth via K8s Secrets
+<!-- GSD:architecture-end -->
+
+<!-- GSD:skills-start source:skills/ -->
+## Project Skills
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| get-qodo-rules | "Loads org- and repo-level coding rules from Qodo before code tasks begin, ensuring all generation and modification follows team standards. Use before any code generation or modification task when rules are not already loaded. Invoke when user asks to write, edit, refactor, or review code, or when starting implementation planning." | `.claude/skills/get-qodo-rules/SKILL.md` |
+| qodo-pr-resolver | Review and resolve PR issues with Qodo - get AI-powered code review issues and fix them interactively (GitHub, GitLab, Bitbucket, Azure DevOps) | `.claude/skills/qodo-pr-resolver/SKILL.md` |
+| update-skills | Check for and apply updates to installed skill branches from upstream. | `.claude/skills/update-skills/SKILL.md` |
+<!-- GSD:skills-end -->
+
+<!-- GSD:workflow-start source:GSD defaults -->
+## GSD Workflow Enforcement
+
+Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+
+Use these entry points:
+- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
+- `/gsd-debug` for investigation and bug fixing
+- `/gsd-execute-phase` for planned phase work
+
+Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+<!-- GSD:workflow-end -->
+
+<!-- GSD:profile-start -->
+## Developer Profile
+
+> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
+> This section is managed by `generate-claude-profile` -- do not edit manually.
+<!-- GSD:profile-end -->
