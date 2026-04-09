@@ -1,0 +1,147 @@
+#!/bin/bash
+# Generate a simplified k3s-local advisor deployment from the fleet manifests.
+# Usage: ./generate-advisor.sh <advisor-name>
+#
+# Reads:  ../fleet/{name}-config.yaml, {name}-prompt.yaml, {name}-secrets.yaml, {name}-deployment.yaml
+# Writes: ./{name}-deployment-local.yaml (simplified for k3s + localhost:5000 registry)
+
+set -euo pipefail
+
+NAME="${1:?Usage: $0 <advisor-name>}"
+FLEET_DIR="$(dirname "$0")/../k8s/fleet"
+OUT_DIR="$(dirname "$0")"
+
+# --- ConfigMap & Prompt: apply as-is ---
+echo "# Generated local deployment for advisor: $NAME" > "$OUT_DIR/$NAME-local.yaml"
+
+if [ -f "$FLEET_DIR/$NAME-config.yaml" ]; then
+    cat "$FLEET_DIR/$NAME-config.yaml" >> "$OUT_DIR/$NAME-local.yaml"
+    echo "---" >> "$OUT_DIR/$NAME-local.yaml"
+fi
+
+if [ -f "$FLEET_DIR/$NAME-prompt.yaml" ]; then
+    cat "$FLEET_DIR/$NAME-prompt.yaml" >> "$OUT_DIR/$NAME-local.yaml"
+    echo "---" >> "$OUT_DIR/$NAME-local.yaml"
+fi
+
+if [ -f "$FLEET_DIR/$NAME-secrets.yaml" ]; then
+    cat "$FLEET_DIR/$NAME-secrets.yaml" >> "$OUT_DIR/$NAME-local.yaml"
+    echo "---" >> "$OUT_DIR/$NAME-local.yaml"
+fi
+
+# --- Simplified deployment ---
+cat >> "$OUT_DIR/$NAME-local.yaml" << EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: advisor-${NAME}-data
+  namespace: halo-fleet
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: advisor-${NAME}
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-${NAME}
+    app.kubernetes.io/component: advisor
+    halo/advisor: ${NAME}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: advisor-${NAME}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: advisor-${NAME}
+        app.kubernetes.io/component: advisor
+        halo/advisor: ${NAME}
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway
+          image: localhost:5000/halo:dev
+          imagePullPolicy: Always
+          env:
+            - name: ADVISOR_NAME
+              value: "${NAME}"
+            - name: TZ
+              value: "Europe/London"
+            - name: PATH
+              value: "/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            - name: NATS_URL
+              value: "nats://nats.halo-fleet.svc.cluster.local:4222"
+            - name: NATS_USER
+              value: "advisor"
+            - name: NATS_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nats-auth
+                  key: ADVISOR_PASS
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: advisor-config
+              mountPath: /opt/defaults/config.yaml
+              subPath: config.yaml
+            - name: advisor-prompt
+              mountPath: /opt/defaults/system-prompt.md
+              subPath: system-prompt.md
+            - name: advisor-secrets
+              mountPath: /opt/data/.env
+              subPath: .env
+              readOnly: true
+            - name: advisor-data
+              mountPath: /opt/data
+          startupProbe:
+            exec:
+              command: ["python3", "-c", "import os; exit(0 if os.path.exists('/opt/data/heartbeat') else 1)"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command: ["python3", "-c", "import os,time; f='/opt/data/heartbeat'; exit(0 if os.path.exists(f) and time.time()-os.path.getmtime(f)<120 else 1)"]
+            periodSeconds: 60
+      volumes:
+        - name: advisor-config
+          configMap:
+            name: advisor-${NAME}-config
+        - name: advisor-prompt
+          configMap:
+            name: advisor-${NAME}-prompt
+        - name: advisor-secrets
+          secret:
+            secretName: advisor-${NAME}-secrets
+            defaultMode: 0400
+        - name: advisor-data
+          persistentVolumeClaim:
+            claimName: advisor-${NAME}-data
+EOF
+
+echo "Wrote $OUT_DIR/$NAME-local.yaml"

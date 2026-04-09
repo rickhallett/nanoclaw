@@ -1,0 +1,112 @@
+# Generated local deployment for advisor: bankei
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: advisor-bankei-data
+  namespace: halo-fleet
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: advisor-bankei
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-bankei
+    app.kubernetes.io/component: advisor
+    halo/advisor: bankei
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: advisor-bankei
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: advisor-bankei
+        app.kubernetes.io/component: advisor
+        halo/advisor: bankei
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway
+          image: localhost:5000/halo:dev
+          imagePullPolicy: Always
+          env:
+            - name: ADVISOR_NAME
+              value: "bankei"
+            - name: TZ
+              value: "Europe/London"
+            - name: PATH
+              value: "/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            - name: NATS_URL
+              value: "nats://nats.halo-fleet.svc.cluster.local:4222"
+            - name: NATS_USER
+              value: "advisor"
+            - name: NATS_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nats-auth
+                  key: ADVISOR_PASS
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: advisor-config
+              mountPath: /opt/defaults/config.yaml
+              subPath: config.yaml
+            - name: advisor-prompt
+              mountPath: /opt/defaults/system-prompt.md
+              subPath: system-prompt.md
+            - name: advisor-secrets
+              mountPath: /opt/data/.env
+              subPath: .env
+              readOnly: true
+            - name: advisor-data
+              mountPath: /opt/data
+          startupProbe:
+            exec:
+              command: ["python3", "-c", "import os; exit(0 if os.path.exists('/opt/data/heartbeat') else 1)"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command: ["python3", "-c", "import os,time; f='/opt/data/heartbeat'; exit(0 if os.path.exists(f) and time.time()-os.path.getmtime(f)<120 else 1)"]
+            periodSeconds: 60
+      volumes:
+        - name: advisor-config
+          configMap:
+            name: advisor-bankei-config
+        - name: advisor-prompt
+          configMap:
+            name: advisor-bankei-prompt
+        - name: advisor-secrets
+          secret:
+            secretName: advisor-bankei-secrets
+            defaultMode: 0400
+        - name: advisor-data
+          persistentVolumeClaim:
+            claimName: advisor-bankei-data
