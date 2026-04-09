@@ -30,12 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Local container builds load directly (no registry push) and deploy in under 60 seconds
   3. Cloudflare Tunnel exposes Telegram webhook endpoints with valid SSL — Aura's bot responds identically to Vultr-hosted version
   4. NATS JetStream data and NFS shared state migrated with zero event loss (replay from checkpoint matches)
-  5. Argo CD or equivalent GitOps sync operational against local cluster
+  5. Manual deploy pipeline verified (git push → SSH → docker build → kubectl rollout restart)
   6. UPS connected with graceful shutdown hooks on power loss signal
 **Migration Scope** (from analysis 2026-04-07):
   - k3s install on Arch: ~1h
   - Local registry or direct import: ~30min
-  - Manifest migration (Argo CD → local): ~2-4h
+  - Manifest migration (done — manual kubectl apply): ~2-4h
   - Cloudflare Tunnel setup: ~1h
   - NATS + NFS + PVC migration: ~2-3h
   - DNS cutover + Telegram webhook update: ~30min

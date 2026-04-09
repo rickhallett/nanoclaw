@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/k3s-local%20cluster-326CE5?logo=kubernetes&logoColor=white" alt="k3s" />
   <img src="https://img.shields.io/badge/NATS-JetStream-27aae1?logo=nats.io&logoColor=white" alt="NATS" />
   <img src="https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/ArgoCD-GitOps-ef7b4d?logo=argo&logoColor=white" alt="ArgoCD" />
+  <img src="https://img.shields.io/badge/k3s-homelab-326CE5?logo=k3s&logoColor=white" alt="Homelab" />
 </p>
 
 ---
@@ -70,9 +70,9 @@ The modules run locally on macOS for daily use. When deployed to Kubernetes (k3s
   │   │           Grafana / Prometheus                      │  │
   │   └─────────────────────────────────────────────────────┘  │
   │                                                             │
-  │   ┌───────────────┐  ┌───────────────┐                     │
-  │   │  Terraform    │  │  ArgoCD       │                     │
-  │   └───────────────┘  └───────────────┘                     │
+  │   ┌───────────────────────────────────┐                     │
+  │   │  Manual deploy (SSH + kubectl)  │                     │
+  │   └───────────────────────────────────┘                     │
   └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -137,7 +137,7 @@ The `halos/` package is the centre of gravity. Python CLIs for structured work a
 ```
 halo/
 ├── halos/              27 Python CLI modules
-├── infra/              K8s manifests, Terraform, NATS, ArgoCD
+├── infra/              K8s manifests, NATS, deploy pipeline
 ├── agent/              macOS agent server (listen/direct/drive/steer)
 ├── docker/             Fleet container entrypoint
 ├── data/               Advisor personas, client prompts

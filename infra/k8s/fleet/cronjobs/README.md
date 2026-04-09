@@ -53,7 +53,6 @@ kubectl get cronjobs -n halo-fleet
 
 No jobs execute while suspended.
 
-## Argo CD Note
+## Deploy Note
 
-Current `infra/k8s/fleet/argocd-app.yaml` uses `directory.recurse: false`, so this subdirectory is not auto-synced yet.
-Apply manually for canary testing, or update Argo source settings before production cutover.
+Apply manually via `kubectl apply -k infra/k8s/fleet/cronjobs` on ryzen32 (sudo required).

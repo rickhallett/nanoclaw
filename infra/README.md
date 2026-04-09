@@ -7,16 +7,15 @@ created: 2026-04-06
 
 # Infrastructure
 
-All infrastructure code for the Halo ecosystem. Target: VKE (Vultr Kubernetes Engine), single-node cluster.
+All infrastructure code for the Halo ecosystem. Target: k3s on Ryzen homelab (ryzen32 via Tailscale).
 
 ## Directory Layout
 
 ```
 infra/
 ├── k8s/
-│   ├── fleet/              ← Argo CD tracked (source of truth for halo-fleet namespace)
+│   ├── fleet/              ← Source of truth for halo-fleet namespace (manual kubectl apply)
 │   │   ├── namespace.yaml          Namespace definition (PodSecurity: baseline)
-│   │   ├── argocd-app.yaml         Argo CD Application CR (self-excluded from sync)
 │   │   ├── README.md               Fleet deployment runbook (gotchas, procedures)
 │   │   │
 │   │   ├── *-deployment.yaml       Advisor pod deployments (7 advisors)
@@ -62,17 +61,21 @@ infra/
 
 | Namespace | PodSecurity | What's in it |
 |-----------|------------|-------------|
-| `halo-fleet` | baseline | 7 advisor pods, memctl-authority, NATS, init jobs |
+| `halo-fleet` | baseline | 8 advisor pods, memctl-authority, NATS, init jobs |
 | `halo-infra` | privileged | NFS server (requires privileged container) |
-| `argocd` | (default) | Argo CD (7 pods — server, repo-server, controller, redis, dex, notifications, applicationset) |
 
-## Argo CD
+## Deploy Pipeline
 
-Argo CD tracks `infra/k8s/fleet/` on `feat/containerisation` branch. Self-heal enabled, auto-prune enabled.
+No GitOps controller. Manual SSH pipeline from Mac to ryzen32:
 
-- **UI:** `kubectl port-forward svc/argocd-server -n argocd 8080:443` → `https://localhost:8080`
-- **Credentials:** admin / (stored in `argocd-initial-admin-secret`)
-- **Excluded from sync:** `*-secrets.yaml`, `*-secrets.yaml.example`, `kaniko-build.yaml`, `argocd-app.yaml`, `README.md`
+```bash
+git push
+ssh mrkai@ryzen32 "cd ~/code/halo && git pull"
+ssh mrkai@ryzen32 "cd ~/code/halo && docker build -t localhost:5000/halo:dev . && docker push localhost:5000/halo:dev && sudo kubectl rollout restart deploy -n halo-fleet"
+sudo kubectl get pods -n halo-fleet  # verify (~45s)
+```
+
+All `kubectl` on ryzen32 requires `sudo` (k3s kubeconfig is root-only).
 
 ## Shared Storage
 
@@ -118,7 +121,7 @@ See `infra/k8s/fleet/README.md` for the full procedure. Summary:
 1. Create bot via @BotFather
 2. Copy manifests from an existing advisor
 3. Update: `ADVISOR_NAME`, bot token, persona, ConfigMap names, trackctl domains
-4. `kubectl apply` the secret (not in git), then push the rest for Argo to sync
+4. `kubectl apply` the secret (not in git), then `kubectl apply` the rest + rollout restart
 
 ## Terraform
 
@@ -135,4 +138,4 @@ KUBECONFIG at `~/.kube/vultr-halo.yaml`.
 
 ## Lessons Learned
 
-See `docs/d2/k8s-fleet-lessons-learned.md` — 16 hard-won items covering NFS, PodSecurity, Argo CD, and Vultr-specific gotchas.
+See `docs/d2/k8s-fleet-lessons-learned.md` — hard-won items covering NFS, PodSecurity, deploy pipeline, and platform-specific gotchas.

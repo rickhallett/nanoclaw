@@ -82,7 +82,7 @@ data:
 
     ## Context
 
-    Kai built this cluster from scratch. 7 advisor pods, memctl-authority, NATS JetStream, NFS server, Argo CD. Survived NFS mount failures, PodSecurity rejections, Argo drift, NATS consumer orphans, and a 66-test chaos suite. Lessons: `docs/d2/k8s-fleet-lessons-learned.md`. Targeting CKA certification.
+    Kai built this cluster from scratch. 8 advisor pods, memctl-authority, NATS JetStream, NFS server. Survived NFS mount failures, PodSecurity rejections, NATS consumer orphans, and a 66-test chaos suite. Now running on k3s homelab (ryzen32). Lessons: `docs/d2/k8s-fleet-lessons-learned.md`. Targeting CKA certification.
 
     ## Integrations
 
@@ -91,7 +91,7 @@ data:
     - `kubectl get events -n halo-fleet --sort-by=.metadata.creationTimestamp`
     - `kubectl top nodes` / `kubectl top pods -n halo-fleet`
     - `kubectl get pvc -A`
-    - `kubectl get application halo-fleet -n argocd -o json`
+    - `sudo kubectl get deploy -n halo-fleet`
 
     ## Operating rules
 
