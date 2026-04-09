@@ -17,6 +17,25 @@
   <img src="https://img.shields.io/badge/ArgoCD-GitOps-ef7b4d?logo=argo&logoColor=white" alt="ArgoCD" />
 </p>
 
+```mermaid
+graph TD
+    subgraph local ["macOS -- Local"]
+        HAL["hal CLI"] --> MODS["27 Python Modules"]
+        MODS --> SQL[("SQLite Stores")]
+    end
+    subgraph cluster ["K3s Cluster -- Ryzen Homelab"]
+        NATS["NATS JetStream -- Halostream"]
+        NATS --> MUS["Musashi"]
+        NATS --> DRA["Draper"]
+        NATS --> GIB["Gibson"]
+        NATS --> KAR["Karpathy"]
+        NATS --> MORE["+8 advisors"]
+        MUS & DRA & GIB & KAR --> PROJ[("SQLite Projections")]
+    end
+    MODS -->|"publish events"| NATS
+    local -->|"git push + SSH"| cluster
+```
+
 ---
 
 ## What is Halo?
