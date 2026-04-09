@@ -37,12 +37,12 @@ MODULES = {
     "doc":       ("docctl",       "Documentation management"),
     "watch":     ("watchctl",     "YouTube channel monitor"),
     "secrets":   ("secretctl",    "1Password secret access"),
+    "drill":     ("drillctl",     "Spaced repetition drill cards"),
+    "journal":   ("journalctl",   "Qualitative journal"),
 }
 
 # Agent tools: dispatched separately (not halos console_scripts)
 AGENT_MODULES = {
-    "steer":     ("steer",                  "GUI automation — see, ocr, click, type, hotkey"),
-    "drive":     ("drive",                  "Tmux terminal control for agent sessions"),
     "listen":    ("just listen",            "Start agent job server on :7600"),
     "send":      ("just send",              "Send a prompt to the agent server"),
     "sendi":     ("just sendi",             "Send prompt (interactive mode — visible TUI)"),
@@ -80,7 +80,7 @@ def _print_modules() -> None:
     print(f"  hal secrets vaults")
     print(f"  hal night add --title 'fix bug' --quadrant q1")
     print(f"  hal track add zazen --duration 25")
-    print(f"  hal steer ocr --app Chrome")
+    print(f"  hal drill today")
     print(f"  hal send 'research topic X and write summary'")
 
 
@@ -108,13 +108,6 @@ def main() -> None:
             os.chdir(AGENT_DIR)
             full_cmd = ["just"] + parts[1:] + args
             os.execvp("just", full_cmd)
-        elif module == "steer":
-            os.execvp("steer", ["steer"] + args)
-        elif module == "drive":
-            # drive is a uv script in agent/drive/
-            os.chdir(AGENT_DIR / "drive")
-            drive_cmd = ["uv", "run", "python", "main.py"] + args
-            os.execvp("uv", drive_cmd)
 
     # Fuzzy match: full command name or stripped ctl suffix
     for alias, (cmd, _) in MODULES.items():
