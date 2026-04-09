@@ -18,6 +18,8 @@ _REQUIRED_PAYLOAD_KEYS: dict[str, frozenset[str]] = {
     "track.movement.logged": frozenset({"domain", "duration_mins", "entry_id"}),
     "track.zazen.logged": frozenset({"domain", "duration_mins", "entry_id"}),
     "track.study.logged": frozenset({"domain", "duration_mins", "entry_id"}),
+    # Fallback for any track domain not listed above
+    "track.*.logged": frozenset({"domain", "duration_mins", "entry_id"}),
     "track.entry.deleted": frozenset({"domain", "entry_id"}),
     "track.entry.edited": frozenset({"domain", "entry_id"}),
     "night.item.created": frozenset({"item_id", "title"}),
@@ -154,6 +156,12 @@ class AdvisorEventLoop:
 
     def _validate_event(self, event: Event) -> str | None:
         required = _REQUIRED_PAYLOAD_KEYS.get(event.type)
+        if not required:
+            # Check wildcard patterns (e.g. track.*.logged)
+            parts = event.type.split(".")
+            if len(parts) == 3:
+                wildcard = f"{parts[0]}.*.{parts[2]}"
+                required = _REQUIRED_PAYLOAD_KEYS.get(wildcard)
         if not required:
             return None
 

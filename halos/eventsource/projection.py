@@ -2,11 +2,20 @@
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
 from .core import Event, ProjectionHandler
+
+
+def _pattern_to_regex(pattern: str) -> re.Pattern[str] | None:
+    """Convert a handler pattern with '*' wildcards to a regex, or None if exact."""
+    if "*" not in pattern:
+        return None
+    escaped = re.escape(pattern).replace(r"\*", r"[^.]+")
+    return re.compile(f"^{escaped}$")
 
 
 class ProjectionEngine:
@@ -20,11 +29,16 @@ class ProjectionEngine:
         self._db_path = Path(db_path)
         self._handlers = handlers
         self._handler_map: dict[str, list[ProjectionHandler]] = {}
+        self._wildcard_handlers: list[tuple[re.Pattern[str], ProjectionHandler]] = []
         self._db: sqlite3.Connection | None = None
 
         for handler in handlers:
             for event_type in handler.handles():
-                self._handler_map.setdefault(event_type, []).append(handler)
+                regex = _pattern_to_regex(event_type)
+                if regex is not None:
+                    self._wildcard_handlers.append((regex, handler))
+                else:
+                    self._handler_map.setdefault(event_type, []).append(handler)
 
     @property
     def db(self) -> sqlite3.Connection:
@@ -82,8 +96,11 @@ class ProjectionEngine:
             if existing:
                 return False
 
-            # Dispatch to handlers
-            handlers = self._handler_map.get(event.type, [])
+            # Dispatch to handlers (exact match, then wildcard fallback)
+            handlers = list(self._handler_map.get(event.type, []))
+            for regex, handler in self._wildcard_handlers:
+                if regex.match(event.type) and handler not in handlers:
+                    handlers.append(handler)
             for handler in handlers:
                 handler.apply(event, self.db)
 

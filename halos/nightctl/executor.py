@@ -11,6 +11,7 @@ from .job import Job
 from .manifest import Manifest
 from .notify import Notifier
 from halos.common.log import hlog
+from halos.eventsource.publish import fire_event
 
 
 def _now_iso() -> str:
@@ -195,6 +196,11 @@ def execute_item(
                 item.id, attempt, started, finished, 0, stdout, "", "done"
             )
             _write_run_record(runs_dir, item.id, record)
+            fire_event("night.job.completed", {
+                "job_id": item.id,
+                "result": stdout,
+                "duration_secs": None,
+            })
             return "done"
         except (ContainerError, Exception) as e:
             finished = _now_iso()
@@ -221,6 +227,11 @@ def execute_item(
                     1,
                     stderr,
                 )
+                fire_event("night.job.failed", {
+                    "job_id": item.id,
+                    "error": stderr[:500],
+                    "duration_secs": None,
+                })
                 return "failed"
             else:
                 print(f"  retry    {item.id}  ({remaining} retries remaining)")
@@ -261,10 +272,22 @@ def execute_item(
     )
     _write_run_record(runs_dir, item.id, record)
 
+    if outcome == "done":
+        fire_event("night.job.completed", {
+            "job_id": item.id,
+            "result": stdout[:500],
+            "duration_secs": None,
+        })
+
     if outcome != "done":
         remaining = item.decrement_retries()
         if remaining <= 0:
             notifier.failure(item.id, item.title, item.command or "", exit_code, stderr)
+            fire_event("night.job.failed", {
+                "job_id": item.id,
+                "error": stderr[:500],
+                "duration_secs": None,
+            })
             return "failed"
         else:
             print(f"  retry    {item.id}  ({remaining} retries remaining)")

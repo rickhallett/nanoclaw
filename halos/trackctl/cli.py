@@ -19,6 +19,7 @@ from . import registry
 from . import store
 from . import engine
 from halos.common.log import hlog
+from halos.eventsource.publish import fire_event
 
 
 def main() -> None:
@@ -158,6 +159,21 @@ def cmd_add(args) -> int:
         "duration_mins": args.duration_mins,
     })
 
+    # Publish to NATS for cross-pod visibility
+    _domain_event_type = {
+        "movement": "track.movement.logged",
+        "zazen": "track.zazen.logged",
+    }
+    fire_event(
+        _domain_event_type.get(args.domain, f"track.{args.domain}.logged"),
+        {
+            "domain": args.domain,
+            "entry_id": entry["id"],
+            "duration_mins": args.duration_mins,
+            "notes": args.notes,
+        },
+    )
+
     if getattr(args, "json_out", False):
         print(json.dumps(entry, indent=2))
     else:
@@ -204,6 +220,13 @@ def cmd_edit(args) -> int:
         "domain": args.domain, "id": args.id,
     })
 
+    fire_event("track.entry.edited", {
+        "domain": args.domain,
+        "entry_id": args.id,
+        "duration_mins": updated["duration_mins"],
+        "notes": updated["notes"],
+    })
+
     if getattr(args, "json_out", False):
         print(json.dumps(updated, indent=2))
     else:
@@ -222,6 +245,12 @@ def cmd_delete(args) -> int:
     hlog("trackctl", "info", "entry_deleted", {
         "domain": args.domain, "id": args.id,
     })
+
+    fire_event("track.entry.deleted", {
+        "domain": args.domain,
+        "entry_id": args.id,
+    })
+
     print(f"deleted  {args.domain}  id={args.id}")
     return 0
 

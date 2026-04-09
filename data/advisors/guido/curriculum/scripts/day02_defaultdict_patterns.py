@@ -3,7 +3,7 @@
 
 Run: uv run python data/advisors/guido/curriculum/scripts/day02_defaultdict_patterns.py
 """
-from IPython import embed
+from ptpython.ipython import embed
 from collections import defaultdict
 
 # ============================================================================

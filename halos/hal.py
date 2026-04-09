@@ -39,6 +39,7 @@ MODULES = {
     "secrets":   ("secretctl",    "1Password secret access"),
     "drill":     ("drillctl",     "Spaced repetition drill cards"),
     "journal":   ("journalctl",   "Qualitative journal"),
+    "advisor":   ("advisorctl",   "Agent-native fleet query / audit"),
 }
 
 # Agent tools: dispatched separately (not halos console_scripts)

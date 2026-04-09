@@ -1,0 +1,18 @@
+id: git-ingest
+title: Daily git activity ingest to Halostream
+schedule: 30 6 * * *
+command: >-
+  ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no
+  -L 4222:10.43.86.239:4222 mrkai@ryzen32 -fN
+  && NATS_PASS="fiLJRp6sPeZv4cJbg3Z6zVQxGvsDGMW2"
+  NATS_URL="nats://localhost:4222"
+  NATS_USER="advisor"
+  uv run --extra eventsource python -m halos.eventsource.git_ingest
+  --discover /Users/mrkai/code --since "1 day ago"
+  ; pkill -f "ssh.*4222.*ryzen32" || true
+enabled: true
+tags:
+  - fleet
+  - daily
+  - eventsource
+created: "2026-04-09T13:00:00Z"

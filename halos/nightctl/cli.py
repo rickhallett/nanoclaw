@@ -20,6 +20,7 @@ from .notify import Notifier
 from .executor import Executor, _in_window, _parse_window
 from .archive import run_archive, run_hatch
 from halos.common.log import hlog
+from halos.eventsource.publish import fire_event
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +62,7 @@ def _transition_item(cfg, item_id: str, new_status: str, label: str, extra_cb=No
     if not item:
         print(f"ERROR: item '{item_id}' not found", file=sys.stderr)
         sys.exit(1)
+    prev_status = item.status
     try:
         item.transition(new_status)
     except TransitionError as e:
@@ -73,6 +75,14 @@ def _transition_item(cfg, item_id: str, new_status: str, label: str, extra_cb=No
         extra_cb(item)
     item.save()
     hlog("nightctl", "info", "status_changed", {"id": item.id, "status": new_status})
+
+    fire_event("night.item.transitioned", {
+        "item_id": item.id,
+        "to_status": new_status,
+        "from_status": prev_status,
+        "kind": item.kind,
+    })
+
     print(f"{label}  {item.id}  {item.title}")
     return 0
 
@@ -126,6 +136,14 @@ def cmd_add(args, cfg):
         sys.exit(1)
 
     hlog("nightctl", "info", "item_created", {"id": item.id, "title": args.title, "kind": kind})
+
+    fire_event("night.item.created", {
+        "item_id": item.id,
+        "title": args.title,
+        "kind": kind,
+        "quadrant": item.quadrant,
+        "tags": item.tags,
+    })
 
     if args.json:
         out = {"id": item.id, "file": str(item.file_path), "kind": kind}

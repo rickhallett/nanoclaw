@@ -64,6 +64,7 @@ spec:
             - |
               [ ! -f "$HERMES_HOME/system-prompt.md" ] && \
                 cp /opt/defaults/system-prompt.md "$HERMES_HOME/system-prompt.md" 2>/dev/null || true
+              echo '[ -f ~/.bashrc ] && . ~/.bashrc' > ~/.bash_profile
               echo 'export PATH="/opt/venv/bin:$PATH"' >> ~/.bashrc
               exec /opt/entrypoint.sh gateway
           env:

@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from .store import add_entry, list_entries, count_entries
 from .window import window, window_month
+from halos.eventsource.publish import fire_event
 
 
 def cmd_add(args) -> int:
@@ -27,6 +28,15 @@ def cmd_add(args) -> int:
         mood=mood,
         energy=energy,
     )
+
+    fire_event("journal.entry.added", {
+        "entry_id": entry["id"],
+        "raw_text": body,
+        "tags": [t.strip() for t in tags.split(",") if t.strip()] if tags else [],
+        "source": source,
+        "mood": mood or None,
+        "energy": energy or None,
+    })
 
     if args.json_out:
         print(json.dumps(entry, indent=2))

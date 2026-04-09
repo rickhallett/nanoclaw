@@ -463,5 +463,15 @@ def run_triage(
 
     if not dry_run:
         log.info(f"[{account}] Moved {moved}/{len(messages)} messages")
+        # Publish triage results to Halostream
+        from halos.eventsource.publish import fire_event
+        for entry in results:
+            fire_event("mail.triage.executed", {
+                "sender": entry["from"],
+                "subject": entry["subject"],
+                "action": entry["action"],
+                "reason": entry["reason"],
+                "label": entry.get("label"),
+            })
 
     return results

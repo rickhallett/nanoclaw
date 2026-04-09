@@ -59,6 +59,7 @@ spec:
               args:
                 - |
                   [ ! -f "$HERMES_HOME/system-prompt.md" ] &&                     cp /opt/defaults/system-prompt.md "$HERMES_HOME/system-prompt.md" 2>/dev/null || true
+                  echo '[ -f ~/.bashrc ] && . ~/.bashrc' > ~/.bash_profile
                   echo 'export PATH="/opt/venv/bin:$PATH"' >> ~/.bashrc
                   exec /opt/entrypoint.sh chat -Q --query                     "You are $ADVISOR_NAME. Run your scheduled advisor cycle now using available halos tools. Produce a concise operator update and deliver it via configured messaging tools if available."
               env:

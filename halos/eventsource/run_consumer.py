@@ -21,10 +21,14 @@ import sys
 from pathlib import Path
 
 from halos.eventsource.consumer import AdvisorEventLoop
-from halos.eventsource.handlers.track import TrackProjectionHandler
+from halos.eventsource.handlers.advisor import AdvisorTelephonyHandler
+from halos.eventsource.handlers.dev import DevCommitProjectionHandler
 from halos.eventsource.handlers.journal import JournalProjectionHandler
+from halos.eventsource.handlers.mail import MailTriageHandler
 from halos.eventsource.handlers.night import NightProjectionHandler
 from halos.eventsource.handlers.observation import ObservationProjectionHandler
+from halos.eventsource.handlers.system import SystemEventHandler
+from halos.eventsource.handlers.track import TrackProjectionHandler
 
 
 def _resolve_store_dir() -> Path:
@@ -60,10 +64,14 @@ def main():
         nats_pass=nats_pass,
         projection_path=store_dir / "projection.db",
         handlers=[
-            TrackProjectionHandler(),
+            AdvisorTelephonyHandler(),
+            DevCommitProjectionHandler(),
             JournalProjectionHandler(),
+            MailTriageHandler(),
             NightProjectionHandler(),
             ObservationProjectionHandler(),
+            SystemEventHandler(),
+            TrackProjectionHandler(),
         ],
         subscriptions=["halo.>"],
     )

@@ -48,6 +48,7 @@ spec:
           command: ["/bin/bash", "-c"]
           args:
             - |
+              echo '[ -f ~/.bashrc ] && . ~/.bashrc' > ~/.bash_profile
               echo 'export PATH="/opt/venv/bin:$PATH"' >> ~/.bashrc
               echo "memctl-authority ready" >&2
               exec sleep infinity
