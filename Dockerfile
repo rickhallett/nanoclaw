@@ -11,7 +11,7 @@ FROM debian:13.4
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-venv \
     nodejs npm \
-    ripgrep ffmpeg gcc python3-dev libffi-dev \
+    ripgrep ffmpeg gcc g++ make python3-dev libffi-dev patch \
     && rm -rf /var/lib/apt/lists/*
 
 # Non-root user with explicit UID/GID matching K8s securityContext
@@ -31,10 +31,12 @@ RUN pip install --no-cache-dir ".[all,messaging,cron]" 2>/dev/null \
 
 # --- Hermes source layer ---
 COPY vendor/hermes-agent /opt/hermes
+COPY docker/patches/hermes-nats-events.patch /opt/patches/hermes-nats-events.patch
 RUN test -f /opt/hermes/pyproject.toml \
     || { echo "ERROR: vendor/hermes-agent is empty — run: git submodule update --init" >&2; exit 1; }
-RUN pip install --no-cache-dir ".[all,messaging,cron]"
-RUN npm install --prefer-offline --no-audit
+RUN patch -d /opt/hermes -p1 < /opt/patches/hermes-nats-events.patch
+RUN pip install --no-cache-dir ".[all,messaging,cron]" pdfplumber
+RUN npm_config_python=/usr/bin/python3 npm install --prefer-offline --no-audit
 
 # --- Halos dependency layer (cached — changes only when pyproject.toml changes) ---
 COPY pyproject.toml /opt/halos/
@@ -57,6 +59,9 @@ WORKDIR /opt/hermes
 COPY docker/entrypoint.sh /opt/entrypoint.sh
 COPY docker/defaults/ /opt/defaults/
 RUN chmod +x /opt/entrypoint.sh
+
+# --- Baked-in track databases (survive pod restarts without manual kubectl cp) ---
+COPY --chown=hermes:hermes store/track_*.db /opt/defaults/store/
 
 # Pre-create data directory with correct ownership
 RUN mkdir -p /opt/data && chown -R hermes:hermes /opt/data

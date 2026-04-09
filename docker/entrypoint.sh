@@ -11,6 +11,19 @@ INSTALL_DIR="/opt/hermes"
 # Create mutable directories if not present (PVC may be empty on first run)
 mkdir -p "$HERMES_HOME"/{sessions,memories,logs,skills,store,cron,hooks}
 
+# --- Seed track databases (baked into image, copied on first run only) ---
+# Existing dbs on the PVC are never overwritten — only missing ones are seeded.
+if [ -d /opt/defaults/store ]; then
+    for db in /opt/defaults/store/track_*.db; do
+        [ -f "$db" ] || continue
+        target="$HERMES_HOME/store/$(basename "$db")"
+        if [ ! -f "$target" ]; then
+            cp "$db" "$target"
+            echo "Seeded $(basename "$db")" >&2
+        fi
+    done
+fi
+
 # --- Restore from backup on empty PVC ---
 if [ ! -f "$HERMES_HOME/state.db" ] && [ -n "${BACKUP_S3_BUCKET:-}" ]; then
     echo "Empty PVC detected. Attempting restore from backup..." >&2

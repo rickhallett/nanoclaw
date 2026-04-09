@@ -1,0 +1,182 @@
+diff --git a/cron/scheduler.py b/cron/scheduler.py
+index 8a54520a..194049ef 100644
+--- a/cron/scheduler.py
++++ b/cron/scheduler.py
+@@ -15,6 +15,8 @@ import logging
+ import os
+ import sys
+ import traceback
++import uuid
++from datetime import datetime, timezone
+ 
+ # fcntl is Unix-only; on Windows use msvcrt for file locking
+ try:
+@@ -129,7 +131,7 @@ def _resolve_delivery_target(job: dict) -> Optional[dict]:
+     }
+ 
+ 
+-def _deliver_result(job: dict, content: str) -> None:
++def _deliver_result(job: dict, content: str) -> dict:
+     """
+     Deliver job output to the configured target (origin chat, specific platform, etc.).
+ 
+@@ -144,7 +146,7 @@ def _deliver_result(job: dict, content: str) -> None:
+                 job["id"],
+                 job.get("deliver", "local"),
+             )
+-        return
++        return {"success": False}
+ 
+     platform_name = target["platform"]
+     chat_id = target["chat_id"]
+@@ -171,18 +173,18 @@ def _deliver_result(job: dict, content: str) -> None:
+     platform = platform_map.get(platform_name.lower())
+     if not platform:
+         logger.warning("Job '%s': unknown platform '%s' for delivery", job["id"], platform_name)
+-        return
++        return {"success": False}
+ 
+     try:
+         config = load_gateway_config()
+     except Exception as e:
+         logger.error("Job '%s': failed to load gateway config for delivery: %s", job["id"], e)
+-        return
++        return {"success": False}
+ 
+     pconfig = config.platforms.get(platform)
+     if not pconfig or not pconfig.enabled:
+         logger.warning("Job '%s': platform '%s' not configured/enabled", job["id"], platform_name)
+-        return
++        return {"success": False}
+ 
+     # Optionally wrap the content with a header/footer so the user knows this
+     # is a cron delivery.  Wrapping is on by default; set cron.wrap_response: false
+@@ -215,18 +217,68 @@ def _deliver_result(job: dict, content: str) -> None:
+         # prevent "coroutine was never awaited" RuntimeWarning, then retry in a
+         # fresh thread that has no running loop.
+         coro.close()
+-        import concurrent.futures
+         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+-            future = pool.submit(asyncio.run, _send_to_platform(platform, pconfig, chat_id, delivery_content, thread_id=thread_id))
++            future = pool.submit(
++                asyncio.run,
++                _send_to_platform(platform, pconfig, chat_id, delivery_content, thread_id=thread_id),
++            )
+             result = future.result(timeout=30)
+     except Exception as e:
+         logger.error("Job '%s': delivery to %s:%s failed: %s", job["id"], platform_name, chat_id, e)
+-        return
++        return {"success": False}
+ 
+     if result and result.get("error"):
+         logger.error("Job '%s': delivery error: %s", job["id"], result["error"])
+-    else:
+-        logger.info("Job '%s': delivered to %s:%s", job["id"], platform_name, chat_id)
++        return {"success": False}
++
++    logger.info("Job '%s': delivered to %s:%s", job["id"], platform_name, chat_id)
++    return {
++        "success": True,
++        "platform": platform_name,
++        "chat_id": chat_id,
++        "thread_id": thread_id,
++    }
++
++
++def _publish_halo_event(event_type: str, payload: dict, source: str) -> None:
++    """Publish a standardized event to Halostream. Non-fatal on failure."""
++    nats_pass = os.getenv("NATS_PASS", "")
++    if not nats_pass:
++        return
++
++    nats_url = os.getenv("NATS_URL", "nats://nats.halo-fleet.svc.cluster.local:4222")
++    nats_user = os.getenv("NATS_USER", "advisor")
++    event = {
++        "id": f"evt_{uuid.uuid4().hex}",
++        "type": event_type,
++        "version": 1,
++        "source": source,
++        "timestamp": datetime.now(timezone.utc).isoformat(),
++        "correlation_id": payload.get("correlation_id") or f"cor_{uuid.uuid4().hex}",
++        "payload": payload,
++    }
++    subject = f"halo.{event_type}"
++
++    async def _pub():
++        import nats
++        nc = await nats.connect(nats_url, user=nats_user, password=nats_pass)
++        try:
++            js = nc.jetstream()
++            await js.publish(
++                subject,
++                json.dumps(event).encode(),
++                headers={"Nats-Msg-Id": event["id"]},
++            )
++        finally:
++            await nc.close()
++
++    try:
++        asyncio.run(_pub())
++    except RuntimeError:
++        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
++            pool.submit(asyncio.run, _pub()).result(timeout=30)
++    except Exception as e:
++        logger.error("Failed to publish NATS event %s: %s", event_type, e)
+ 
+ 
+ def _build_job_prompt(job: dict) -> str:
+@@ -602,7 +654,31 @@ def tick(verbose: bool = True) -> int:
+ 
+                 if should_deliver:
+                     try:
+-                        _deliver_result(job, deliver_content)
++                        delivery_result = _deliver_result(job, deliver_content)
++                        if (
++                            success
++                            and delivery_result.get("success")
++                            and str(delivery_result.get("platform", "")).lower() == "telegram"
++                        ):
++                            _publish_halo_event(
++                                "advisor.touchbase.delivered",
++                                {
++                                    "schema_version": "1.0",
++                                    "advisor": os.getenv("ADVISOR_NAME", "unknown"),
++                                    "direction": "outbound",
++                                    "platform": "telegram",
++                                    "chat_id": str(delivery_result.get("chat_id", "")),
++                                    "thread_id": str(delivery_result.get("thread_id", "") or ""),
++                                    "job_id": job.get("id", ""),
++                                    "job_name": job.get("name", ""),
++                                    "schedule": job.get("schedule_display", ""),
++                                    "message_text": deliver_content,
++                                    "message_len": len(deliver_content),
++                                    "delivery_status": "sent",
++                                    "run_at": datetime.now(timezone.utc).isoformat(),
++                                },
++                                source=os.getenv("ADVISOR_NAME", "cron"),
++                            )
+                     except Exception as de:
+                         logger.error("Delivery failed for job %s: %s", job["id"], de)
+ 
+diff --git a/gateway/run.py b/gateway/run.py
+index 33bfa1d7..6d0c477f 100644
+--- a/gateway/run.py
++++ b/gateway/run.py
+@@ -2659,7 +2659,7 @@ class GatewayRunner:
+                 "platform": source.platform.value if source.platform else "",
+                 "user_id": source.user_id,
+                 "session_id": session_entry.session_id,
+-                "message": message_text[:500],
++                "message": message_text,
+             }
+             await self.hooks.emit("agent:start", hook_ctx)
+ 
+@@ -2758,7 +2758,7 @@ class GatewayRunner:
+             # Emit agent:end hook
+             await self.hooks.emit("agent:end", {
+                 **hook_ctx,
+-                "response": (response or "")[:500],
++                "response": (response or ""),
+             })
+             
+             # Check for pending process watchers (check_interval on background processes)
