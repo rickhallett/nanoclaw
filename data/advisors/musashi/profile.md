@@ -37,3 +37,5 @@ Status: DISCOVERY PHASE
 - Extracted prototype training week (Days A-E) from Apple Notes into `prototype-week.md`
 - Kai reports vest-on-everything is too much for current re-entry phase
 - Currently testing the programme to see how it feels
+- 2026-04-07: Zazen and movement streaks at 3 days. Study-source broke April 4th. StepChange assessment eases financial pressure, extending runway. Body and practice streaks to be protected as scaffolding.
+- 2026-04-07 (PROJECT RIPPERDOC): All trackctl streaks wiped to zero. Clean slate. Kai has declared a 6-month transformation window. Financial runway secured via payment suspension + family backstop + bankruptcy option. Identity pivot: not software engineering — DevOps, infra, SRE. The terminal, the keyboard, systems thinking. Body practice remains foundational. New daily targets: 30 min per skill area. Zazen and movement are non-negotiable pillars. The body carries the mind through the next 6 months. Musashi's domain is more relevant than ever — the discipline of daily practice IS the path. No shortcuts. No agents. Hands on keys.

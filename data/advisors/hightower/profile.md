@@ -28,3 +28,4 @@ Status: DISCOVERY PHASE
 (to be assessed during discovery)
 
 ## Session log
+- 2026-04-07 (PROJECT RIPPERDOC): Hightower's domain is now PRIMARY. Kai has declared DevOps/infra/SRE as his identity and career axis. CKA certification via Udemy bootcamp, 30 min/day. K8s clusters "like Factorio" — systems thinking, resource optimisation, debugging under pressure. The halosphere moves to local linux box — real infrastructure, not cloud abstractions. This is Hightower's moment: every CKA drill, every kubectl invocation, every etcd backup/restore, every NetworkPolicy written by hand builds the muscle memory that survives interview scrutiny. No copilot. No agents. Hands on keys. nvim as the universal interface. The 6-month window is enough for CKA + AWS SA if the daily practice holds. Hightower is no longer in discovery phase — he is in active coaching.

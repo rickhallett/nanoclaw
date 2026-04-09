@@ -1,0 +1,238 @@
+{
+  "cards": [
+    {
+      "slug": "defaultdict_factory",
+      "domain": "collections",
+      "prompt": "What does defaultdict(list)['missing_key'] return? Does it raise?",
+      "answer": "Returns []. No KeyError. The factory (list) is called with no args. The key is also ADDED to the dict."
+    },
+    {
+      "slug": "defaultdict_get_vs_bracket",
+      "domain": "collections",
+      "prompt": "defaultdict(list): d['x'] vs d.get('x') — which triggers the factory?",
+      "answer": "d['x'] triggers __missing__ → factory. d.get('x') returns None, does NOT create the key."
+    },
+    {
+      "slug": "counter_most_common",
+      "domain": "collections",
+      "prompt": "Counter('aab').most_common(1) — what type does it return? What value?",
+      "answer": "[('a', 2)] — a list of (element, count) tuples. Not just the element. Not a dict."
+    },
+    {
+      "slug": "counter_missing_key",
+      "domain": "collections",
+      "prompt": "Counter()['nonexistent'] — what happens?",
+      "answer": "Returns 0. Counter never raises KeyError for missing keys."
+    },
+    {
+      "slug": "counter_subtract_vs_minus",
+      "domain": "collections",
+      "prompt": "Counter(a=3) - Counter(a=5) vs Counter(a=3).subtract(Counter(a=5)) — difference?",
+      "answer": "Minus operator drops zero/negative: Counter(). subtract() keeps them: Counter({'a': -2})."
+    },
+    {
+      "slug": "deque_maxlen",
+      "domain": "collections",
+      "prompt": "deque([1,2,3], maxlen=3).append(4) — what is the result?",
+      "answer": "[2, 3, 4]. Append pushes right, silently drops from LEFT. Never raises."
+    },
+    {
+      "slug": "deque_appendleft_maxlen",
+      "domain": "collections",
+      "prompt": "deque([1,2,3], maxlen=3).appendleft(0) — what is the result?",
+      "answer": "[0, 1, 2]. Appendleft pushes left, silently drops from RIGHT."
+    },
+    {
+      "slug": "subprocess_three_errors",
+      "domain": "subprocess",
+      "prompt": "Name the three exceptions subprocess.run can raise.",
+      "answer": "CalledProcessError (non-zero exit with check=True), FileNotFoundError (command doesn't exist), TimeoutExpired (timeout exceeded)."
+    },
+    {
+      "slug": "subprocess_capture_pattern",
+      "domain": "subprocess",
+      "prompt": "What three arguments do you pass to subprocess.run 90% of the time?",
+      "answer": "capture_output=True, text=True, check=True. Returns CompletedProcess with .stdout as str."
+    },
+    {
+      "slug": "subprocess_repr_stdout",
+      "domain": "subprocess",
+      "prompt": "subprocess.run(['echo','hello'], capture_output=True, text=True).stdout — what is repr of this?",
+      "answer": "'hello\\n' — echo adds a trailing newline. Always .strip() before processing."
+    },
+    {
+      "slug": "subprocess_without_check",
+      "domain": "subprocess",
+      "prompt": "subprocess.run(['false']) without check=True — what happens?",
+      "answer": "No exception. Returns CompletedProcess with returncode=1. Failure is SILENT without check=True."
+    },
+    {
+      "slug": "logging_level_hierarchy",
+      "domain": "logging",
+      "prompt": "level=WARNING — which messages are shown? Which are hidden?",
+      "answer": "Shown: WARNING, ERROR, CRITICAL. Hidden: DEBUG, INFO. It's a minimum severity filter, not a maximum."
+    },
+    {
+      "slug": "logging_five_levels",
+      "domain": "logging",
+      "prompt": "Name the 5 logging levels in order, lowest to highest.",
+      "answer": "DEBUG (10) < INFO (20) < WARNING (30) < ERROR (40) < CRITICAL (50)."
+    },
+    {
+      "slug": "logging_logger_vs_handler",
+      "domain": "logging",
+      "prompt": "Both logger and handler have levels. How do they interact?",
+      "answer": "Message must pass BOTH filters. Logger says 'I accept this', handler says 'I will show this'. Double gate."
+    },
+    {
+      "slug": "try_else_when",
+      "domain": "exceptions",
+      "prompt": "In try/except/else/finally — when does the else block run?",
+      "answer": "Only if NO exception was raised in try. Skipped if except ran. Narrows what except catches."
+    },
+    {
+      "slug": "finally_always",
+      "domain": "exceptions",
+      "prompt": "Does finally run if: (a) except raises? (b) try returns? (c) exception is not caught?",
+      "answer": "Yes, yes, yes. finally ALWAYS runs. Even with return. Even if except raises. Even with uncaught exceptions."
+    },
+    {
+      "slug": "raise_from",
+      "domain": "exceptions",
+      "prompt": "What does 'raise RuntimeError(\"x\") from original_error' do?",
+      "answer": "Exception chaining. Sets __cause__ on the new exception. Traceback shows both. Use for wrapping low-level errors."
+    },
+    {
+      "slug": "itertools_groupby_gotcha",
+      "domain": "itertools",
+      "prompt": "groupby([1,1,2,3,3,2,2]) — does 2 appear once or twice as a key?",
+      "answer": "Twice. groupby groups CONSECUTIVE elements only. Sort first for global grouping."
+    },
+    {
+      "slug": "itertools_chain",
+      "domain": "itertools",
+      "prompt": "chain([1,2], [3,4]) — what does list(islice(chain([1,2],[3,4]), 1, 3)) return?",
+      "answer": "[2, 3]. chain concatenates lazily. islice(it, 1, 3) returns items at index 1 and 2."
+    },
+    {
+      "slug": "generator_exhaustion",
+      "domain": "generators",
+      "prompt": "g = (x**2 for x in range(5)); sum(g); sum(g) — what are the two sums?",
+      "answer": "30, then 0. First sum: 0+1+4+9+16=30. Generator is exhausted. Second sum of empty iterator = 0."
+    },
+    {
+      "slug": "pathlib_suffix_dot",
+      "domain": "pathlib",
+      "prompt": "Path('file.tar.gz').suffix → ? Path('file.tar.gz').stem → ?",
+      "answer": "suffix = '.gz' (LAST extension, WITH dot). stem = 'file.tar' (strips ONLY last suffix)."
+    },
+    {
+      "slug": "pathlib_suffixes",
+      "domain": "pathlib",
+      "prompt": "Path('file.tar.gz').suffixes → ?",
+      "answer": "['.tar', '.gz'] — list of ALL extensions, each WITH their dot."
+    },
+    {
+      "slug": "pathlib_resolve",
+      "domain": "pathlib",
+      "prompt": "Path('/a/b/../b/c.txt').resolve() — what does resolve do?",
+      "answer": "Collapses .. (and symlinks), makes absolute. Result: /a/b/c.txt. Works even if file doesn't exist."
+    },
+    {
+      "slug": "closure_late_binding",
+      "domain": "closures",
+      "prompt": "[lambda x: x*i for i in range(4)] — what does [f(2) for f in fns] produce?",
+      "answer": "[6, 6, 6, 6]. All lambdas capture the VARIABLE i (=3 after loop). Fix: lambda x, i=i: x*i"
+    },
+    {
+      "slug": "closure_nonlocal",
+      "domain": "closures",
+      "prompt": "Inner function does 'count += 1' on enclosing variable. What happens without nonlocal?",
+      "answer": "UnboundLocalError. Assignment creates a local. Use 'nonlocal count' to modify the enclosing variable."
+    },
+    {
+      "slug": "decorator_wraps",
+      "domain": "closures",
+      "prompt": "What does @functools.wraps(fn) do in a decorator's wrapper function?",
+      "answer": "Copies __name__, __doc__, __module__ etc from fn to wrapper. Without it, decorated function loses its identity."
+    },
+    {
+      "slug": "datetime_naive_vs_aware",
+      "domain": "datetime",
+      "prompt": "datetime.now().tzinfo → ? datetime.now(timezone.utc).tzinfo → ?",
+      "answer": "None (naive). UTC (aware). Cannot compare/subtract naive and aware — raises TypeError."
+    },
+    {
+      "slug": "datetime_utcnow_danger",
+      "domain": "datetime",
+      "prompt": "Why is datetime.utcnow() dangerous?",
+      "answer": "Returns naive datetime (tzinfo=None) that LOOKS like UTC but has no timezone info. Use datetime.now(timezone.utc) instead."
+    },
+    {
+      "slug": "datetime_replace_vs_astimezone",
+      "domain": "datetime",
+      "prompt": ".replace(tzinfo=tz) vs .astimezone(tz) — what's the difference?",
+      "answer": "replace() stamps a timezone WITHOUT converting (same numbers, new label). astimezone() CONVERTS (same moment, different numbers)."
+    },
+    {
+      "slug": "regex_findall_groups",
+      "domain": "regex",
+      "prompt": "re.findall(r'error: (\\d+)', 'error: 404, info: 200') → ?",
+      "answer": "['404']. Only matches 'error:' prefix (not 'info:'). With capture group, findall returns group content, not full match."
+    },
+    {
+      "slug": "regex_group_numbering",
+      "domain": "regex",
+      "prompt": "m = re.match(r'(a)(b)(c)', 'abc'). m.group(0)? m.group(2)? m.groups()?",
+      "answer": "group(0)='abc' (full match). group(2)='b' (second capture). groups()=('a','b','c') (tuple, not list)."
+    },
+    {
+      "slug": "fstring_alignment",
+      "domain": "fstrings",
+      "prompt": "f'{name:>20}' — left-aligned or right-aligned?",
+      "answer": "Right-aligned. > means text goes to the RIGHT (pad left with spaces). < is left-align. ^ is center."
+    },
+    {
+      "slug": "fstring_fill",
+      "domain": "fstrings",
+      "prompt": "f'{name:*^20}' — what does this produce for name='kai'?",
+      "answer": "'********kai*********' — centered in 20 chars, padded with * on both sides."
+    },
+    {
+      "slug": "hashability",
+      "domain": "internals",
+      "prompt": "d = {}; d[[1,2,3]] = 'x' — what exception? What would you use instead?",
+      "answer": "TypeError: unhashable type: 'list'. Use a tuple: d[(1,2,3)] = 'x'. Dict keys must be hashable."
+    },
+    {
+      "slug": "mutable_default_arg",
+      "domain": "internals",
+      "prompt": "def f(lst=[]): lst.append(1); return lst — calling f() three times gives?",
+      "answer": "[1], [1,1], [1,1,1]. Default list is created ONCE at definition. Fix: def f(lst=None): lst = lst or []"
+    },
+    {
+      "slug": "integer_interning",
+      "domain": "internals",
+      "prompt": "x=256; y=256; x is y → ? a=257; b=257; a is b → ?",
+      "answer": "True, False. CPython caches integers -5 to 256. Use == for value comparison, is only for None."
+    },
+    {
+      "slug": "enum_comparison",
+      "domain": "internals",
+      "prompt": "Status.ACTIVE == 'active' — True or False? (Status is an Enum with value 'active')",
+      "answer": "False. Enum members do NOT compare equal to their values. Compare Enum to Enum: Status.ACTIVE == Status.ACTIVE."
+    },
+    {
+      "slug": "slots_dict",
+      "domain": "internals",
+      "prompt": "Class with __slots__ = ('x','y'). hasattr(obj, '__dict__') → ? Can you add obj.z?",
+      "answer": "False (no __dict__). obj.z = 3 raises AttributeError. __slots__ restricts attributes AND eliminates __dict__."
+    },
+    {
+      "slug": "context_manager_finally",
+      "domain": "exceptions",
+      "prompt": "@contextmanager with try/yield/finally — if exception in with block, does finally run?",
+      "answer": "Yes. finally ALWAYS runs as the with block exits. Exception propagates AFTER finally completes."
+    }
+  ]
+}

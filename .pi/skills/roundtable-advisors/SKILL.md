@@ -19,6 +19,7 @@ Seven advisors and a dramaturg. Each has a persona (how they think and speak) an
 | VI | Medici | Money: debt, burn, runway, time economics | "summon medici" |
 | VII | Bankei | The Unborn: rest, rhythm, the cost of never stopping | "summon bankei" |
 | VIII | Hightower | Heavy Iron: K8s ops, cluster debugging, CKA drilling | "summon hightower" |
+| IX | Guido | Python: stdlib mastery, idiomatic patterns, the glue | "summon guido" |
 | -- | Plutarch | Dramaturg: routes, synthesises, holds the whole play | "summon plutarch" |
 
 ## Summoning an Advisor

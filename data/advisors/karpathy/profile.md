@@ -42,3 +42,12 @@ Mode B (AI-native, dominant): live pair sessions test whether you UNDERSTAND wha
 (to be filled during discovery)
 
 ## Session log
+- 2026-04-07 (PROJECT RIPPERDOC): All streaks wiped to zero. Clean psychological break. 6-month transformation window. New study architecture declared:
+  - DS/algo: neetcode, typed in nvim (no browser env)
+  - Infra literacy: codecrafters challenges
+  - Linux-fu: wargames bandit (sed, awk, unix pipeline mastery)
+  - Vim/nvim: universal language, force multiplier for live coding
+  - AWS SA: Cantril course, 30 min/day
+  - CKA: Udemy bootcamp, 30 min/day
+  - Python/SQL: integrated into above
+  Target: 30 min per day per skill area. Karpathy's domain is the learning architecture itself — sequencing, spaced repetition, depth vs breadth. Key prediction Kai holds: frontier AI becomes too expensive, engineers who use local AI in targeted diagnostics win. This means the fundamentals matter MORE, not less. The agent harness is being put down. nvim is being picked up. Karpathy approves.
