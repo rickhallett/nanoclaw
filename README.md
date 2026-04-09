@@ -1,191 +1,110 @@
-# Halo
+# Halo: Autonomous Event-Sourced AI Fleet
 
-Halo is a personal AI operating system built as a monorepo.
+> **"Translating the Dao into YAML files."**
 
-At runtime, it is not one thing but a stack of cooperating systems:
-- a message gateway for HAL-prime
-- a shared Python tooling layer (`halos/`)
-- a macOS computer-use / job-execution layer (`agent/`)
+Halo is a bespoke, heavy-iron AI ecosystem designed to automate high-ticket spiritual, wellness, and creator businesses without degrading their authentic human voice.
 
-At portfolio level, it is also a proving ground for end-to-end agentic engineering:
-- specification precision
-- evaluation and quality judgment
-- decomposition and orchestration
-- failure diagnosis
-- trust and guardrail design
-- context architecture
-- token / cost economics
-
-The repo matters less as “an AI app” and more as an environment for making AI work legibly, reliably, and operationally.
+Built by a psychotherapist turned Kubernetes engineer, Halo rejects the "stateless chatbot" paradigm. Instead, it operates as a **persistent, event-driven hive-mind** deployed on bare-metal cloud infrastructure. It holds context, observes behavior, and executes complex operational pipelines completely invisibly to the end-user.
 
 ---
 
-## Working definition
+## The Architecture (The Heavy Iron)
 
-Halo is a monorepo for building and operating personal agent infrastructure.
+Halo is deployed as a fat-code/thin-client architecture on the Vultr Kubernetes Engine (VKE), orchestrated entirely via ArgoCD (GitOps).
 
-It combines three layers:
+- **The Halostream (NATS JetStream):** The nervous system of the fleet. A highly resilient event bus. All agents communicate via pub/sub events. If a pod dies, it simply restarts, replays the JetStream from its last checkpoint, and reconstructs its local reality. Zero message loss.
+- **Single-Writer Memory (NFS):** To prevent concurrency locks, state is managed via a single-writer `memctl-authority` pod writing to an NFS Persistent Volume. All advisor pods mount this volume read-only, ensuring total data integrity across the fleet.
+- **CQRS Pattern:** Each advisor runs a sidecar event consumer that projects the NATS event stream into a local SQLite database, decoupling read/write workloads and making each pod functionally immortal.
+- **Agentic Orchestration:** Written in Python (`uv` managed), wrapping Anthropic and Groq models with strict psychological boundaries to prevent "AI slop" and hallucination.
+
+---
+
+## The Roundtable
+
+The cluster runs 8 distinct, containerised "Advisors." Each is a discrete Kubernetes Deployment with a highly specific system prompt and operational domain:
+
+| Seat | Name | Domain |
+|------|------|--------|
+| I | Musashi | Physical state and discipline |
+| II | Draper | Copywriting, positioning, and pitch |
+| III | Karpathy | Engineering craft and logic |
+| IV | Gibson | Market terrain and futures |
+| V | Machiavelli | Power dynamics and strategy |
+| VI | Medici | Financial runway and economics |
+| VII | Bankei | Rest, rhythm, and burnout detection |
+| VIII | Hightower | Heavy Iron / K8s Operations (Diagnostic) |
+
+For client deployments, this roster is hot-swapped for bespoke archetypes in isolated namespaces.
+
+---
+
+## Chaos Engineering and the Immune System
+
+This system bends bullets. The integration suite executes rigorous Chaos Engineering against the live cluster.
+
+The **66/66 passing integration suite** proves the cluster survives:
+
+- **NATS Pod Murder:** Killing the event broker mid-stream. Consumers reconnect, zero message loss.
+- **Advisor Amnesia:** Wiping a pod's local SQLite database. Pod perfectly reconstructs state from JetStream replay.
+- **NFS Server Assassination:** Killing the persistent volume host. Full recovery chain verified without stale file handle exceptions.
+- **Poison Pill Payloads:** Firing malformed JSON at consumers. Dead-lettered cleanly without crashing the pod.
+
+---
+
+## Why This Exists
+
+There are many AI demos and many AI wrappers. There are far fewer systems that visibly answer the operational questions:
+
+- How is agent intent specified?
+- How is output evaluated?
+- What happens when agents fail?
+- What is the trust boundary?
+- What context is loaded and why?
+- What does this cost and is it worth it?
+
+Halo exists to answer those questions in a concrete production setting. The winning AI systems are not the ones that merely generate plausible language. They are the ones that can be clearly specified, evaluated consistently, decomposed into controllable parts, debugged when they fail, governed at the trust boundary, and justified economically.
+
+---
+
+## Core Thesis
+
+- Legibility over magic
+- Auditability over novelty
+- Evaluation over vibes
+- Constrained autonomy over theatrical autonomy
+- Composable tools over monoliths
+- Explicit context over accidental context
+- Narrow tools over sprawling abstractions
+- Real traces over retrospective storytelling
+
+---
+
+## Repository Structure
 
 ```text
 halo/
-├── halos/     Python CLI tooling for work, memory, metrics, mail, cron, reporting
-├── infra/     K8s fleet manifests, Terraform, NATS, Argo CD, observability
-├── agent/     macOS host-side job execution (listen/direct)
-└── docker/    Fleet container entrypoint and defaults
-```
-
-The important claim is not that these layers exist.
-The important claim is that they compose.
-
-A useful Halo workflow is one where:
-- a task is clearly specified
-- the right context is loaded
-- tools are invoked in a constrained way
-- outputs are evaluated
-- failures are diagnosable
-- the resulting system remains operable by a human, not only by the model that built it
-
----
-
-## Why this exists
-
-There are many AI demos and many AI wrappers.
-There are far fewer systems that visibly answer the operational questions:
-
-- how is agent intent specified?
-- how is output evaluated?
-- what happens when agents fail?
-- what is the trust boundary?
-- what context is loaded and why?
-- what does this cost and is it worth it?
-
-Halo exists to answer those questions in a concrete personal setting.
-
-It is designed for the kind of work where agents are useful only if they are governable:
-- daily briefings
-- work tracking
-- memory and notes
-- email triage
-- dashboards and metrics
-- message-based assistant workflows
-- host-side computer use on macOS
-
----
-
-## Core thesis
-
-The winning AI systems are not the ones that merely generate plausible language.
-They are the ones that can be:
-- clearly specified
-- evaluated consistently
-- decomposed into controllable parts
-- debugged when they fail
-- governed at the trust boundary
-- fed the right context
-- justified economically
-
-Halo is built around that thesis.
-
-This means:
-- composable CLI tools over opaque app logic
-- explicit files and databases over hidden state
-- operational legibility over “magic”
-- constrained autonomy over theatrical autonomy
-
----
-
-## Product / system pillars
-
-### 1. Shared operational tooling
-
-The `halos/` package is the center of gravity.
-It provides Python CLIs for structured work across domains:
-- work tracking
-- scheduling
-- memory
-- reporting
-- metrics
-- email
-- cron
-- health and session management
-
-These tools are useful on their own.
-They are more useful because they compose through files, SQLite, and shell-friendly outputs.
-
-### 2. K8s fleet (roundtable advisors)
-
-The fleet runs on Vultr VKE, managed by Argo CD. Each advisor pod runs Hermes (Claude Agent SDK) with halos tooling hot-reloaded via init container overlay. Events flow through NATS JetStream (`HALO` stream) and are projected into per-advisor state.
-
-This layer is about:
-- event-sourced observation and projection
-- advisor personas with persistent memory (NFS-backed memctl)
-- NATS stream multiplexing
-- containerised Claude agents with tool access
-
-### 3. Host-side macOS execution
-
-The `agent/` layer handles what should not happen inside a container:
-- reading the screen
-- clicking and typing in GUI apps
-- orchestrating tmux sessions
-- running host-side jobs through a listen/send model
-
-This is the “hands and eyes” layer.
-
-### 4. Context architecture and memory
-
-Halo is opinionated that context should be structured, not merely accumulated.
-
-That means:
-- markdown where prose matters
-- YAML where human-readable config matters
-- SQLite where queryability matters
-- logs where append-only audit trails matter
-
-The repo is therefore also a context architecture project.
-
-### 5. Briefings, reports, and operational visibility
-
-Halo is not only about acting.
-It is also about making state legible.
-
-Examples:
-- morning briefings
-- nightly recaps
-- work summaries
-- metrics dashboards
-- mail summaries
-- session / health reporting
-
-A system that cannot explain its own condition is not operationally mature.
-
----
-
-## Repository structure
-
-```text
-halo/
-├── halos/              shared Python CLI tooling (28K LOC)
+├── halos/              Shared Python CLI tooling
 ├── infra/              K8s fleet manifests, Terraform, NATS, Argo CD
+│   └── k8s/fleet/      ArgoCD GitOps source of truth
 ├── agent/              macOS job server (listen/direct)
 ├── docker/             Fleet container entrypoint and defaults
 ├── vendor/             Hermes agent (git submodule)
 ├── data/               Advisor personas, client prompts
-├── docs/               specs, analyses, runbooks, reviews, archives
-├── memory/             structured notes and reflections (memctl-governed)
-├── tests/              pytest suite (1368 tests)
-├── cron/               cron job definitions
+├── docs/               Specs, analyses, runbooks, reviews, archives
+├── memory/             Structured notes and reflections (memctl-governed)
+├── tests/              pytest suite
+├── cron/               Cron job definitions
 ├── store/              SQLite databases
-├── logs/               operational logs
-├── queue/              queued work items
+├── logs/               Operational logs
+├── queue/              Queued work items
 └── templates/          microHAL personality blocks
 ```
 
 ---
 
-## halos modules
+## halos Modules
 
-Current tooling includes:
+The `halos/` package is the centre of gravity. Python CLIs for structured work across domains, installed via `uv sync`.
 
 | Module | Command | Purpose |
 |---|---|---|
@@ -195,58 +114,46 @@ Current tooling includes:
 | logctl | `logctl` | Structured log reading and search |
 | reportctl | `reportctl` | Periodic digests from the ecosystem |
 | agentctl | `agentctl` | LLM session tracking and spin detection |
-| briefings | `hal-briefing` | Morning / nightly digests |
-| trackctl | `trackctl` | Personal metrics tracker |
-| dashctl | `dashctl` | Dashboard / TUI over metrics and work |
+| briefings | `hal-briefing` | Morning / nightly digests via Telegram |
+| trackctl | `trackctl` | Personal metrics tracker (zazen, movement, study) |
+| dashctl | `dashctl` | TUI dashboard / RPG character sheet |
 | halctl | `halctl` | Session lifecycle and health checks |
 | mailctl | `mailctl` | Gmail operations via himalaya |
+| watchctl | `watchctl` | YouTube channel monitor with LLM-as-judge triage |
+| journalctl | `journalctl` | Qualitative journal with sliding-window synthesis |
 
-Several other modules also exist or are being explored in-repo.
 The point is less the count than the pattern: narrow tools with explicit surfaces, designed to compose.
 
 ---
 
-## Example compositions
+## Example Compositions
 
-### Morning briefing
+### Morning Briefing
 
 ```text
 cronctl
-  → hal-briefing morning
-    → memctl stats
-    → nightctl items
-    → trackctl summary
-    → mailctl summary
-    → log/status data
-    → synthesis
-    → Telegram delivery
+  -> hal-briefing morning
+    -> memctl stats
+    -> nightctl items
+    -> trackctl summary
+    -> mailctl summary
+    -> log/status data
+    -> synthesis
+    -> Telegram delivery
 ```
 
-### Message-driven assistant workflow
+### Message-Driven Assistant Workflow
 
 ```text
 Telegram message
-  → gateway routes
-  → agent receives context + tools
-  → runs halos commands
-  → returns result via messaging channel
+  -> Hermes receives context + tools
+  -> runs halos commands
+  -> returns result via messaging channel
 ```
-
-### Host-side agent run on macOS
-
-```text
-listen server receives job
-  → spawns local Claude Code run in tmux
-  → agent uses GUI / terminal host tools
-  → trace and result remain inspectable
-```
-
-The value is not just that these workflows run.
-The value is that they remain understandable.
 
 ---
 
-## Storage model
+## Storage Model
 
 Halo uses a mixed storage model on purpose.
 
@@ -256,7 +163,7 @@ memory/        Markdown notes and reflections
 cron/jobs/     YAML cron definitions
 queue/         YAML work items / queues
 logs/          JSONL / structured event logs
-docs/          specs, analyses, runbooks, reviews
+docs/          Specs, analyses, runbooks, reviews
 ```
 
 Storage principle:
@@ -267,124 +174,23 @@ Storage principle:
 
 ---
 
-## Design principles
-
-- legibility over magic
-- auditability over novelty
-- evaluation over vibes
-- constrained autonomy over theatrical autonomy
-- composable tools over monoliths
-- explicit context over accidental context
-- narrow tools over sprawling abstractions
-- real traces over retrospective storytelling
-
----
-
-## What this repo is good for
-
-Halo is especially useful if you care about:
-- personal AI operations
-- agentic workflows with real tools
-- CLI-first life / work systems
-- host-side computer use on macOS
-- briefings, dashboards, and operational visibility
-- building portfolio evidence for AI engineering competence
-
-It is less well described as:
-- a polished SaaS product
-- a single-purpose AI app
-- a generic starter template
-
----
-
-## Quick start
-
-### Requirements
-
-- macOS or Linux for most of the repo
-- macOS specifically for `agent/` job execution
-- Python 3.11+
-- `uv`
-- Docker for fleet container builds
-- Claude Code for agent-oriented flows
-- `kubectl` + Vultr VKE access for fleet operations
-
-### Install
-
-```bash
-git clone https://github.com/rickhallett/halo.git
-cd halo
-
-# Python tooling
-uv sync
-
-# Gateway
-cd gateway
-npm install
-npm run build
-cd ..
-```
-
-### Basic use
-
-```bash
-# dashboard
-uv run dashctl
-
-# add work item
-uv run nightctl add --title "Ship it" --quadrant q1
-
-# inspect metrics
-uv run trackctl summary
-
-# regenerate/install cron
-uv run cronctl install --execute
-```
-
-### Gateway use
-
-```bash
-cd gateway
-npm run dev
-```
-
-### Agent listen/send use
-
-```bash
-cd agent
-just listen
-
-# from another shell
-just send "Open Safari and take a screenshot"
-```
-
----
-
 ## Documentation
 
-The repo’s deeper documentation lives in `docs/`.
+Deeper documentation lives in `docs/`.
 
-Directory semantics:
-- `docs/d1/` — working reference, runbooks, guides, journals
-- `docs/d2/` — specs, analyses, design records, reviews
-- `docs/d3/` — archive
+| Directory | Purpose |
+|-----------|---------|
+| `docs/d1/` | Working reference -- runbooks, guides, journals |
+| `docs/d2/` | Specs, analyses, design records, reviews |
+| `docs/d3/` | Archive |
 
-If you want the system’s design intent, start in `docs/d2/`.
-If you want to operate something, start in `docs/d1/`.
+Design intent starts in `docs/d2/`. Operating procedures start in `docs/d1/`.
+
+---
 
 ---
 
-## Current status
-
-Halo is a living system, not a frozen product.
-Some parts are actively used day to day; some exist as infrastructure or portfolio scaffolding; some are experiments that may later be promoted, merged, or retired.
-
-That is intentional.
-The repo is both:
-- an operational environment
-- a research / portfolio environment for disciplined agentic engineering
-
----
+*Built by The Ripperdoc. Magic on the front end. Heavy iron on the back.*
 
 ## License
 
