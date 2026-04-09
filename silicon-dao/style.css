@@ -1,0 +1,208 @@
+/* =============================================
+   THE SILICON DAO — Static Slide Website
+   Full-bleed slide imagery, dot nav, scroll-snap
+   ============================================= */
+
+:root {
+  --cream:       #f5f3ee;
+  --ink:         #1a1a1a;
+  --ink-muted:   #6a6a6a;
+  --gold:        #c9a84c;
+  --sage:        #d4ddd0;
+}
+
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--ink);
+  background: var(--cream);
+  overflow-x: hidden;
+}
+
+/* Screen-reader only text (for accessibility) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =============================================
+   SLIDE — Full-viewport image sections
+   ============================================= */
+.slide {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  scroll-snap-align: start;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: var(--cream);
+  overflow: hidden;
+}
+
+/* Subtle overlay to soften if needed — currently transparent */
+.slide__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.slide__overlay--light {
+  /* Can add background: rgba(245,243,238,0.05) for subtle wash */
+}
+
+.slide__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Scroll reveal ---- */
+.reveal {
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* =============================================
+   SCROLL HINT (hero only)
+   ============================================= */
+.scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink-muted);
+  animation: bob 2s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* =============================================
+   DOT NAVIGATION
+   ============================================= */
+.dots {
+  position: fixed;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  z-index: 100;
+}
+
+.dot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  text-decoration: none;
+}
+
+.dot span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-muted);
+  background: transparent;
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+
+.dot:hover span {
+  border-color: var(--ink);
+  transform: scale(1.3);
+}
+
+.dot.active span {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+
+/* Large screens: contain works perfectly */
+@media (min-aspect-ratio: 16/9) {
+  .slide {
+    background-size: contain;
+  }
+}
+
+/* Taller screens: cover to fill, keep centered */
+@media (max-aspect-ratio: 4/3) {
+  .slide {
+    background-size: cover;
+  }
+}
+
+/* Mobile: adjust for portrait viewing */
+@media (max-width: 768px) {
+  .slide {
+    background-size: cover;
+    background-position: center;
+  }
+
+  .dots {
+    right: 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .dot span {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dots {
+    right: 0.5rem;
+    gap: 0.35rem;
+  }
+
+  .dot span {
+    width: 7px;
+    height: 7px;
+  }
+
+  .scroll-hint {
+    bottom: 1rem;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; scroll-snap-type: none; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .scroll-hint { animation: none; }
+}
