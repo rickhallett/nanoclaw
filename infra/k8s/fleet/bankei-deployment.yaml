@@ -93,6 +93,12 @@ spec:
                 secretKeyRef:
                   name: nats-auth
                   key: ADVISOR_PASS
+            - name: API_SERVER_ENABLED
+              value: "true"
+          ports:
+            - name: api
+              containerPort: 8642
+              protocol: TCP
           resources:
             requests:
               cpu: 50m

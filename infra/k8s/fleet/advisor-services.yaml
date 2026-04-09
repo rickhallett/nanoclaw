@@ -1,0 +1,158 @@
+# Advisor API Services — expose Hermes HTTP API (port 8642) for
+# agent-native CLI access via advisorctl.
+#
+# ClusterIP only — not externally reachable. Access from:
+#   - In-cluster: http://advisor-{name}.halo-fleet.svc.cluster.local:8642
+#   - Local dev:  kubectl port-forward -n halo-fleet svc/advisor-{name} 8642:8642
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-musashi
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-musashi
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: advisor-musashi
+  ports:
+    - name: api
+      port: 8642
+      targetPort: api
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-draper
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-draper
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: advisor-draper
+  ports:
+    - name: api
+      port: 8642
+      targetPort: api
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-gibson
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-gibson
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: advisor-gibson
+  ports:
+    - name: api
+      port: 8642
+      targetPort: api
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-hightower
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-hightower
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: advisor-hightower
+  ports:
+    - name: api
+      port: 8642
+      targetPort: api
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-karpathy
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-karpathy
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: advisor-karpathy
+  ports:
+    - name: api
+      port: 8642
+      targetPort: api
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-machiavelli
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-machiavelli
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: advisor-machiavelli
+  ports:
+    - name: api
+      port: 8642
+      targetPort: api
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-medici
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-medici
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: advisor-medici
+  ports:
+    - name: api
+      port: 8642
+      targetPort: api
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-bankei
+  namespace: halo-fleet
+  labels:
+    app.kubernetes.io/name: advisor-bankei
+    app.kubernetes.io/component: advisor
+    app.kubernetes.io/part-of: halo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: advisor-bankei
+  ports:
+    - name: api
+      port: 8642
+      targetPort: api
+      protocol: TCP
