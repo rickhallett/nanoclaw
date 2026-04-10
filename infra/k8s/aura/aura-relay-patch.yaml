@@ -6,15 +6,13 @@ metadata:
 spec:
   template:
     spec:
-      imagePullSecrets:
-        - name: vultr-cr
       containers:
         - name: gateway
           args:
             - gateway
-          image: ghcr.io/rickhallett/halo:v0.1.0
+          image: localhost:5000/halo:dev
         - name: aura-relay
-          image: lhr.vultrcr.com/jeany/halo:fleet-latest
+          image: localhost:5000/halo:dev
           imagePullPolicy: Always
           command: ["python3", "-m", "halos.eventsource.aura_relay"]
           env:

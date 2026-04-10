@@ -1,7 +1,7 @@
 ---
 title: "Halo Containerisation — Technical Walkthrough & Diagrams"
 category: analysis
-status: active
+status: archived
 created: 2026-04-04
 ---
 

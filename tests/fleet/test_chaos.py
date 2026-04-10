@@ -19,7 +19,6 @@ import pytest
 from .conftest import (
     EXPECTED_ADVISORS,
     FLEET_NS,
-    INFRA_NS,
     _kubectl,
     _kubectl_exec,
     _kubectl_exec_python,
@@ -313,108 +312,8 @@ class TestAdvisorPodMurder:
         )
 
 
-class TestNFSServerRestart:
-    """Kill the NFS server. Verify memory reads resume after restart."""
-
-    def test_nfs_recovers_after_kill(self):
-        """Kill NFS → restarts → advisor pods restart → reads resume → corpus intact.
-
-        NFS kernel client holds stale filehandles after server restart (new pod IP).
-        Recovery requires advisor pods to restart so kubelet remounts the NFS volume.
-        This tests the full recovery chain, not just the server.
-        """
-        # 1. Record which advisor pod we're testing
-        advisor_pod = _wait_for_pod("advisor-musashi-")
-
-        # 2. Kill the NFS server
-        nfs_pod = _get_pod_name("nfs-server-", namespace=INFRA_NS)
-        assert nfs_pod, "NFS server pod not found"
-        _kill_pod(nfs_pod, namespace=INFRA_NS)
-
-        # 3. Wait for NFS to restart
-        time.sleep(5)
-        new_nfs = _wait_for_pod("nfs-server-", namespace=INFRA_NS, timeout=60)
-        assert new_nfs, "NFS server didn't restart"
-        time.sleep(15)  # Let NFS exports stabilise
-
-        # 4. Restart the advisor pod (stale NFS handles need fresh mount)
-        # The new pod's kubelet NFS mount may block until the server is fully ready.
-        _kill_pod(advisor_pod)
-        new_advisor = _wait_for_pod("advisor-musashi-", timeout=120)
-        assert new_advisor != advisor_pod, "Advisor didn't restart"
-
-        # 5. Verify reads work on the fresh pod
-        deadline = time.time() + 45
-        recovered = False
-        while time.time() < deadline:
-            try:
-                after = _kubectl_exec(new_advisor, "head -1 /memory/INDEX.md")
-                if "MEMORY INDEX" in after:
-                    recovered = True
-                    break
-            except (RuntimeError, subprocess.TimeoutExpired):
-                pass
-            time.sleep(2)
-
-        assert recovered, "NFS reads did not resume after server + advisor restart"
-
-        # 6. Verify corpus is intact (not corrupted)
-        count = _kubectl_exec(new_advisor, "ls /memory/notes/*.md | wc -l")
-        assert int(count.strip()) > 100, "Memory corpus corrupted after NFS restart"
-
-
-class TestMemctlAuthorityRestart:
-    """Kill the memctl-authority pod. Verify NFS corpus survives."""
-
-    def test_authority_restarts_with_corpus_intact(self):
-        # Ensure NFS is healthy first (may be recovering from a prior test)
-        _wait_for_pod("nfs-server-", namespace=INFRA_NS, timeout=60)
-        time.sleep(10)
-
-        # 1. Get the authority pod
-        authority_pod = _wait_for_pod("memctl-authority-")
-
-        # 2. Write a canary file (use longer timeout — NFS may be slow after recovery)
-        canary = f"chaos-canary-{uuid.uuid4().hex[:8]}"
-        result = subprocess.run(
-            ["kubectl", "exec", authority_pod, "-n", FLEET_NS,
-             "-c", "authority", "--", "bash", "-c",
-             f'echo "{canary}" > /memory/test-authority-canary.md'],
-            capture_output=True, text=True, timeout=60,
-        )
-        assert result.returncode == 0, f"Canary write failed: {result.stderr}"
-
-        # 3. Kill the authority
-        _kill_pod(authority_pod)
-
-        # 4. Wait for restart
-        new_authority = _wait_for_pod("memctl-authority-", timeout=90)
-        assert new_authority != authority_pod, "Authority didn't restart"
-
-        # 5. Verify canary survived (NFS PVC persists across restarts)
-        content = _kubectl_exec(
-            new_authority,
-            "cat /memory/test-authority-canary.md",
-            container="authority",
-        )
-        assert content.strip() == canary, (
-            f"Canary lost after restart: expected '{canary}', got '{content.strip()}'"
-        )
-
-        # 6. Verify full corpus intact
-        count = _kubectl_exec(
-            new_authority,
-            "ls /memory/notes/*.md | wc -l",
-            container="authority",
-        )
-        assert int(count.strip()) > 100, "Memory corpus lost after authority restart"
-
-        # 7. Cleanup
-        _kubectl_exec(
-            new_authority,
-            "rm -f /memory/test-authority-canary.md",
-            container="authority",
-        )
+# TestNFSServerRestart removed: NFS is dead, halo-infra namespace no longer exists
+# TestMemctlAuthorityRestart removed: depends on NFS and memctl-authority (both dead)
 
 
 class TestConcurrentNATSPublish:

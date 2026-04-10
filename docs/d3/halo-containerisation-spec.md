@@ -1,7 +1,7 @@
 ---
 title: "Halo Containerisation & Multi-Tenant Deployment Spec"
 category: spec
-status: draft
+status: archived
 created: 2026-04-04
 ---
 

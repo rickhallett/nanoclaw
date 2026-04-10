@@ -54,8 +54,9 @@ if [ ! -f "$HERMES_HOME/.env" ]; then
     } > "$HERMES_HOME/.env"
     echo "Generated .env from environment variables." >&2
 fi
-[ ! -f "$HERMES_HOME/config.yaml" ] && cp /opt/defaults/config.yaml "$HERMES_HOME/config.yaml"
-[ ! -f "$HERMES_HOME/SOUL.md" ]     && cp "$INSTALL_DIR/docker/SOUL.md" "$HERMES_HOME/SOUL.md"
+[ ! -f "$HERMES_HOME/config.yaml" ]      && cp /opt/defaults/config.yaml "$HERMES_HOME/config.yaml"
+[ ! -f "$HERMES_HOME/SOUL.md" ]         && cp "$INSTALL_DIR/docker/SOUL.md" "$HERMES_HOME/SOUL.md"
+[ -f /opt/defaults/system-prompt.md ] && cp /opt/defaults/system-prompt.md "$HERMES_HOME/system-prompt.md"
 
 # --- System prompt injection (safe — no shell interpretation) ---
 # system-prompt.md is client-authored content. We load it via Python to avoid

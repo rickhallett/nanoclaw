@@ -60,9 +60,9 @@ Two agent surfaces share this repo:
 | **Hermes** | Primary interactive agent. This is the Telegram interface for day-to-day work. External harness (outside this repo) with its own cron, tools, and memory. | Always on | Active |
 | **Agent (listen/direct)** | Local agent spawner. HTTP server accepts jobs, spawns Claude Code instances in tmux sessions. | `just listen` from `agent/` | On-demand |
 
-The **K8s fleet** (roundtable advisors) runs containerised from `Dockerfile` + `docker/` + `vendor/hermes-agent`. Manifests in `infra/k8s/fleet/`, deployed via Mutagen file sync + `just deploy` (see root `justfile`).
+The **K8s fleet** (roundtable advisors) runs containerised from `Dockerfile` + `docker/` + `vendor/hermes-agent` on Ryzen bare metal k3s (ryzen32 via Tailscale). Manifests in `infra/k8s/fleet/`, deployed via Mutagen file sync + `just deploy` (see root `justfile`). Single image: `localhost:5000/halo:dev`.
 
-**Halos CLI** (`halos/` Python package) is the shared tooling layer — memctl, nightctl, briefings, trackctl, cronctl, etc. Runs independently via cron. Used by all surfaces and hot-reloaded into fleet pods via init container overlay.
+**Halos CLI** (`halos/` Python package) is the shared tooling layer — memctl, nightctl, briefings, trackctl, cronctl, etc. Runs independently via cron. Used by all surfaces.
 
 > **Note (2026-04-06):** The nanoclaw-era Node.js gateway (`gateway/`), OCR browser automation (`agent/steer/`), and tmux orchestrator (`agent/drive/`) were removed in the heritage deletion sweep. The fleet now runs on Hermes + halos Python tooling exclusively.
 
@@ -100,7 +100,7 @@ The **K8s fleet** (roundtable advisors) runs containerised from `Dockerfile` + `
 | Review | `docs/d2/review-taxonomy.md` | Review finding categories |
 | Review | `docs/d2/review-guide-2026-03-21.md` | Review process guide |
 | Devlog | `docs/d1/development-logbook.md` | Decisions, lessons (canonical — no other logs) |
-| Deploy | `docs/d2/k8s-fleet-lessons-learned.md` | Fleet deploy landmines (VKE + Ryzen bare metal runbook) |
+| Deploy | `docs/d2/k8s-fleet-lessons-learned.md` | Fleet deploy lessons (Ryzen bare metal) |
 | Topology | `docs/d1/system-topology.md` | System topology detail |
 | Ecosystem | `docs/d2/halos-ecosystem-digest.md` | Ecosystem overview |
 | Capability | `docs/d2/halos-capability-map.md` | Capability mapping |
@@ -237,14 +237,16 @@ Historical-figure advisors with persistent personas under `data/advisors/`. Summ
 | Seat | Name | Domain | Schedule |
 |------|------|--------|----------|
 | I | Musashi | Body (movement + zazen) | 07:00 daily |
-| II | Draper | Pitch (positioning, narrative, creative authority) | 20:00 daily |
-| III | Karpathy | Craft (AI engineering, fundamentals, learning) | 09:00 daily |
-| IV | Gibson | Futures (market terrain, technology trajectory) | 20:30 daily |
-| V | Machiavelli | Power, perception, leverage | 20:15 daily |
-| VI | Medici | Money (debt, burn, runway, time economics) | 19:45 daily |
-| VII | Bankei | Rest (rhythm, the cost of never stopping) | unscheduled |
-| VIII | Hightower | Heavy Iron (K8s ops, cluster debugging, CKA) | on demand |
-| X | Turing | The Imitation Game (agentic engineering, systems design, interview drilling) | on demand |
+| II | Draper | Pitch (positioning, narrative, creative authority) | 07:10 daily |
+| III | Karpathy | Craft (AI engineering, fundamentals, learning) | 07:05 daily |
+| IV | Gibson | Futures (market terrain, technology trajectory) | 07:25 daily |
+| V | Machiavelli | Power, perception, leverage | 07:20 daily |
+| VI | Medici | Money (debt, burn, runway, time economics) | 07:15 daily |
+| VII | Bankei | Rest (rhythm, the cost of never stopping) | 07:35 daily |
+| VIII | Hightower | Heavy Iron (K8s ops, cluster debugging, CKA) | 07:30 daily |
+| IX | Turing | The Imitation Game (agentic engineering, systems design, interview drilling) | 10:00 daily |
+| -- | Guido | Python craft, code aesthetics, language design | not deployed |
+| -- | Plutarch | Dramaturg, narrator, parallel lives | not deployed |
 
 ### Data & Memory
 
@@ -360,7 +362,7 @@ A bespoke Halo deployment for Aura Enache — Daoist practitioner, UHT UK certif
 
 ### Constraints
 
-- **Infrastructure**: Separate K8s namespace on Vultr VKE — no multi-tenant, no shared resources with main Halo fleet
+- **Infrastructure**: Separate K8s namespace on Ryzen k3s (halo-aura) — no multi-tenant, no shared resources with main Halo fleet
 - **Interface**: Telegram via Hermes gateway — no web UI, no WhatsApp
 - **Voice fidelity**: LLM output must pass eval against Aura's actual communication patterns — no generic wellness slop
 - **Budget**: Pilot economics — compute cost transparency, no margin during pilot
@@ -458,8 +460,7 @@ A bespoke Halo deployment for Aura Enache — Daoist practitioner, UHT UK certif
 - 1Password SDK for secret management (requires biometric auth via desktop app)
 - k3s on Ryzen homelab (ryzen32 via Tailscale) — all kubectl needs `sudo`
 - Local container registry: `localhost:5000` (dev builds)
-- Two container images: `halo:dev` (full Hermes + halos), `halo-halos:latest` (halos overlay only)
-- NFS server pod for shared advisor state (`infra/k8s/fleet/nfs-server.yaml`)
+- Single container image: `localhost:5000/halo:dev`
 - Namespace: `halo-fleet`
 ## uv Workspace
 - `data/finance/ark-accounting` - Finance/accounting subproject
@@ -522,7 +523,7 @@ A bespoke Halo deployment for Aura Enache — Daoist practitioner, UHT UK certif
 - Purpose: Provides conversational AI interfaces via Telegram
 - Location: `vendor/hermes-agent` (git submodule), `docker/entrypoint.sh`, `Dockerfile`
 - Contains: Upstream Hermes bot runtime, entrypoint hooks for prompt injection, NATS hook registration, heartbeat wrapper, WAL enforcement
-- Depends on: halos tooling (overlaid via init container), NATS JetStream, Anthropic API
+- Depends on: halos tooling, NATS JetStream, Anthropic API
 - Used by: End users via Telegram
 - Purpose: Local HTTP server that accepts prompts and spawns Claude Code instances in background processes
 - Location: `agent/listen/main.py` (FastAPI server on :7600), `agent/direct/main.py` (CLI client)
@@ -541,7 +542,7 @@ A bespoke Halo deployment for Aura Enache — Daoist practitioner, UHT UK certif
 - Used by: Fleet advisors (each runs a consumer sidecar process via `entrypoint.sh`)
 - Purpose: K8s manifests for the advisor fleet, deployed manually via SSH pipeline
 - Location: `infra/k8s/fleet/` (deployments, configs, secrets, NATS, PVCs), `infra/k8s/fleet/cronjobs/` (scheduled advisor jobs)
-- Contains: Per-advisor Deployment + ConfigMap + Secret + prompt YAML, NATS StatefulSet, NFS server for shared memory
+- Contains: Per-advisor Deployment + ConfigMap + Secret + prompt YAML, NATS StatefulSet, local-path PVCs
 - Depends on: Local container registry (`localhost:5000`), k3s on ryzen32
 - Used by: k3s cluster (manual kubectl apply / rollout restart)
 - Purpose: Persistent structured memory, work items, personal metrics, journals

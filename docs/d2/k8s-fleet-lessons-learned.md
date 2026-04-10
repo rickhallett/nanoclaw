@@ -141,13 +141,13 @@ Security boundary: the NFS server needs `privileged`, advisors don't. Separate n
 
 The Ryzen k3s cluster has no GitOps controller. The deploy chain is: `git pull` on Ryzen, `docker build`, `docker push localhost:5000/halo:dev`, `kubectl rollout restart`. Document every step because the agent won't have Argo to fall back on.
 
-### 18. Live deployments diverge from git manifests
+### 18. Git manifests must match live state (resolved 2026-04-10)
 
-The committed manifests reference `lhr.vultrcr.com/jeany/halo:fleet-latest` (dead Vultr registry). Live pods run `localhost:5000/halo:dev` (patched via `kubectl set image` or `kubectl edit`). Until manifests are updated in git, there's a permanent drift between what's committed and what's running. Treat `kubectl get deploy -o yaml` as truth, not the git manifests.
+Previously the committed manifests referenced `lhr.vultrcr.com/jeany/halo:fleet-latest` (dead Vultr registry) while live pods ran `localhost:5000/halo:dev`. This drift was resolved by rewriting all deployment manifests to match the live Ryzen pattern: `localhost:5000/halo:dev` image, local-path PVCs instead of NFS, no init containers, no Vultr imagePullSecrets. The `just deploy` recipe now runs `kubectl apply` before `rollout restart`, keeping git and live state in sync.
 
 ### 19. Single image, no halos overlay
 
-VKE used a two-image pattern: base `halo:fleet-latest` + init container `halo-halos:latest` for hot-reloading halos Python code. Ryzen uses a single `localhost:5000/halo:dev` image with everything baked in. The init container (`halos-sync`) still runs but copies from a stale image. To update halos code, rebuild the full image.
+VKE used a two-image pattern: base `halo:fleet-latest` + init container `halo-halos:latest` for hot-reloading halos Python code. Ryzen uses a single `localhost:5000/halo:dev` image with everything baked in. Init containers were removed from all deployment manifests (2026-04-10). To update halos code, rebuild the full image. The `build-push-halos` justfile target is retained for the overlay image but is not used in the standard deploy flow.
 
 ### 20. Submodule pin references unpushed commit
 
@@ -186,32 +186,46 @@ kubectl delete pod -n halo-fleet -l halo/advisor=<name>
 
 **What `/new` does vs doesn't do:** `/new` in Telegram resets the conversation turns but the `session_search` tool still indexes old sessions from `state.db`. The old context bleeds into new conversations via recall queries.
 
-### 28. Full deploy runbook (Mac → Ryzen)
+### 28. Full deploy runbook (Mac → Ryzen via Mutagen)
+
+The canonical deploy flow uses `just deploy` which handles sync, build, apply, and restart. The justfile is the source of truth for individual steps.
 
 ```bash
-# 1. Push code
-git push
+# Standard deploy (sync → build → push → apply manifests → rollout restart)
+just deploy
 
-# 2. Pull on Ryzen
-ssh mrkai@ryzen32 "cd ~/code/halo && git pull"
+# If track DBs changed (excluded from Mutagen sync)
+just sync-trackdbs
 
-# 3. If submodule changed: tar and ship from Mac
+# Verify
+just pods
+
+# Tail logs for a specific advisor
+just logs medici
+```
+
+**Manual steps only needed for edge cases:**
+
+```bash
+# If submodule changed: tar and ship from Mac (Mutagen excludes .git metadata)
 tar czf /tmp/hermes-agent.tar.gz -C vendor hermes-agent
 scp /tmp/hermes-agent.tar.gz mrkai@ryzen32:/tmp/
 ssh mrkai@ryzen32 "cd ~/code/halo && rm -rf vendor/hermes-agent && tar xzf /tmp/hermes-agent.tar.gz -C vendor/"
 
-# 4. If track DBs changed: ship them
-scp store/track_*.db mrkai@ryzen32:~/code/halo/store/
-
-# 5. Build and push image
-ssh mrkai@ryzen32 "cd ~/code/halo && docker build -t localhost:5000/halo:dev . && docker push localhost:5000/halo:dev"
-
-# 6. Apply manifests (ConfigMaps, Deployments, Secrets — image alone is not enough)
-ssh mrkai@ryzen32 "cd ~/code/halo && sudo kubectl apply -f infra/k8s/fleet/"
-
-# 7. Restart fleet (picks up new image + new ConfigMaps)
-ssh mrkai@ryzen32 "sudo kubectl rollout restart deploy -n halo-fleet"
-
-# 7. Verify
-ssh mrkai@ryzen32 "sudo kubectl get pods -n halo-fleet --no-headers | grep -v Terminating"
+# Restart a single advisor without full deploy
+ssh ryzen32 "sudo kubectl rollout restart deploy/advisor-medici -n halo-fleet"
 ```
+
+### 29. Mutagen strips file permissions — Dockerfile must fix them
+
+**Problem:** Mutagen syncs files from Mac to Ryzen with `600`/`700` permissions (owner-only read/write), stripping group and world read bits. Docker COPY preserves these permissions into the image. The container runs as UID 1000 (hermes) but all COPY'd files are owned by root. Result: hermes can't read source files, config, or scripts. Manifests as `Permission denied` on entrypoint.sh (bash can't read the script despite the execute bit) and `PermissionError` on Python imports.
+
+**Fix:** After all COPY steps in the Dockerfile, explicitly set permissions:
+```dockerfile
+RUN chmod 755 /opt/entrypoint.sh \
+    && chmod -R a+rX /opt/hermes /opt/halos /opt/defaults /opt/venv
+```
+
+`a+rX` adds read for all users, execute only on directories and already-executable files. This is idempotent — safe even if Mutagen's behavior changes.
+
+**Why it wasn't caught before:** The previous image was built from `git clone` on the Ryzen (pre-Mutagen era), which preserved normal `644` file permissions. The switch to Mutagen sync introduced the permission stripping silently.

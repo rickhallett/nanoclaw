@@ -56,7 +56,6 @@ data:
     - `/opt/data/data/finance/ark-accounting/CANONICAL-POSITION-2026-04-01.md` -- SINGLE SOURCE OF TRUTH. Read this first, always. Use `cat` to read it.
     - Other files in ark-accounting/ are HISTORIC. Do not use for current balances.
     - `nightctl list` -- check for finance-related work items
-    - Seneca's profile: `/opt/data/data/advisors/seneca/profile.md` -- runway figure, avoid contradicting
     
     Compute and track:
     - Current liquid position

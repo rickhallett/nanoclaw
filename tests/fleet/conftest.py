@@ -18,8 +18,8 @@ from pathlib import Path
 import pytest
 
 FLEET_NS = "halo-fleet"
-INFRA_NS = "halo-infra"
-ARGOCD_NS = "argocd"
+# INFRA_NS = "halo-infra"  # removed: namespace no longer exists
+# ARGOCD_NS = "argocd"  # removed: Argo CD is dead
 
 EXPECTED_ADVISORS = [
     "musashi",
@@ -37,7 +37,7 @@ EXPECTED_INFRA_PODS = [
     "nats",
 ]
 
-NFS_CLUSTER_IP = "10.100.54.223"
+# NFS_CLUSTER_IP = "10.100.54.223"  # removed: NFS is dead
 
 
 def _kubectl(*args: str, namespace: str = FLEET_NS, timeout: int = 30) -> subprocess.CompletedResult:

@@ -6,9 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: advisor-draper
     app.kubernetes.io/component: advisor
-    app.kubernetes.io/part-of: halo
     halo/advisor: draper
-    halo/domain: pitch
 spec:
   replicas: 1
   strategy:
@@ -23,8 +21,6 @@ spec:
         app.kubernetes.io/component: advisor
         halo/advisor: draper
     spec:
-      imagePullSecrets:
-        - name: vultr-cr
       terminationGracePeriodSeconds: 30
       securityContext:
         runAsNonRoot: true
@@ -33,40 +29,14 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
-      initContainers:
-        - name: halos-sync
-          image: lhr.vultrcr.com/jeany/halo-halos:latest
-          imagePullPolicy: Always
-          command: ["cp", "-r", "/halos/halos/.", "/target/"]
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-          volumeMounts:
-            - name: halos-overlay
-              mountPath: /target
-        - name: state-init
-          image: alpine:3.20
-          command: ["sh", "-c", "mkdir -p /state/advisors/draper"]
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-          volumeMounts:
-            - name: advisor-state
-              mountPath: /state
       containers:
         - name: gateway
-          image: lhr.vultrcr.com/jeany/halo:fleet-latest
+          image: localhost:5000/halo:dev
           imagePullPolicy: Always
           command: ["/bin/bash", "-c"]
           args:
             - |
-              [ ! -f "$HERMES_HOME/system-prompt.md" ] && \
-                cp /opt/defaults/system-prompt.md "$HERMES_HOME/system-prompt.md" 2>/dev/null || true
-              echo '[ -f ~/.bashrc ] && . ~/.bashrc' > ~/.bash_profile
-              echo 'export PATH="/opt/venv/bin:$PATH"' >> ~/.bashrc
-              exec /opt/entrypoint.sh gateway
+              echo 'export PATH="/opt/venv/bin:$PATH"' >> ~/.bashrc && exec /opt/entrypoint.sh gateway
           env:
             - name: ADVISOR_NAME
               value: "draper"
@@ -80,10 +50,6 @@ spec:
               value: "Europe/London"
             - name: PATH
               value: "/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-            - name: PYTHONPATH
-              value: "/opt/halos-overlay"
-            - name: MEMCTL_CONFIG
-              value: "/opt/config/memctl.yaml"
             - name: NATS_URL
               value: "nats://nats.halo-fleet.svc.cluster.local:4222"
             - name: NATS_USER
@@ -93,12 +59,6 @@ spec:
                 secretKeyRef:
                   name: nats-auth
                   key: ADVISOR_PASS
-            - name: API_SERVER_ENABLED
-              value: "true"
-          ports:
-            - name: api
-              containerPort: 8642
-              protocol: TCP
           resources:
             requests:
               cpu: 50m
@@ -121,28 +81,8 @@ spec:
               mountPath: /opt/data/.env
               subPath: .env
               readOnly: true
-            - name: advisor-state
+            - name: advisor-data
               mountPath: /opt/data
-              subPath: advisors/draper
-            - name: halos-overlay
-              mountPath: /opt/halos-overlay/halos
-              readOnly: true
-            - name: data
-              mountPath: /opt/data/store
-              subPath: store
-            - name: data
-              mountPath: /opt/data/sessions
-              subPath: sessions
-            - name: data
-              mountPath: /opt/data/logs
-              subPath: logs
-            - name: memory-nfs
-              mountPath: /memory
-              readOnly: true
-            - name: memctl-config
-              mountPath: /opt/config/memctl.yaml
-              subPath: memctl.yaml
-              readOnly: true
           startupProbe:
             exec:
               command: ["python3", "-c", "import os; exit(0 if os.path.exists('/opt/data/heartbeat') else 1)"]
@@ -164,20 +104,6 @@ spec:
           secret:
             secretName: advisor-draper-secrets
             defaultMode: 0400
-        - name: halos-overlay
-          emptyDir:
-            sizeLimit: 10Mi
-        - name: data
-          emptyDir:
-            sizeLimit: 500Mi
-        - name: advisor-state
-          nfs:
-            server: 10.100.54.223
-            path: /
-        - name: memory-nfs
-          nfs:
-            server: 10.100.54.223
-            path: /
-        - name: memctl-config
-          configMap:
-            name: memctl-reader-config
+        - name: advisor-data
+          persistentVolumeClaim:
+            claimName: advisor-draper-data

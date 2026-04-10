@@ -34,9 +34,7 @@ Fast (<60s). Run after every deployment. Proves the machine is assembled correct
 | `test_advisor_identity` | Each pod's ADVISOR_NAME env matches its deployment name | Manifest copy-paste error |
 | `test_advisor_fleet_context` | Each advisor's system-prompt contains Fleet Context preamble | Prompt not updated |
 | `test_memctl_authority_write` | Authority can `memctl stats` and reports >0 notes | Authority pod misconfigured |
-| `test_argocd_git_sha` | Running deployment specs match the HEAD git SHA of the tracked branch | Argo drift — cluster != git |
-| `test_argocd_health` | Argo app status is Synced + Healthy, zero degraded resources | GitOps is broken |
-| `test_namespace_security` | halo-fleet is `baseline`, halo-infra is `privileged` | PodSecurity misconfigured |
+| `test_namespace_security` | halo-fleet has appropriate PodSecurity standards | PodSecurity misconfigured |
 
 ### Tier 2: Halostream Event Flow (CQRS Verification)
 
@@ -99,7 +97,7 @@ spec:
       serviceAccountName: fleet-test-runner
       containers:
         - name: runner
-          image: lhr.vultrcr.com/jeany/halo:fleet-latest
+          image: localhost:5000/halo:dev
           command: ["pytest", "tests/fleet/", "-v", "--tb=short"]
           env:
             - name: KUBECONFIG
@@ -130,9 +128,6 @@ rules:
     verbs: ["delete"]  # For chaos tests only
   - apiGroups: ["apps"]
     resources: ["deployments"]
-    verbs: ["get", "list"]
-  - apiGroups: ["argoproj.io"]
-    resources: ["applications"]
     verbs: ["get", "list"]
 ```
 

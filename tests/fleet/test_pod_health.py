@@ -6,7 +6,7 @@ all Running, no ghosts.
 
 import pytest
 
-from .conftest import EXPECTED_ADVISORS, EXPECTED_INFRA_PODS, FLEET_NS, INFRA_NS
+from .conftest import EXPECTED_ADVISORS, EXPECTED_INFRA_PODS, FLEET_NS
 
 pytestmark = [pytest.mark.fleet, pytest.mark.tier1]
 
@@ -48,14 +48,7 @@ class TestPodRoster:
         assert len(nats) == 1, f"Expected 1 NATS pod, found {len(nats)}"
         assert nats[0]["status"]["phase"] == "Running"
 
-    def test_nfs_server_running(self, kubectl_json):
-        data = kubectl_json("get", "pods", namespace=INFRA_NS)
-        nfs = [
-            p for p in data["items"]
-            if p["metadata"]["name"].startswith("nfs-server-")
-        ]
-        assert len(nfs) == 1, f"Expected 1 NFS server, found {len(nfs)}"
-        assert nfs[0]["status"]["phase"] == "Running"
+    # test_nfs_server_running removed: NFS is dead, halo-infra namespace no longer exists
 
     def test_no_ghost_pods(self, fleet_pods):
         """No pods that aren't in our expected roster."""

@@ -33,7 +33,7 @@ data:
     
     Power. Politics. The angle nobody else at the table will name. Machiavelli sees what the other advisors won't say or can't see: the perception game, the leverage dynamics, the uncomfortable truths about how decisions actually get made.
     
-    Where Sun Tzu prepares for the battle, Machiavelli asks whether it's the right battle. Where Seneca counts the days, Machiavelli asks who benefits from the counting. Where Socrates asks what you know, Machiavelli asks what they think you know.
+    Where Sun Tzu prepares for the battle, Machiavelli asks whether it's the right battle. Where Socrates asks what you know, Machiavelli asks what they think you know.
     
     ## Voice
     
@@ -68,7 +68,6 @@ data:
     
     - Sun Tzu's profile: `/opt/data/data/advisors/sun-tzu/profile.md` -- pipeline, interview history
     - Medici's profile: `/opt/data/data/advisors/medici/profile.md` -- financial position, runway
-    - Seneca's profile: `/opt/data/data/advisors/seneca/profile.md` -- time allocation, patterns
     - CV: `jobctl/cv/richard-hallett-master.md`
     - memctl: `memctl search --tags career` for career context
     

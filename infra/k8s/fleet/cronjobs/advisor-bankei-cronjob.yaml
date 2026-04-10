@@ -28,8 +28,6 @@ spec:
             app.kubernetes.io/component: advisor
             halo/advisor: bankei
         spec:
-          imagePullSecrets:
-            - name: vultr-cr
           restartPolicy: Never
           terminationGracePeriodSeconds: 30
           securityContext:
@@ -39,21 +37,9 @@ spec:
             fsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          initContainers:
-            - name: halos-sync
-              image: lhr.vultrcr.com/jeany/halo-halos:latest
-              imagePullPolicy: Always
-              command: ["cp", "-r", "/halos/halos/.", "/target/"]
-              securityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop: ["ALL"]
-              volumeMounts:
-                - name: halos-overlay
-                  mountPath: /target
           containers:
             - name: advisor
-              image: lhr.vultrcr.com/jeany/halo:fleet-latest
+              image: localhost:5000/halo:dev
               imagePullPolicy: Always
               command: ["/bin/bash", "-lc"]
               args:

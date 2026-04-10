@@ -93,10 +93,6 @@ pi-session-*.html
 agents-sdk-docs
 cookies.txt
 .env.halo-dev
-infra/terraform/backend.hcl
-infra/terraform/.terraform/
-infra/terraform/*.tfstate*
-infra/terraform/terraform.tfvars
 infra/k8s/fleet/nats-secrets.yaml
 infra/k8s/fleet/musashi-secrets.yaml
 infra/k8s/fleet/draper-secrets.yaml
@@ -106,4 +102,5 @@ infra/k8s/fleet/machiavelli-secrets.yaml
 infra/k8s/fleet/medici-secrets.yaml
 infra/k8s/fleet/bankei-secrets.yaml
 infra/k8s/fleet/hightower-secrets.yaml
+infra/k8s/fleet/turing-secrets.yaml
 infra/gemini-bridge/.env

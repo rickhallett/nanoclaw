@@ -1,7 +1,7 @@
 ---
 title: "Halo Fleet: Event-Sourced Multi-Agent Architecture"
 category: spec
-status: draft
+status: archived
 created: 2026-04-05
 ---
 

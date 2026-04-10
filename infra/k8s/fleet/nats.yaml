@@ -101,7 +101,7 @@ metadata:
   namespace: halo-fleet
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: vultr-block-storage-hdd
+  storageClassName: local-path
   resources:
     requests:
-      storage: 40Gi  # Vultr minimum
+      storage: 10Gi

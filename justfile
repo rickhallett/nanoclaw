@@ -51,9 +51,10 @@ build-push:
 
 # ── Deploy ─────────────────────────────────────────────
 
-# Full deploy: sync → build → push → rollout restart
+# Full deploy: sync → build → push → apply manifests → rollout restart
 deploy:
     just build-push
+    ssh {{ryzen}} "cd {{remote_dir}} && sudo kubectl apply -f infra/k8s/fleet/"
     ssh {{ryzen}} "sudo kubectl rollout restart deploy -n {{namespace}}"
 
 # Rollout restart only (image already built)
@@ -70,7 +71,7 @@ watch:
 
 # Fleet pod logs (pass advisor name, e.g. just logs musashi)
 logs advisor:
-    ssh {{ryzen}} "sudo kubectl logs -n {{namespace}} -l app={{advisor}} --tail=50 -f"
+    ssh {{ryzen}} "sudo kubectl logs -n {{namespace}} -l halo/advisor={{advisor}} --tail=50 -f"
 
 # ── Halos overlay image ───────────────────────────────
 

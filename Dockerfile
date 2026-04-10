@@ -58,7 +58,8 @@ RUN if [ "$INSTALL_BROWSER" = "true" ]; then \
 WORKDIR /opt/hermes
 COPY docker/entrypoint.sh /opt/entrypoint.sh
 COPY docker/defaults/ /opt/defaults/
-RUN chmod +x /opt/entrypoint.sh
+RUN chmod 755 /opt/entrypoint.sh \
+    && chmod -R a+rX /opt/hermes /opt/halos /opt/defaults /opt/venv
 
 # --- Baked-in track databases (survive pod restarts without manual kubectl cp) ---
 COPY --chown=hermes:hermes store/track_*.db /opt/defaults/store/

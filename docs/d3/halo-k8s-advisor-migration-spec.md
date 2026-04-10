@@ -1,7 +1,7 @@
 ---
 title: "Halo Roundtable Advisor Migration to Kubernetes"
 category: spec
-status: draft
+status: archived
 created: 2026-04-05
 ---
 
