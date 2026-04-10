@@ -24,6 +24,13 @@ if [ -d /opt/defaults/store ]; then
     done
 fi
 
+# --- Seed financial data (baked into image, overwrite on every boot to stay current) ---
+if [ -d /opt/defaults/data/finance ]; then
+    mkdir -p "$HERMES_HOME/data/finance"
+    cp -r /opt/defaults/data/finance/* "$HERMES_HOME/data/finance/"
+    echo "Seeded finance data" >&2
+fi
+
 # --- Restore from backup on empty PVC ---
 if [ ! -f "$HERMES_HOME/state.db" ] && [ -n "${BACKUP_S3_BUCKET:-}" ]; then
     echo "Empty PVC detected. Attempting restore from backup..." >&2

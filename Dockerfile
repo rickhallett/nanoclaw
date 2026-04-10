@@ -64,6 +64,9 @@ RUN chmod 755 /opt/entrypoint.sh \
 # --- Baked-in track databases (survive pod restarts without manual kubectl cp) ---
 COPY --chown=hermes:hermes store/track_*.db /opt/defaults/store/
 
+# --- Baked-in financial data (Medici needs ark-accounting on the PVC) ---
+COPY --chown=hermes:hermes data/finance/ /opt/defaults/data/finance/
+
 # Pre-create data directory with correct ownership
 RUN mkdir -p /opt/data && chown -R hermes:hermes /opt/data
 

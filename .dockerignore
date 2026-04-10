@@ -17,6 +17,7 @@ store/
 !store/track_*.db
 memory/
 data/
+!data/finance/
 
 # Docs and config not needed in image
 docs/
