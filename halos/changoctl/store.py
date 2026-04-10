@@ -160,3 +160,112 @@ def consume(
         "out_of_stock": out_of_stock,
         "log_entry": dict(log_row),
     }
+
+
+def add_quote(
+    text: str,
+    category: str,
+    source_session: Optional[str] = None,
+    source_module: Optional[str] = None,
+    db_path: Optional[Path] = None,
+) -> dict:
+    """Add a curated quote. Returns created row."""
+    from .config import VALID_CATEGORIES
+
+    if category not in VALID_CATEGORIES:
+        raise ValueError(
+            f"invalid category: {category!r} (must be one of {VALID_CATEGORIES})"
+        )
+
+    now = _now()
+    conn = _connect(db_path)
+    cur = conn.execute(
+        "INSERT INTO quotes (text, category, source_session, source_module, created_at) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (text, category, source_session, source_module, now),
+    )
+    conn.commit()
+    row = conn.execute(
+        "SELECT * FROM quotes WHERE id = ?", (cur.lastrowid,)
+    ).fetchone()
+    conn.close()
+    return dict(row)
+
+
+def list_quotes(
+    category: Optional[str] = None,
+    db_path: Optional[Path] = None,
+) -> list[dict]:
+    """List quotes, optionally filtered by category. Newest first."""
+    conn = _connect(db_path)
+    if category:
+        rows = conn.execute(
+            "SELECT * FROM quotes WHERE category = ? ORDER BY created_at DESC",
+            (category,),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT * FROM quotes ORDER BY created_at DESC"
+        ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def random_quote(
+    category: Optional[str] = None,
+    db_path: Optional[Path] = None,
+) -> Optional[dict]:
+    """Return a random quote, optionally filtered by category. None if empty."""
+    conn = _connect(db_path)
+    if category:
+        row = conn.execute(
+            "SELECT * FROM quotes WHERE category = ? ORDER BY RANDOM() LIMIT 1",
+            (category,),
+        ).fetchone()
+    else:
+        row = conn.execute(
+            "SELECT * FROM quotes ORDER BY RANDOM() LIMIT 1"
+        ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def list_consumption_history(
+    item: Optional[str] = None,
+    days: Optional[int] = None,
+    db_path: Optional[Path] = None,
+) -> list[dict]:
+    """List consumption log entries, newest first."""
+    from datetime import timedelta
+
+    conn = _connect(db_path)
+    query = "SELECT * FROM consumption_log"
+    params: list = []
+    clauses: list[str] = []
+
+    if item:
+        clauses.append("item = ?")
+        params.append(item)
+
+    if days is not None:
+        cutoff = (
+            datetime.now(timezone.utc) - timedelta(days=days)
+        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+        clauses.append("timestamp >= ?")
+        params.append(cutoff)
+
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
+    query += " ORDER BY timestamp DESC"
+
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def count_quotes(db_path: Optional[Path] = None) -> int:
+    """Total number of quotes."""
+    conn = _connect(db_path)
+    count = conn.execute("SELECT COUNT(*) FROM quotes").fetchone()[0]
+    conn.close()
+    return count
